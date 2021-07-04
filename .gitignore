@@ -12,9 +12,11 @@ compile_commands.json
 CTestTestfile.cmake
 _deps
 
-#Custom
-/build
+/build/**
 /bin
+/out
+#Custom
+
 
 # Visual Studio files and folder
 .vs/

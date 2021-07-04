@@ -7,7 +7,15 @@
 #include <glm/vec4.hpp>
 #include <glm/mat4x4.hpp>
 
+
 #include <iostream>
+
+
+#include "VK_RenderBackend.h"
+
+//No Application => Engine => Renderer => VK_RenderBackend class flow. Just building vk_renderbackend for now
+
+
 
 int main() {
     glfwInit();
@@ -28,9 +36,15 @@ int main() {
         glfwPollEvents();
     }
 
+    VK_RenderBackend::debugprint();
+    std::cout<<"Does this work"<<std::endl;
     glfwDestroyWindow(window);
 
     glfwTerminate();
+
+
+
+
 
     return 0;
 }
