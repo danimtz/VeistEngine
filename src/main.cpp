@@ -11,35 +11,37 @@
 #include <iostream>
 
 
-#include "VK_RenderBackend.h"
+#include "RenderBackend_VK.h"
 
 //No Application => Engine => Renderer => VK_RenderBackend class flow. Just building vk_renderbackend for now
 
 
 
 int main() {
+
+//Init window
     glfwInit();
-
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    GLFWwindow* window = glfwCreateWindow(800, 600, "Vulkan window", nullptr, nullptr);
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+    GLFWwindow* window = glfwCreateWindow(800, 600, "Vulkan", nullptr, nullptr);
 
-    uint32_t extensionCount = 0;
-    vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
+  
 
-    std::cout << extensionCount << " extensions supported\n";
+//Init vulkan
+    RenderBackend_VK vulkan_backend = {window};
+    vulkan_backend.init();
 
-    glm::mat4 matrix;
-    glm::vec4 vec;
-    auto test = matrix * vec;
-
+//Mainloop
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
     }
 
-    VK_RenderBackend::debugprint();
-    std::cout<<"Does this work"<<std::endl;
-    glfwDestroyWindow(window);
 
+//Cleanup Vulkan and window
+   
+
+    vulkan_backend.cleanup();
+    glfwDestroyWindow(window);
     glfwTerminate();
 
 
