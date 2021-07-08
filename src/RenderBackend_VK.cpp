@@ -244,6 +244,12 @@ void RenderBackend_VK::initContext_VK()
 
 	//Initialize swapchain
 	createSwapchain();
+
+	//Create command pool and command buffers
+	createCommandPoolAndBuffers();
+
+	//Create the default renderpass
+	createDefaultRenderPass();
 }
 
 
@@ -583,18 +589,147 @@ void RenderBackend_VK::createSwapchain()
 
 
 
-	//Create swapchain images and imageview
+	//Get swapchain images
+	vkGetSwapchainImagesKHR(m_device, m_swapchain, &image_count, nullptr);
+	m_swapchain_images.resize(image_count);
+	vkGetSwapchainImagesKHR(m_device, m_swapchain, &image_count, m_swapchain_images.data());
 
-			//TODO 
+	m_swapchain_extent = extent;
+	m_swapchain_format = surface_format.format;
+	m_swapchain_present_mode = present_mode;
+
+	//Create image views
+	m_swapchain_views.resize(m_swapchain_images.size());
+
+	for (size_t i = 0; i < m_swapchain_images.size(); i++) {
+		VkImageViewCreateInfo view_create_info = {};
+		view_create_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+		view_create_info.image = m_swapchain_images[i];
+		view_create_info.viewType = VK_IMAGE_VIEW_TYPE_2D;
+		view_create_info.format = m_swapchain_format;
+		view_create_info.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+		view_create_info.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+		view_create_info.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+		view_create_info.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+		view_create_info.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		view_create_info.subresourceRange.baseMipLevel = 0;
+		view_create_info.subresourceRange.levelCount = 1;
+		view_create_info.subresourceRange.baseArrayLayer = 0;
+		view_create_info.subresourceRange.layerCount = 1;
+		VK_CHECK(vkCreateImageView(m_device, &view_create_info, nullptr, &m_swapchain_views[i]));
+	}
+
+}
+
+
+void RenderBackend_VK::createCommandPoolAndBuffers() {
+
+	VkCommandPoolCreateInfo pool_create_info = {};
+	pool_create_info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+	pool_create_info.queueFamilyIndex = m_graphics_family_idx;
+	pool_create_info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+	pool_create_info.pNext = nullptr;
+
+	VK_CHECK(vkCreateCommandPool(m_device, &pool_create_info, nullptr, &m_command_pool));
+
+	m_command_buffers.resize(m_swapchain_views.size());//resize to number of buffers to be used (one for each framebuffer -> one for each imageview)
+
+	VkCommandBufferAllocateInfo buffer_create_info = {};
+	buffer_create_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+	buffer_create_info.pNext = nullptr;
+	buffer_create_info.commandPool = m_command_pool;
+	buffer_create_info.commandBufferCount = static_cast<uint32_t>(m_command_buffers.size()); 
+	buffer_create_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+
+	VK_CHECK(vkAllocateCommandBuffers(m_device, &buffer_create_info, m_command_buffers.data()));
 }
 
 
 
+void RenderBackend_VK::createDefaultRenderPass() 
+{
+
+	//Setup ccolour attachment
+	VkAttachmentDescription color_attachment = {};
+	color_attachment.format = m_swapchain_format;
+	color_attachment.samples = VK_SAMPLE_COUNT_1_BIT;//This can be used for MSAA
+	color_attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;//clear when loading attachment
+	color_attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+
+	color_attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+	color_attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+
+	color_attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	color_attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+	
+
+	//Ref to attchment
+	VkAttachmentReference color_attachment_ref = {};
+	color_attachment_ref.attachment = 0;
+	color_attachment_ref.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+
+	//Create 1 subpass
+	VkSubpassDescription subpass = {};
+	subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+	subpass.colorAttachmentCount = 1;
+	subpass.pColorAttachments = &color_attachment_ref;
+
+	//Create renderpass
+	VkRenderPassCreateInfo create_info = {};
+	create_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+
+	create_info.attachmentCount = 1; //connect attachment
+	create_info.pAttachments = &color_attachment;
+
+	create_info.subpassCount = 1; //connect subpass
+	create_info.pSubpasses = &subpass;
+
+	VK_CHECK(vkCreateRenderPass(m_device, &create_info, nullptr, &m_render_pass));
+
+}
+
+
+
+void RenderBackend_VK::createFramebuffers() 
+{
+	//framebuffers link renderpass to imageviews ->images from swapchain
+
+	VkFramebufferCreateInfo framebuffer_info = {};
+	framebuffer_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+	framebuffer_info.pNext = nullptr;
+
+	framebuffer_info.renderPass = m_render_pass;
+	framebuffer_info.attachmentCount = 1;
+	framebuffer_info.width = m_swapchain_extent.width;
+	framebuffer_info.height = m_swapchain_extent.height;
+	framebuffer_info.layers = 1;
+
+	//create a framebuffer for each swapchain image
+	const uint32_t swapchain_image_count = m_swapchain_images.size();
+	m_framebuffers.resize(swapchain_image_count);
+
+	for (int i = 0; i < swapchain_image_count; i++) {
+		framebuffer_info.pAttachments = &m_swapchain_views[i];
+		VK_CHECK(vkCreateFramebuffer(m_device, &framebuffer_info, nullptr, &m_framebuffers[i]));
+	}
+
+}
+
 
 void RenderBackend_VK::cleanup() {
 	
-	if (validation_layers_enabled) {
-		destroyDebugUtilsMessengerEXT(m_instance, m_debug_messenger, nullptr);
+	for (auto framebuffer : m_framebuffers) {
+		vkDestroyFramebuffer(m_device, framebuffer, nullptr);
+	}
+
+
+	vkDestroyRenderPass(m_device, m_render_pass, nullptr);
+
+	vkDestroyCommandPool(m_device, m_command_pool, nullptr);
+
+	for (auto image_view : m_swapchain_views) {
+		vkDestroyImageView(m_device, image_view, nullptr);
 	}
 
 	vkDestroySwapchainKHR(m_device, m_swapchain, nullptr);
@@ -602,6 +737,10 @@ void RenderBackend_VK::cleanup() {
 	vkDestroyDevice(m_device, nullptr);
 	
 	vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
+
+	if (validation_layers_enabled) {
+		destroyDebugUtilsMessengerEXT(m_instance, m_debug_messenger, nullptr);
+	}
 
 	vkDestroyInstance(m_instance, nullptr);
 
