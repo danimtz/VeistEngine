@@ -9,11 +9,11 @@
 
 
 #include <iostream>
+#include <memory>
 
+#include "Renderer/RenderBackend.h"
 
-#include "RenderBackend_VK.h"
-
-//No Application => Engine => Renderer => VK_RenderBackend class flow. Just building vk_renderbackend for now
+//Application => Engine => Renderer? , RendererBackend => VK_RenderBackend class flow
 
 
 
@@ -27,20 +27,24 @@ int main() {
 
   
 
-//Init vulkan
-    RenderBackend_VK vulkan_backend = {window};
-    vulkan_backend.init();
+//Init render backend
+    std::unique_ptr<RenderBackend> vulkan_backend = RenderBackend::CreateBackend(window);
+    vulkan_backend->init();
+
 
 //Mainloop
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
+        //Renderer::renderscene or update or whatever
+        vulkan_backend->RC_beginFrame();
+        vulkan_backend->RC_endFrame();
     }
 
 
 //Cleanup Vulkan and window
    
 
-    vulkan_backend.cleanup();
+    vulkan_backend->shutdown();
     glfwDestroyWindow(window);
     glfwTerminate();
 

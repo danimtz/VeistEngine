@@ -1,4 +1,4 @@
-#include "RenderBackend_VK.h"
+#include "Platform/Vulkan/RenderBackend_Vulkan.h"
 
 //Check VkResult macro. this can be replaced by error message/crash dump or throw exception
 #define VK_CHECK(x)														\
@@ -204,16 +204,16 @@ VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, GLFWwi
 
 /*
 ================================
-RenderBackend_VK implementation
+RenderBackend_Vulkan vulkan boilerplate implementation
 ================================
 */
 
-RenderBackend_VK::RenderBackend_VK(GLFWwindow* window) : m_glfw_window(window) {}
+RenderBackend_Vulkan::RenderBackend_Vulkan(GLFWwindow* window) : m_glfw_window(window) {}
 
 
 
 
-void RenderBackend_VK::init()
+void RenderBackend_Vulkan::init()
 {
 
 	//Initialize vulkan context (instance devices queues)
@@ -224,7 +224,7 @@ void RenderBackend_VK::init()
 
 
 
-void RenderBackend_VK::initContext_VK()
+void RenderBackend_Vulkan::initContext_VK()
 {
 
 	//Create vulkan intance
@@ -250,13 +250,21 @@ void RenderBackend_VK::initContext_VK()
 
 	//Create the default renderpass
 	createDefaultRenderPass();
+
+	//Create the framebufffers
+	createFramebuffers();
+
+	//Create synchronisation structures
+	createSemaphoresAndFences();
+
+	m_isInitialized = true;
 }
 
 
 
 
 
-void RenderBackend_VK::createInstance() 
+void RenderBackend_Vulkan::createInstance() 
 {
 	if (validation_layers_enabled && !checkValidationLayerSupport()) {
 		CRITICAL_ERROR_LOG("Validation layers requested but not availible");
@@ -315,7 +323,7 @@ void RenderBackend_VK::createInstance()
 
 
 
-void RenderBackend_VK::setupDebugMessenger()
+void RenderBackend_Vulkan::setupDebugMessenger()
 {
 	if(!validation_layers_enabled) return;
 
@@ -327,7 +335,7 @@ void RenderBackend_VK::setupDebugMessenger()
 
 
 
-void RenderBackend_VK::createSurface() 
+void RenderBackend_Vulkan::createSurface() 
 {
 	VkWin32SurfaceCreateInfoKHR create_info = {};
 	create_info.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
@@ -340,7 +348,7 @@ void RenderBackend_VK::createSurface()
 
 
 
-void RenderBackend_VK::choosePhysicalDevice()
+void RenderBackend_Vulkan::choosePhysicalDevice()
 {
 
 	uint32_t device_count = 0;
@@ -492,7 +500,7 @@ void RenderBackend_VK::choosePhysicalDevice()
 
 
 
-void RenderBackend_VK::createDeviceAndQueues()
+void RenderBackend_Vulkan::createDeviceAndQueues()
 {
 
 	std::vector<VkDeviceQueueCreateInfo> queue_create_infos;
@@ -543,7 +551,7 @@ void RenderBackend_VK::createDeviceAndQueues()
 
 
 
-void RenderBackend_VK::createSwapchain()
+void RenderBackend_Vulkan::createSwapchain()
 {
 
 	GPUinfo_t &gpu = m_gpu_info;
@@ -622,7 +630,7 @@ void RenderBackend_VK::createSwapchain()
 }
 
 
-void RenderBackend_VK::createCommandPoolAndBuffers() {
+void RenderBackend_Vulkan::createCommandPoolAndBuffers() {
 
 	VkCommandPoolCreateInfo pool_create_info = {};
 	pool_create_info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -646,7 +654,7 @@ void RenderBackend_VK::createCommandPoolAndBuffers() {
 
 
 
-void RenderBackend_VK::createDefaultRenderPass() 
+void RenderBackend_Vulkan::createDefaultRenderPass() 
 {
 
 	//Setup ccolour attachment
@@ -691,7 +699,7 @@ void RenderBackend_VK::createDefaultRenderPass()
 
 
 
-void RenderBackend_VK::createFramebuffers() 
+void RenderBackend_Vulkan::createFramebuffers() 
 {
 	//framebuffers link renderpass to imageviews ->images from swapchain
 
@@ -717,7 +725,30 @@ void RenderBackend_VK::createFramebuffers()
 }
 
 
-void RenderBackend_VK::cleanup() {
+void RenderBackend_Vulkan::createSemaphoresAndFences() 
+{
+	//create fence
+	VkFenceCreateInfo fence_create_info = {};
+	fence_create_info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+	fence_create_info.pNext = nullptr;
+
+	fence_create_info.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+
+	VK_CHECK(vkCreateFence(m_device, &fence_create_info, nullptr, &m_render_fence));
+
+
+	//create semaphore
+	VkSemaphoreCreateInfo semaphore_create_info = {};
+	semaphore_create_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+	semaphore_create_info.pNext = nullptr;
+	semaphore_create_info.flags = 0;
+
+	VK_CHECK(vkCreateSemaphore(m_device, &semaphore_create_info, nullptr, &m_present_semaphore));
+	VK_CHECK(vkCreateSemaphore(m_device, &semaphore_create_info, nullptr, &m_render_semaphore));
+}
+
+
+void RenderBackend_Vulkan::shutdown() {
 	
 	for (auto framebuffer : m_framebuffers) {
 		vkDestroyFramebuffer(m_device, framebuffer, nullptr);
@@ -744,4 +775,118 @@ void RenderBackend_VK::cleanup() {
 
 	vkDestroyInstance(m_instance, nullptr);
 
+}
+
+
+
+/*
+=====================================
+RenderBackend_Vulkan Rencer commands
+=====================================
+*/
+
+void RenderBackend_Vulkan::RC_beginFrame() 
+{
+
+	//Wait for GPU to finish last frame
+	VK_CHECK(vkWaitForFences(m_device, 1, &m_render_fence, true, 1000000000)); //1 second timeout 1000000000ns
+	VK_CHECK(vkResetFences(m_device, 1, &m_render_fence));
+
+	//request next image from swapchain, 1 second timeout
+	
+	VK_CHECK(vkAcquireNextImageKHR(m_device, m_swapchain, 1000000000, m_present_semaphore, nullptr, &m_swapchain_img_idx));
+
+	//Reset command buffer (past fence so we know commands finished executing)
+	VK_CHECK(vkResetCommandBuffer(m_command_buffers[m_swapchain_img_idx], 0));
+
+
+	VkCommandBuffer cmd_buffer = m_command_buffers[m_swapchain_img_idx];
+
+	VkCommandBufferBeginInfo cmd_buffer_begin_info = {};
+	cmd_buffer_begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	cmd_buffer_begin_info.pNext = nullptr;
+	cmd_buffer_begin_info.pInheritanceInfo = nullptr;
+	cmd_buffer_begin_info.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT; //Set it to VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT if command buffer is being reset i think
+
+	VK_CHECK(vkBeginCommandBuffer(cmd_buffer, &cmd_buffer_begin_info));
+
+
+
+	//begin main renderpass
+	
+	VkRenderPassBeginInfo render_pass_begin_info = {};
+	render_pass_begin_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+	render_pass_begin_info.pNext = nullptr;
+
+	render_pass_begin_info.renderPass = m_render_pass;
+	render_pass_begin_info.renderArea.offset.x = 0;
+	render_pass_begin_info.renderArea.offset.y = 0;
+	render_pass_begin_info.renderArea.extent = m_swapchain_extent;
+	render_pass_begin_info.framebuffer = m_framebuffers[m_swapchain_img_idx];
+
+
+	VkClearValue clear_value;
+	float flashing = std::abs(std::sin(m_frame_number / 200.f)); //Flash with 120pi frame period
+	clear_value.color = { {0.0f, 0.0f, flashing, 1.0f} };
+	render_pass_begin_info.clearValueCount = 1;
+	render_pass_begin_info.pClearValues = &clear_value;
+
+	vkCmdBeginRenderPass(cmd_buffer, &render_pass_begin_info, VK_SUBPASS_CONTENTS_INLINE);
+
+
+}
+
+
+void RenderBackend_Vulkan::RC_endFrame()
+{
+
+	VkCommandBuffer cmd_buffer = m_command_buffers[m_swapchain_img_idx];
+
+	vkCmdEndRenderPass(cmd_buffer);
+	VK_CHECK(vkEndCommandBuffer(cmd_buffer));
+
+
+	//Prepare queue submission
+	
+
+	VkSubmitInfo submit_info = {};
+	submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	submit_info.pNext = nullptr;
+
+	VkPipelineStageFlags wait_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+
+	submit_info.pWaitDstStageMask = &wait_stage;
+
+	//Wait on the m_present_semaphore, that semaphore is sgnallled when swapchain ready
+	submit_info.waitSemaphoreCount = 1;
+	submit_info.pWaitSemaphores = &m_present_semaphore;
+
+	//Signal the m_render_semaphore, to signal that rendering has finished
+	submit_info.signalSemaphoreCount = 1;
+	submit_info.pSignalSemaphores = &m_render_semaphore;
+
+	submit_info.commandBufferCount = 1;
+	submit_info.pCommandBuffers = &cmd_buffer;
+
+	//Sumbit command buffer to queue and execute. m_render_fence will block until commands finish
+	VK_CHECK(vkQueueSubmit(m_graphics_queue, 1, &submit_info, m_render_fence));
+
+
+	//Put image on visible window. Must wait on m_render_semaphore to ensure that drawing commands have finished
+	VkPresentInfoKHR present_info = {};
+	present_info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+	present_info.pNext = nullptr;
+
+	present_info.pSwapchains = &m_swapchain;
+	present_info.swapchainCount = 1;
+
+	present_info.pWaitSemaphores = &m_render_semaphore;
+	present_info.waitSemaphoreCount = 1;
+
+	present_info.pImageIndices = &m_swapchain_img_idx;
+
+	VK_CHECK(vkQueuePresentKHR(m_graphics_queue, &present_info));
+
+	//Increment frame counter
+	m_frame_number++;
 }

@@ -10,8 +10,11 @@
 #include <vector>
 #include <map>
 #include <set>
+#include <cmath>
 #include <algorithm>
 #include "Logger.h"
+
+#include "Renderer/RenderBackend.h"
 
 
 struct GPUinfo_t {
@@ -28,12 +31,18 @@ struct GPUinfo_t {
 
 
 
-class RenderBackend_VK { /*: RenderBackend*/// VK_RenderBackend should extend a general backend class to allow other apis
+class RenderBackend_Vulkan : public RenderBackend { 
 public:
-    RenderBackend_VK() = delete;
-    RenderBackend_VK(GLFWwindow* window);
-    void init();
-    void cleanup();
+
+    RenderBackend_Vulkan(GLFWwindow* window);
+    virtual void init() override;
+    virtual void shutdown() override;
+
+
+private://render commands/functions that use vulkan commands
+
+    virtual void RC_beginFrame() override;
+    virtual void RC_endFrame() override;
 
 private://main vulkan setup
     void initContext_VK();
@@ -46,6 +55,7 @@ private://main vulkan setup
     void createCommandPoolAndBuffers();
     void createDefaultRenderPass();
     void createFramebuffers();
+    void createSemaphoresAndFences();
 
 private:
     GLFWwindow*                     m_glfw_window; //could be abstracted to use different library other than glfw, hard coded for now
@@ -68,13 +78,18 @@ private:
     VkPresentModeKHR                m_swapchain_present_mode;
     std::vector<VkImage>            m_swapchain_images;
     std::vector<VkImageView>        m_swapchain_views;
+    uint32_t                        m_swapchain_img_idx;
 
     VkCommandPool                   m_command_pool;
     std::vector<VkCommandBuffer>    m_command_buffers;
 
+    VkSemaphore                     m_present_semaphore, m_render_semaphore;
+    VkFence                         m_render_fence;
+
+    unsigned int                    m_frame_number{0};
 
     std::vector<const char*>    m_device_extensions;
     std::vector<const char*>    m_validation_layers;
 
-
+    bool                        m_isInitialized{false};
 };
