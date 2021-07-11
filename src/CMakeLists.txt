@@ -12,4 +12,4 @@ target_link_libraries(${PROJECT_NAME} vma glm imgui stb_image)
 target_link_libraries(${PROJECT_NAME} glfw)
 target_link_libraries(${PROJECT_NAME} Vulkan::Vulkan glfw)
 
-add_dependencies(${PROJECT_NAME} Shaders)
+#add_dependencies(${PROJECT_NAME} Shaders)

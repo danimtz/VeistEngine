@@ -69,8 +69,10 @@ private:
     VkQueue                         m_present_queue;
     VkSurfaceKHR                    m_surface;
 
+ 
     VkRenderPass                    m_render_pass;//default renderpass
     std::vector<VkFramebuffer>      m_framebuffers;
+
 
     VkSwapchainKHR                  m_swapchain;
     VkFormat                        m_swapchain_format;
@@ -80,13 +82,17 @@ private:
     std::vector<VkImageView>        m_swapchain_views;
     uint32_t                        m_swapchain_img_idx;
 
+
     VkCommandPool                   m_command_pool;
     std::vector<VkCommandBuffer>    m_command_buffers;
+
 
     VkSemaphore                     m_present_semaphore, m_render_semaphore;
     VkFence                         m_render_fence;
 
+
     unsigned int                    m_frame_number{0};
+
 
     std::vector<const char*>    m_device_extensions;
     std::vector<const char*>    m_validation_layers;

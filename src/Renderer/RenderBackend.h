@@ -1,5 +1,8 @@
 #pragma once
 
+
+
+//Vulkan abstraction class. Gonna leave it like this for now until I understand more about how vulkan works. May rewrite it completely later
 class RenderBackend { 
 public:
 

@@ -36,20 +36,16 @@ int main() {
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
         //Renderer::renderscene or update or whatever
-        vulkan_backend->RC_beginFrame();
-        vulkan_backend->RC_endFrame();
+            vulkan_backend->RC_beginFrame();
+            //draw commands
+            vulkan_backend->RC_endFrame();
     }
 
 
 //Cleanup Vulkan and window
-   
-
     vulkan_backend->shutdown();
     glfwDestroyWindow(window);
     glfwTerminate();
-
-
-
 
 
     return 0;

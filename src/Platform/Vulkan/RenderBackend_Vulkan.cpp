@@ -750,31 +750,41 @@ void RenderBackend_Vulkan::createSemaphoresAndFences()
 
 void RenderBackend_Vulkan::shutdown() {
 	
-	for (auto framebuffer : m_framebuffers) {
-		vkDestroyFramebuffer(m_device, framebuffer, nullptr);
-	}
+	if(m_isInitialized){
+		
+		vkWaitForFences(m_device, 1, &m_render_fence, true, 1000000000);
+
+		vkDestroySemaphore(m_device, m_present_semaphore, nullptr);
+		vkDestroySemaphore(m_device, m_render_semaphore, nullptr);
+
+		vkDestroyFence(m_device, m_render_fence, nullptr);
 
 
-	vkDestroyRenderPass(m_device, m_render_pass, nullptr);
+		for (auto framebuffer : m_framebuffers) {
+			vkDestroyFramebuffer(m_device, framebuffer, nullptr);
+		}
 
-	vkDestroyCommandPool(m_device, m_command_pool, nullptr);
 
-	for (auto image_view : m_swapchain_views) {
-		vkDestroyImageView(m_device, image_view, nullptr);
-	}
+		vkDestroyRenderPass(m_device, m_render_pass, nullptr);
 
-	vkDestroySwapchainKHR(m_device, m_swapchain, nullptr);
+		vkDestroyCommandPool(m_device, m_command_pool, nullptr);
 
-	vkDestroyDevice(m_device, nullptr);
+		for (auto image_view : m_swapchain_views) {
+			vkDestroyImageView(m_device, image_view, nullptr);
+		}
+
+		vkDestroySwapchainKHR(m_device, m_swapchain, nullptr);
+
+		vkDestroyDevice(m_device, nullptr);
 	
-	vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
+		vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
 
-	if (validation_layers_enabled) {
-		destroyDebugUtilsMessengerEXT(m_instance, m_debug_messenger, nullptr);
+		if (validation_layers_enabled) {
+			destroyDebugUtilsMessengerEXT(m_instance, m_debug_messenger, nullptr);
+		}
+
+		vkDestroyInstance(m_instance, nullptr);
 	}
-
-	vkDestroyInstance(m_instance, nullptr);
-
 }
 
 
@@ -826,8 +836,8 @@ void RenderBackend_Vulkan::RC_beginFrame()
 
 
 	VkClearValue clear_value;
-	float flashing = std::abs(std::sin(m_frame_number / 200.f)); //Flash with 120pi frame period
-	clear_value.color = { {0.0f, 0.0f, flashing, 1.0f} };
+	float flashing = std::abs(0.5*std::sin(m_frame_number / 300.f)); //Flash with 120pi frame period
+	clear_value.color = { {flashing, 0.0f, flashing, 1.0f} };
 	render_pass_begin_info.clearValueCount = 1;
 	render_pass_begin_info.pClearValues = &clear_value;
 
