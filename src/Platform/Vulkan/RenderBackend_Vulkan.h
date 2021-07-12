@@ -1,10 +1,13 @@
 #pragma once
 
+
 #define VK_USE_PLATFORM_WIN32_KHR
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3native.h>
+
+#include <vulkan/vulkan.h>
 
 #include <iostream>
 #include <vector>
@@ -34,15 +37,19 @@ struct GPUinfo_t {
 class RenderBackend_Vulkan : public RenderBackend { 
 public:
 
-    RenderBackend_Vulkan(GLFWwindow* window);
-    virtual void init() override;
+    virtual void init(GLFWwindow* window) override;
     virtual void shutdown() override;
 
+    //Void pointers to work with abstraction. Needs static cast when called
+    virtual void* getDevice() override { return m_device; }; 
+    virtual void* getSwapchainExtent() override { return &m_swapchain_extent; };
+    virtual void* getRenderPass() override { return m_render_pass; };
 
-private://render commands/functions that use vulkan commands
-
+//render commands/functions that use vulkan commands
     virtual void RC_beginFrame() override;
     virtual void RC_endFrame() override;
+    virtual void RC_bindGraphicsPipeline(GraphicsPipeline *pipeline) override;
+    virtual void RC_drawSumbit() override;
 
 private://main vulkan setup
     void initContext_VK();

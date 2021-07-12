@@ -1,20 +1,5 @@
 #include "Platform/Vulkan/RenderBackend_Vulkan.h"
 
-//Check VkResult macro. this can be replaced by error message/crash dump or throw exception
-#define VK_CHECK(x)														\
-	do																	\
-	{																	\
-		VkResult err = x;												\
-		if (err)														\
-		{																\
-			std::cout <<"Detected Vulkan error: " << err << std::endl;	\
-			abort();													\
-		}																\
-	} while (0)
-
-
-
-
 
 
 #ifdef NDEBUG
@@ -208,14 +193,12 @@ RenderBackend_Vulkan vulkan boilerplate implementation
 ================================
 */
 
-RenderBackend_Vulkan::RenderBackend_Vulkan(GLFWwindow* window) : m_glfw_window(window) {}
 
 
-
-
-void RenderBackend_Vulkan::init()
+void RenderBackend_Vulkan::init(GLFWwindow* window)
 {
 
+	m_glfw_window = window;
 	//Initialize vulkan context (instance devices queues)
 	initContext_VK();
 	
@@ -899,4 +882,20 @@ void RenderBackend_Vulkan::RC_endFrame()
 
 	//Increment frame counter
 	m_frame_number++;
+}
+
+
+void RenderBackend_Vulkan::RC_bindGraphicsPipeline(GraphicsPipeline *pipeline)
+{
+	VkCommandBuffer cmd_buffer = m_command_buffers[m_swapchain_img_idx];
+
+	VkPipeline vulkan_pipeline = static_cast<VkPipeline>(pipeline->getPipeline());
+	vkCmdBindPipeline(cmd_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkan_pipeline);
+
+}
+
+void RenderBackend_Vulkan::RC_drawSumbit()
+{
+	VkCommandBuffer cmd_buffer = m_command_buffers[m_swapchain_img_idx];
+	vkCmdDraw(cmd_buffer, 3, 1, 0, 0);
 }

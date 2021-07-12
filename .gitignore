@@ -12,10 +12,23 @@ compile_commands.json
 CTestTestfile.cmake
 _deps
 
+#Cmake generated glfw
+vendor/glfw-3.3.4/cmake_uninstall.cmake
+vendor/glfw-3.3.4/src/glfw3.pc
+vendor/glfw-3.3.4/src/glfw3Config.cmake
+vendor/glfw-3.3.4/src/glfw3ConfigVersion.cmake
+vendor/glfw-3.3.4/src/glfw_config.h
+vendor/Debug/
+vendor/glfw-3.3.4/src/Debug/
+vendor/glfw-3.3.4/src/glfw.dir/
+vendor/imgui.dir/
+x64/
+
 /build/**
 /bin
 /out
-#Custom
+
+
 
 
 # Visual Studio files and folder

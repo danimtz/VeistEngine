@@ -1,0 +1,5 @@
+﻿  ForwardRenderer.cpp
+  RenderBackend.cpp
+  main.cpp
+  Generating Code...
+  VulkanEngine.vcxproj -> C:\dev\VulkanEngine\bin\Debug\VulkanEngine.exe
