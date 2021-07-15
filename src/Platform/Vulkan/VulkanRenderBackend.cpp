@@ -1,4 +1,8 @@
-#include "Platform/Vulkan/RenderBackend_Vulkan.h"
+
+#include "Platform/Vulkan/VulkanRenderBackend.h"
+
+
+
 
 
 
@@ -189,13 +193,13 @@ VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, GLFWwi
 
 /*
 ================================
-RenderBackend_Vulkan vulkan boilerplate implementation
+VulkanRenderBackend vulkan boilerplate implementation
 ================================
 */
 
 
 
-void RenderBackend_Vulkan::init(GLFWwindow* window)
+void VulkanRenderBackend::init(GLFWwindow* window)
 {
 
 	m_glfw_window = window;
@@ -207,7 +211,7 @@ void RenderBackend_Vulkan::init(GLFWwindow* window)
 
 
 
-void RenderBackend_Vulkan::initContext_VK()
+void VulkanRenderBackend::initContext_VK()
 {
 
 	//Create vulkan intance
@@ -224,6 +228,9 @@ void RenderBackend_Vulkan::initContext_VK()
 
 	//Create logical device and queues
 	createDeviceAndQueues();
+
+	//Create vma allocator
+	createVmaAllocator();
 
 	//Initialize swapchain
 	createSwapchain();
@@ -247,7 +254,7 @@ void RenderBackend_Vulkan::initContext_VK()
 
 
 
-void RenderBackend_Vulkan::createInstance() 
+void VulkanRenderBackend::createInstance() 
 {
 	if (validation_layers_enabled && !checkValidationLayerSupport()) {
 		CRITICAL_ERROR_LOG("Validation layers requested but not availible");
@@ -306,7 +313,7 @@ void RenderBackend_Vulkan::createInstance()
 
 
 
-void RenderBackend_Vulkan::setupDebugMessenger()
+void VulkanRenderBackend::setupDebugMessenger()
 {
 	if(!validation_layers_enabled) return;
 
@@ -318,7 +325,7 @@ void RenderBackend_Vulkan::setupDebugMessenger()
 
 
 
-void RenderBackend_Vulkan::createSurface() 
+void VulkanRenderBackend::createSurface() 
 {
 	VkWin32SurfaceCreateInfoKHR create_info = {};
 	create_info.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
@@ -331,7 +338,7 @@ void RenderBackend_Vulkan::createSurface()
 
 
 
-void RenderBackend_Vulkan::choosePhysicalDevice()
+void VulkanRenderBackend::choosePhysicalDevice()
 {
 
 	uint32_t device_count = 0;
@@ -483,7 +490,7 @@ void RenderBackend_Vulkan::choosePhysicalDevice()
 
 
 
-void RenderBackend_Vulkan::createDeviceAndQueues()
+void VulkanRenderBackend::createDeviceAndQueues()
 {
 
 	std::vector<VkDeviceQueueCreateInfo> queue_create_infos;
@@ -534,7 +541,19 @@ void RenderBackend_Vulkan::createDeviceAndQueues()
 
 
 
-void RenderBackend_Vulkan::createSwapchain()
+void VulkanRenderBackend::createVmaAllocator()
+{
+	VmaAllocatorCreateInfo allocator_info = {};
+	allocator_info.physicalDevice = m_gpu_info.device;
+	allocator_info.device = m_device;
+	allocator_info.instance = m_instance;
+	vmaCreateAllocator(&allocator_info, &m_allocator);
+}
+
+
+
+
+void VulkanRenderBackend::createSwapchain()
 {
 
 	GPUinfo_t &gpu = m_gpu_info;
@@ -613,7 +632,7 @@ void RenderBackend_Vulkan::createSwapchain()
 }
 
 
-void RenderBackend_Vulkan::createCommandPoolAndBuffers() {
+void VulkanRenderBackend::createCommandPoolAndBuffers() {
 
 	VkCommandPoolCreateInfo pool_create_info = {};
 	pool_create_info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -637,7 +656,7 @@ void RenderBackend_Vulkan::createCommandPoolAndBuffers() {
 
 
 
-void RenderBackend_Vulkan::createDefaultRenderPass() 
+void VulkanRenderBackend::createDefaultRenderPass() 
 {
 
 	//Setup ccolour attachment
@@ -682,7 +701,7 @@ void RenderBackend_Vulkan::createDefaultRenderPass()
 
 
 
-void RenderBackend_Vulkan::createFramebuffers() 
+void VulkanRenderBackend::createFramebuffers() 
 {
 	//framebuffers link renderpass to imageviews ->images from swapchain
 
@@ -708,7 +727,7 @@ void RenderBackend_Vulkan::createFramebuffers()
 }
 
 
-void RenderBackend_Vulkan::createSemaphoresAndFences() 
+void VulkanRenderBackend::createSemaphoresAndFences() 
 {
 	//create fence
 	VkFenceCreateInfo fence_create_info = {};
@@ -731,11 +750,19 @@ void RenderBackend_Vulkan::createSemaphoresAndFences()
 }
 
 
-void RenderBackend_Vulkan::shutdown() {
+void VulkanRenderBackend::pushToDeletionQueue(std::function<void()> function) {
+
+	m_deletion_queue.pushFunction(function);
+
+}
+
+void VulkanRenderBackend::shutdown() {
 	
 	if(m_isInitialized){
 		
 		vkWaitForFences(m_device, 1, &m_render_fence, true, 1000000000);
+
+		m_deletion_queue.executeDeletionQueue(); //maybe add the rest to the deletion queue
 
 		vkDestroySemaphore(m_device, m_present_semaphore, nullptr);
 		vkDestroySemaphore(m_device, m_render_semaphore, nullptr);
@@ -747,7 +774,7 @@ void RenderBackend_Vulkan::shutdown() {
 			vkDestroyFramebuffer(m_device, framebuffer, nullptr);
 		}
 
-
+		
 		vkDestroyRenderPass(m_device, m_render_pass, nullptr);
 
 		vkDestroyCommandPool(m_device, m_command_pool, nullptr);
@@ -757,6 +784,8 @@ void RenderBackend_Vulkan::shutdown() {
 		}
 
 		vkDestroySwapchainKHR(m_device, m_swapchain, nullptr);
+
+		vmaDestroyAllocator(m_allocator);
 
 		vkDestroyDevice(m_device, nullptr);
 	
@@ -774,11 +803,11 @@ void RenderBackend_Vulkan::shutdown() {
 
 /*
 =====================================
-RenderBackend_Vulkan Rencer commands
+VulkanRenderBackend Rencer commands
 =====================================
 */
 
-void RenderBackend_Vulkan::RC_beginFrame() 
+void VulkanRenderBackend::RC_beginFrame()
 {
 
 	//Wait for GPU to finish last frame
@@ -819,8 +848,7 @@ void RenderBackend_Vulkan::RC_beginFrame()
 
 
 	VkClearValue clear_value;
-	float flashing = std::abs(0.5*std::sin(m_frame_number / 300.f)); //Flash with 120pi frame period
-	clear_value.color = { {flashing, 0.0f, flashing, 1.0f} };
+	clear_value.color = { {1.0f, 0.0f, 1.0f, 1.0f} };
 	render_pass_begin_info.clearValueCount = 1;
 	render_pass_begin_info.pClearValues = &clear_value;
 
@@ -830,7 +858,7 @@ void RenderBackend_Vulkan::RC_beginFrame()
 }
 
 
-void RenderBackend_Vulkan::RC_endFrame()
+void VulkanRenderBackend::RC_endFrame() 
 {
 
 	VkCommandBuffer cmd_buffer = m_command_buffers[m_swapchain_img_idx];
@@ -885,7 +913,7 @@ void RenderBackend_Vulkan::RC_endFrame()
 }
 
 
-void RenderBackend_Vulkan::RC_bindGraphicsPipeline(GraphicsPipeline *pipeline)
+void VulkanRenderBackend::RC_bindGraphicsPipeline(const std::shared_ptr<GraphicsPipeline> pipeline) const
 {
 	VkCommandBuffer cmd_buffer = m_command_buffers[m_swapchain_img_idx];
 
@@ -894,8 +922,19 @@ void RenderBackend_Vulkan::RC_bindGraphicsPipeline(GraphicsPipeline *pipeline)
 
 }
 
-void RenderBackend_Vulkan::RC_drawSumbit()
+void VulkanRenderBackend::RC_bindVertexBuffer(const std::shared_ptr<VertexBuffer> vertex_buffer) const
 {
 	VkCommandBuffer cmd_buffer = m_command_buffers[m_swapchain_img_idx];
-	vkCmdDraw(cmd_buffer, 3, 1, 0, 0);
+
+	VkBuffer buffer = static_cast<VkBuffer>(vertex_buffer->getBuffer());
+	
+
+	VkDeviceSize offset = 0;
+	vkCmdBindVertexBuffers(cmd_buffer, 0, 1, &buffer, &offset);
+}
+
+void VulkanRenderBackend::RC_drawSumbit(uint32_t size) const
+{
+	VkCommandBuffer cmd_buffer = m_command_buffers[m_swapchain_img_idx];
+	vkCmdDraw(cmd_buffer, size, 1, 0, 0);
 }

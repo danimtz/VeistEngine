@@ -1,5 +1,6 @@
-﻿  ForwardRenderer.cpp
-  RenderBackend.cpp
-  main.cpp
+﻿  VulkanBuffer.cpp
+C:\dev\VulkanEngine\src\Renderer/Buffer.h(66,1): warning C4267: '=': conversion from 'size_t' to 'uint32_t', possible loss of data
+  Buffer.cpp
+C:\dev\VulkanEngine\src\Renderer\Buffer.h(66,1): warning C4267: '=': conversion from 'size_t' to 'uint32_t', possible loss of data
   Generating Code...
   VulkanEngine.vcxproj -> C:\dev\VulkanEngine\bin\Debug\VulkanEngine.exe

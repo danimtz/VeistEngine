@@ -1,6 +1,8 @@
 #pragma once
 #include "Renderer/Renderer.h"
-#include "Platform/Vulkan/VulkanGraphicsPipeline.h"
+#include "Renderer/GraphicsPipeline.h"
+
+#include "Renderer/Mesh.h"
 
 //Not going to abstract vulkan for now from this class
 //C++ rule of 3 maybe. thought shouldnt be needed since Renderer/ForwardRenderer etc class is only used with unique ptr in RenderModule
@@ -16,7 +18,10 @@ public:
 
 private:
 
-	VulkanGraphicsPipeline* m_pipeline; 
+	std::shared_ptr<GraphicsPipeline> m_pipeline; 
 
+
+	//SHOULDNT BE HERE BUT IS FOR NOW UNTIL SCENE CLASS IS MADE:
+	Mesh test_mesh;
 };
 

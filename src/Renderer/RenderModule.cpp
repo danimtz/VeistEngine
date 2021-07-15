@@ -1,6 +1,8 @@
 #include "RenderModule.h"
 #include "Renderer/ForwardRenderer.h"
 
+
+
 std::unique_ptr<Renderer> RenderModule::s_renderer = nullptr;
 std::shared_ptr<RenderBackend> RenderModule::s_render_backend = nullptr;
 

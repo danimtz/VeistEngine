@@ -1,18 +1,25 @@
 #include "ForwardRenderer.h"
 
 
+
+
 void ForwardRenderer::init(std::shared_ptr<RenderBackend> backend)
 {
 	setRenderBackend(backend);
 	
-	m_pipeline = new VulkanGraphicsPipeline("triangle", "..\\..\\src\\Shaders\\"); 
+	VertexDescription vertex_desc = {0, {
+		{VertexAttributeType::Float3, "position"},
+		{VertexAttributeType::Float3, "normal"},
+		{VertexAttributeType::Float3, "color"} }};
 
-	//NOTE TO ME: PIPELINE LAYOUT, SHADER MODULES AND PIPELINE VKOBJEXTS NEED TO BE vkDestroyed BEFORE RENDER BACKEND DOES DESTRUCTION
+	m_pipeline = GraphicsPipeline::Create("triangle", "..\\..\\src\\Shaders\\", vertex_desc);
+
+	
 }
 
 ForwardRenderer::~ForwardRenderer()
 {
-	delete m_pipeline;
+
 }
 
 void ForwardRenderer::renderScene()
@@ -23,7 +30,9 @@ void ForwardRenderer::renderScene()
 	
 	m_render_backend->RC_bindGraphicsPipeline( m_pipeline );
 
-	m_render_backend->RC_drawSumbit();
+	m_render_backend->RC_bindVertexBuffer(test_mesh.getVertexBuffer());
+
+	m_render_backend->RC_drawSumbit(test_mesh.getVertexBuffer()->getSize());
 
 	m_render_backend->RC_endFrame();
 

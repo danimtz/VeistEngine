@@ -1,7 +1,8 @@
 #pragma once
 
-#include <memory>
+
 #include "Renderer/RenderBackend.h"
+#include <memory>
 
 class Renderer //Effectively an abstract class, but not abstract due to need of preinitialization
 {

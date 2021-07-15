@@ -1,26 +1,16 @@
 #version 450
 
 
-layout (location = 0) out vec3 vertColor;
+layout (location = 0) in vec3 vPosition;
+layout (location = 1) in vec3 vNormal;
+layout (location = 2) in vec3 vColor;
 
-vec3 positions[3] = vec3[3](
-	vec3(1.0, 1.0, 0.0),
-	vec3(-1.0, 1.0, 0.0),
-	vec3(0.0, -1.0, 0.0)
-);
-
-vec3 colors[3] = vec3[3](
-	vec3(1.0, 0.0, 0.0),
-	vec3(0.0, 1.0, 0.0),
-	vec3(0.0, 0.0, 1.0)
-);
+layout (location = 0) out vec3 outColor;
 
 void main()
 {
 	
-	
-
 	//output the position of each vertex
-	gl_Position = vec4(positions[gl_VertexIndex], 1.0f);
-	vertColor = colors[gl_VertexIndex];
+	gl_Position = vec4(vPosition, 1.0f);
+	outColor = vColor;
 }

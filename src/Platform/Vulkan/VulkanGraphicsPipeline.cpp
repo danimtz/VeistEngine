@@ -2,7 +2,9 @@
 #include "Platform/Vulkan/VulkanGraphicsPipeline.h"
 
 
-VulkanGraphicsPipeline::VulkanGraphicsPipeline(std::string shader_name, std::string folder_path, VkPrimitiveTopology topology,
+
+
+VulkanGraphicsPipeline::VulkanGraphicsPipeline(std::string shader_name, std::string folder_path, VertexDescription &vertex_desc, VkPrimitiveTopology topology,
 	VkPolygonMode polygon_mode, VkCullModeFlags cull_mode, VkFrontFace front_face) : 
 	m_topology(topology), 
 	m_polygon_mode(polygon_mode), 
@@ -18,6 +20,8 @@ VulkanGraphicsPipeline::VulkanGraphicsPipeline(std::string shader_name, std::str
 	CONSOLE_LOG("Loaded vertex shader");
 	createShaderProgram(filepath_frag.c_str(), VK_SHADER_STAGE_FRAGMENT_BIT);
 	CONSOLE_LOG("Loaded fragment shader");
+
+	setVertexInputDescriptions(vertex_desc);
 
 	createPipelineStates();
 	createPipelineLayout();
@@ -63,6 +67,7 @@ void VulkanGraphicsPipeline::createShaderProgram(const char* file_path, VkShader
 	VkShaderModule shader_module;
 	VkDevice device = static_cast<VkDevice>(RenderModule::getRenderBackend()->getDevice());
 	VK_CHECK(vkCreateShaderModule(device, &create_info, nullptr, &shader_module));
+	RenderModule::getRenderBackend()->pushToDeletionQueue([=]() {vkDestroyShaderModule(device, shader_module, nullptr); });
 	m_shader_module.push_back(shader_module);
 	
 
@@ -82,6 +87,52 @@ void VulkanGraphicsPipeline::createShaderProgram(const char* file_path, VkShader
 }
 
 
+void VulkanGraphicsPipeline::setVertexInputDescriptions(VertexDescription& vertex_desc) 
+{
+	//Parse Vertexdescription into vulkan vertex attribute and vertex binding descriptors
+
+	VkVertexInputBindingDescription binding_desc = {};
+	binding_desc.binding = vertex_desc.getBinding();
+	binding_desc.stride = vertex_desc.getStride();
+	binding_desc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+	m_vertex_bindings.push_back(binding_desc);
+
+	auto attributes = vertex_desc.getVertexAttrributes();
+
+	for (uint32_t i = 0; i < attributes.size(); i++) {
+
+		VkVertexInputAttributeDescription attribute_desc = {};
+		attribute_desc.binding = vertex_desc.getBinding();
+		attribute_desc.location = i;
+		attribute_desc.offset = attributes[i].m_offset;
+
+		switch (attributes[i].m_type) {
+			case VertexAttributeType::Float:	
+				attribute_desc.format = VK_FORMAT_R32_SFLOAT;
+				break;
+			case VertexAttributeType::Float2:	
+				attribute_desc.format = VK_FORMAT_R32G32_SFLOAT;
+				break;
+			case VertexAttributeType::Float3:	
+				attribute_desc.format = VK_FORMAT_R32G32B32_SFLOAT;
+				break;
+			case VertexAttributeType::Float4:	
+				attribute_desc.format = VK_FORMAT_R32G32B32A32_SFLOAT;
+				break;
+			default:
+				CRITICAL_ERROR_LOG("Vertex Attribute Type invalid on Pipeline creation");
+		}
+
+		m_vertex_attributes.push_back(attribute_desc);
+	}
+
+
+}
+
+
+
+
 
 void VulkanGraphicsPipeline::createPipelineStates()
 {
@@ -91,9 +142,13 @@ void VulkanGraphicsPipeline::createPipelineStates()
 	m_vertex_input_info.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 	m_vertex_input_info.pNext = nullptr;
 
-	//no vertex bindings or attributes
-	m_vertex_input_info.vertexBindingDescriptionCount = 0;
-	m_vertex_input_info.vertexAttributeDescriptionCount = 0;
+
+	m_vertex_input_info.vertexBindingDescriptionCount = m_vertex_bindings.size();
+	m_vertex_input_info.pVertexBindingDescriptions = m_vertex_bindings.data();
+
+	m_vertex_input_info.vertexAttributeDescriptionCount = m_vertex_attributes.size();
+	m_vertex_input_info.pVertexAttributeDescriptions = m_vertex_attributes.data();
+
 
 
 
@@ -205,6 +260,7 @@ void VulkanGraphicsPipeline::createPipelineLayout()
 	
 	VkDevice device = static_cast<VkDevice>(RenderModule::getRenderBackend()->getDevice());
 	VK_CHECK(vkCreatePipelineLayout(device, &create_info, nullptr, &m_pipeline_layout));
+	RenderModule::getRenderBackend()->pushToDeletionQueue([=]() {vkDestroyPipelineLayout(device, m_pipeline_layout, nullptr); });
 }
 
 
@@ -234,4 +290,8 @@ void VulkanGraphicsPipeline::createPipeline()
 	if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipeline_info, nullptr, &m_pipeline) != VK_SUCCESS) {
 		CONSOLE_LOG("Pipeline creation FAILED!");
 	}
+	RenderModule::getRenderBackend()->pushToDeletionQueue(	[=](){
+		vkDestroyPipeline(device, m_pipeline, nullptr); 
+		m_pipeline = VK_NULL_HANDLE;
+	});
 }
