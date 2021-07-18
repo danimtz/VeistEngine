@@ -3,8 +3,19 @@
 
 
 
+VulkanGraphicsPipeline::VulkanGraphicsPipeline(std::string shader_name, std::string folder_path, const VertexDescription& vertex_desc, VkPrimitiveTopology topology,
+	VkPolygonMode polygon_mode, VkCullModeFlags cull_mode, VkFrontFace front_face) 
+{
+	VulkanGraphicsPipelineBuilder pipeline_builder = {shader_name, folder_path, vertex_desc, topology, polygon_mode, cull_mode, front_face};
 
-VulkanGraphicsPipeline::VulkanGraphicsPipeline(std::string shader_name, std::string folder_path, VertexDescription &vertex_desc, VkPrimitiveTopology topology,
+	m_pipeline = pipeline_builder.m_pipeline;
+	m_pipeline_layout = pipeline_builder.m_pipeline_layout;
+
+};
+
+
+
+VulkanGraphicsPipelineBuilder::VulkanGraphicsPipelineBuilder(std::string shader_name, std::string folder_path, const VertexDescription &vertex_desc, VkPrimitiveTopology topology,
 	VkPolygonMode polygon_mode, VkCullModeFlags cull_mode, VkFrontFace front_face) : 
 	m_topology(topology), 
 	m_polygon_mode(polygon_mode), 
@@ -30,7 +41,7 @@ VulkanGraphicsPipeline::VulkanGraphicsPipeline(std::string shader_name, std::str
 }
 
 
-void VulkanGraphicsPipeline::createShaderProgram(const char* file_path, VkShaderStageFlagBits stage)
+void VulkanGraphicsPipelineBuilder::createShaderProgram(const char* file_path, VkShaderStageFlagBits stage)
 {
 	
 	//open file with cursor at the end
@@ -87,7 +98,7 @@ void VulkanGraphicsPipeline::createShaderProgram(const char* file_path, VkShader
 }
 
 
-void VulkanGraphicsPipeline::setVertexInputDescriptions(VertexDescription& vertex_desc) 
+void VulkanGraphicsPipelineBuilder::setVertexInputDescriptions(const VertexDescription& vertex_desc)
 {
 	//Parse Vertexdescription into vulkan vertex attribute and vertex binding descriptors
 
@@ -134,7 +145,7 @@ void VulkanGraphicsPipeline::setVertexInputDescriptions(VertexDescription& verte
 
 
 
-void VulkanGraphicsPipeline::createPipelineStates()
+void VulkanGraphicsPipelineBuilder::createPipelineStates()
 {
 	////////////////////////////////////////
 	//Vertex input state (nothing for now)//
@@ -245,26 +256,36 @@ void VulkanGraphicsPipeline::createPipelineStates()
 }
 
 
-void VulkanGraphicsPipeline::createPipelineLayout()
+void VulkanGraphicsPipelineBuilder::createPipelineLayout()
 {
 	VkPipelineLayoutCreateInfo create_info{};
 	create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 	create_info.pNext = nullptr;
 
-	//empty defaults for now
+	//Add pushconstant from MatrixPushConstant struct in graphicspipeline.h TEMPORARY, WILL NEED REFACTORING LATER ON
+	//setup push constants
+	VkPushConstantRange push_constant;
+	push_constant.offset = 0;
+	push_constant.size = sizeof(MatrixPushConstant);
+	push_constant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+
+	create_info.pushConstantRangeCount = 1;
+	create_info.pPushConstantRanges = &push_constant;
+
 	create_info.flags = 0;
 	create_info.setLayoutCount = 0;
 	create_info.pSetLayouts = nullptr;
-	create_info.pushConstantRangeCount = 0;
-	create_info.pPushConstantRanges = nullptr;
+	
 	
 	VkDevice device = static_cast<VkDevice>(RenderModule::getRenderBackend()->getDevice());
-	VK_CHECK(vkCreatePipelineLayout(device, &create_info, nullptr, &m_pipeline_layout));
-	RenderModule::getRenderBackend()->pushToDeletionQueue([=]() {vkDestroyPipelineLayout(device, m_pipeline_layout, nullptr); });
+	VkPipelineLayout layout;
+	VK_CHECK(vkCreatePipelineLayout(device, &create_info, nullptr, &layout));
+	m_pipeline_layout = layout;
+	RenderModule::getRenderBackend()->pushToDeletionQueue([device, layout]() {vkDestroyPipelineLayout(device, layout, nullptr); });
 }
 
 
-void VulkanGraphicsPipeline::createPipeline()
+void VulkanGraphicsPipelineBuilder::createPipeline()
 {
 	VkDevice device = static_cast<VkDevice>(RenderModule::getRenderBackend()->getDevice());
 	VkRenderPass render_pass = static_cast<VkRenderPass>(RenderModule::getRenderBackend()->getRenderPass());
@@ -287,11 +308,12 @@ void VulkanGraphicsPipeline::createPipeline()
 	pipeline_info.basePipelineHandle = VK_NULL_HANDLE;
 
 	//pipeline cahce is VK_NULL_HANDLE for now
-	if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipeline_info, nullptr, &m_pipeline) != VK_SUCCESS) {
+	VkPipeline pipeline;
+	if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipeline_info, nullptr, &pipeline) != VK_SUCCESS) {
 		CONSOLE_LOG("Pipeline creation FAILED!");
 	}
-	RenderModule::getRenderBackend()->pushToDeletionQueue(	[=](){
-		vkDestroyPipeline(device, m_pipeline, nullptr); 
-		m_pipeline = VK_NULL_HANDLE;
+	m_pipeline = pipeline; 
+	RenderModule::getRenderBackend()->pushToDeletionQueue(	[device, pipeline](){
+		vkDestroyPipeline(device, pipeline, nullptr); 
 	});
 }

@@ -6,9 +6,9 @@
 #include <vector>
 #include <memory>
 #include <string>
-
 #include <glm/glm.hpp>
 
+#include "Util/AssetLoader.h"
 
 struct Vertex
 {
@@ -25,16 +25,16 @@ class Mesh
 public:
 	
 	Mesh();
-	Mesh(std::string mesh_filepath){};
+	Mesh(const char* mesh_filepath);
 
-	void loadMeshFromFile(std::string mesh_filepath){};
 
 	std::shared_ptr<VertexBuffer> getVertexBuffer() { return m_vertex_buffer; };
+	std::shared_ptr<IndexBuffer> getIndexBuffer() { return m_index_buffer; };
 
 private:
 
 	std::vector<Vertex>				m_vertices;
 	std::shared_ptr<VertexBuffer>	m_vertex_buffer;
-
+	std::shared_ptr<IndexBuffer>	m_index_buffer;
 };
 

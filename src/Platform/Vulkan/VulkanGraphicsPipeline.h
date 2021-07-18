@@ -8,19 +8,42 @@
 #include "Renderer/RenderModule.h"
 #include "Renderer/GraphicsPipeline.h"
 
+
+
 class VulkanGraphicsPipeline : public GraphicsPipeline {
 public:
-	VulkanGraphicsPipeline(std::string shader_name, std::string folder_path, VertexDescription &vertex_desc,  VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
+
+	VulkanGraphicsPipeline(std::string shader_name, std::string folder_path, const VertexDescription& vertex_desc, VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
 		VkPolygonMode polygon_mode = VK_POLYGON_MODE_FILL, VkCullModeFlags cull_mode = VK_CULL_MODE_BACK_BIT,
 		VkFrontFace front_face = VK_FRONT_FACE_CLOCKWISE);
+
 	~VulkanGraphicsPipeline(){};
 
+
 	virtual void* getPipeline() const override { return m_pipeline; };
+	virtual void* getPipelineLayout() const override { return m_pipeline_layout; };
+
+private:
+
+	VkPipeline				m_pipeline;
+	VkPipelineLayout		m_pipeline_layout;
+
+};
+
+
+class VulkanGraphicsPipelineBuilder {
+public:
+
+	VulkanGraphicsPipelineBuilder(std::string shader_name, std::string folder_path, const VertexDescription &vertex_desc,  VkPrimitiveTopology topology,
+		VkPolygonMode polygon_mode, VkCullModeFlags cull_mode,
+		VkFrontFace front_face);
+	
 
 private:
 	
+
 	void createShaderProgram(const char* file_path, VkShaderStageFlagBits stage);
-	void setVertexInputDescriptions(VertexDescription &vertex_desc);
+	void setVertexInputDescriptions(const VertexDescription &vertex_desc);
 	void createPipelineStates();
 	void createPipelineLayout();
 	void createPipeline();
@@ -54,5 +77,8 @@ private:
 	VkPipelineLayout								m_pipeline_layout;
 
 
+	friend class VulkanGraphicsPipeline;
 
 };
+
+

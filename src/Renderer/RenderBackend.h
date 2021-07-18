@@ -22,14 +22,16 @@ public:
     virtual void* getSwapchainExtent() = 0;
     virtual void* getRenderPass() const = 0;
     virtual void* getAllocator() const = 0;
+    virtual uint32_t getFrameNumber() const = 0;
 
     //Backend Commands (RC prefix -> Renderer Command) this includes all commands and functions that use graphics api specific functions
     //MAYBE SHOUDL CHANGE RC PREFIX TO GAPI or GL or something
     virtual void RC_beginFrame() = 0;
     virtual void RC_endFrame() = 0;
-    virtual void RC_bindGraphicsPipeline(const std::shared_ptr<GraphicsPipeline> pipeline) const = 0;
-    virtual void RC_bindVertexBuffer(const std::shared_ptr<VertexBuffer>) const = 0;
-    virtual void RC_drawSumbit(uint32_t size) const = 0;
+    virtual void RC_bindGraphicsPipeline(const std::shared_ptr<GraphicsPipeline> pipeline) = 0;
+    virtual void RC_pushConstants(const std::shared_ptr<GraphicsPipeline> pipeline, const MatrixPushConstant push_constant) = 0;
+    virtual void RC_bindVertexBuffer(const std::shared_ptr<VertexBuffer>) = 0;
+    virtual void RC_drawSumbit(uint32_t size) = 0;
 
     static std::shared_ptr<RenderBackend> CreateBackend();
     

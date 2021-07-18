@@ -9,10 +9,10 @@
 
 
 //Create vertex buffer
-VulkanVertexBuffer::VulkanVertexBuffer( uint32_t size) : m_size(size)
+/*VulkanVertexBuffer::VulkanVertexBuffer( uint32_t size) : m_size(size)
 {
 	allocateBuffer();
-}
+}*/
 
 VulkanVertexBuffer::VulkanVertexBuffer(void* vertices, uint32_t size) : m_size(size)
 {

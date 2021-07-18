@@ -1,6 +1,6 @@
-﻿  VulkanBuffer.cpp
-C:\dev\VulkanEngine\src\Renderer/Buffer.h(66,1): warning C4267: '=': conversion from 'size_t' to 'uint32_t', possible loss of data
-  Buffer.cpp
-C:\dev\VulkanEngine\src\Renderer\Buffer.h(66,1): warning C4267: '=': conversion from 'size_t' to 'uint32_t', possible loss of data
-  Generating Code...
+﻿  AssetLoader.cpp
+C:\dev\VulkanEngine\vendor\stb_image\stb_image_write.h(776,13): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+C:\dev\VulkanEngine\src\Renderer/Buffer.h(69,1): warning C4267: '=': conversion from 'size_t' to 'uint32_t', possible loss of data
+C:\dev\VulkanEngine\src\Util\AssetLoader.cpp(48): warning C4172: returning address of local variable or temporary: mesh_info
+C:\dev\VulkanEngine\src\Renderer\Buffer.h(32): warning C4715: 'VertexAttributeTypeSize': not all control paths return a value
   VulkanEngine.vcxproj -> C:\dev\VulkanEngine\bin\Debug\VulkanEngine.exe

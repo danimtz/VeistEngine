@@ -3,13 +3,16 @@ find_package(Vulkan REQUIRED)
 add_library(glm INTERFACE)
 add_library(vma INTERFACE)
 add_library(stb_image INTERFACE)
-# add_library(tinyobjloader STATIC)
+add_library(tinygltf INTERFACE)
+add_library(nlohmann INTERFACE)
 
 
 # vma, glm and stbimage are header only, include path needed only
 target_include_directories(vma INTERFACE vma)
 target_include_directories(glm INTERFACE glm)
 target_include_directories(stb_image INTERFACE stb_image)
+target_include_directories(tinygltf INTERFACE tinygltf)
+target_include_directories(nlohmann INTERFACE nlohmann)
 
 # Add glfw
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)

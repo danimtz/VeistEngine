@@ -22,6 +22,7 @@
 
 
 
+constexpr int FRAME_OVERLAP_COUNT = 2;
 
 
 struct GPUinfo_t {
@@ -52,6 +53,13 @@ struct DeletionQueue
     }
 };
 
+struct VulkanFrameData
+{
+    VkCommandPool           m_command_pool;
+    VkCommandBuffer         m_command_buffer;
+    VkSemaphore             m_present_semaphore, m_render_semaphore;
+    VkFence                 m_render_fence;
+};
 
 class VulkanRenderBackend : public RenderBackend {
 public:
@@ -65,6 +73,8 @@ public:
     virtual void* getRenderPass() const override { return m_render_pass; };
     virtual void* getAllocator() const override { return m_allocator; }; //CONSIDER MOVING ALLOCATOR TO SEPARATE CLASS
 
+    virtual uint32_t getFrameNumber() const override { return m_frame_count; };
+
     virtual void pushToDeletionQueue(std::function<void()> function) override;
 
 //render commands/functions that use vulkan commands
@@ -72,10 +82,11 @@ public:
     virtual void RC_endFrame() override;
 
     //NOTE TO FUTURE ME should renderbackend have these funcitons? or should GraphicsPipeline and VertexBUffer etc have a  Bind() function that does them
-    virtual void RC_bindGraphicsPipeline(const std::shared_ptr<GraphicsPipeline>) const override; 
-    virtual void RC_bindVertexBuffer(const std::shared_ptr<VertexBuffer>) const override;
+    virtual void RC_bindGraphicsPipeline(const std::shared_ptr<GraphicsPipeline>) override; 
+    virtual void RC_pushConstants(const std::shared_ptr<GraphicsPipeline> pipeline, const MatrixPushConstant push_constant) override;
+    virtual void RC_bindVertexBuffer(const std::shared_ptr<VertexBuffer>) override;
 
-    virtual void RC_drawSumbit(uint32_t size) const override;
+    virtual void RC_drawSumbit(uint32_t size) override;
 
 private://main vulkan setup
     void initContext_VK();
@@ -92,6 +103,7 @@ private://main vulkan setup
     void createSemaphoresAndFences();
 
     
+    VulkanFrameData& getCurrentFrame() { return m_frame_data[m_frame_count % FRAME_OVERLAP_COUNT]; };
 
 
   
@@ -122,15 +134,10 @@ private:
     uint32_t                        m_swapchain_img_idx;
 
 
-    VkCommandPool                   m_command_pool;
-    std::vector<VkCommandBuffer>    m_command_buffers;
+    VulkanFrameData                 m_frame_data[FRAME_OVERLAP_COUNT];
 
-
-    VkSemaphore                     m_present_semaphore, m_render_semaphore;
-    VkFence                         m_render_fence;
-
-
-    unsigned int                    m_frame_number{0};
+   
+    uint32_t                    m_frame_count{0};
 
 
     std::vector<const char*>    m_device_extensions;

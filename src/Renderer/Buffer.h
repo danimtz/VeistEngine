@@ -31,6 +31,8 @@ static uint32_t VertexAttributeTypeSize(VertexAttributeType type)
 	}
 }
 
+
+
 struct VertexAttribute
 {
 	uint32_t m_size;
@@ -43,6 +45,7 @@ struct VertexAttribute
 };
 
 
+//API independent vertex input description
 class VertexDescription
 {
 public:
@@ -78,6 +81,8 @@ private:
 };
 
 
+
+//API abstraction class
 class VertexBuffer
 {
 public:
@@ -86,10 +91,29 @@ public:
 
 	virtual void* getBuffer() const = 0;
 	virtual uint32_t getSize() const= 0;
-	//virtual void setInputDescription(const VertexDescription &description) = 0; MAYBE USE THIS??
+	
+	virtual const VertexDescription& getInputDescription() const = 0; 
+	virtual void setInputDescription(const VertexDescription &description) = 0;
 
 
 	static std::shared_ptr<VertexBuffer> Create(void* vertices, uint32_t size);
-	static std::shared_ptr<VertexBuffer> Create(uint32_t size);
+	//static std::shared_ptr<VertexBuffer> Create(uint32_t size);
+};
+
+
+
+//API abstraction class
+class IndexBuffer
+{
+public:
+
+	virtual ~IndexBuffer() = default;
+
+	virtual void* getBuffer() const = 0;
+	virtual uint32_t getSize() const = 0;
+
+
+
+	static std::shared_ptr<IndexBuffer> Create(void* indices, uint32_t idx_count);
 };
 
