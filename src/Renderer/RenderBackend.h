@@ -30,7 +30,10 @@ public:
     virtual void RC_endFrame() = 0;
     virtual void RC_bindGraphicsPipeline(const std::shared_ptr<GraphicsPipeline> pipeline) = 0;
     virtual void RC_pushConstants(const std::shared_ptr<GraphicsPipeline> pipeline, const MatrixPushConstant push_constant) = 0;
-    virtual void RC_bindVertexBuffer(const std::shared_ptr<VertexBuffer>) = 0;
+    virtual void RC_bindVertexBuffer(const std::shared_ptr<VertexBuffer> vertex_buffer) = 0;
+    virtual void RC_bindIndexBuffer(const std::shared_ptr<IndexBuffer> index_buffer) = 0;
+
+    virtual void RC_drawIndexed(uint32_t size) = 0;
     virtual void RC_drawSumbit(uint32_t size) = 0;
 
     static std::shared_ptr<RenderBackend> CreateBackend();

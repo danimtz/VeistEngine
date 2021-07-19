@@ -11,13 +11,15 @@ namespace AssetLoader {
 	//This will need to be expanded upon. for now just load a mesh from a gltf file
 	struct MeshInfo{
 
-		std::vector<unsigned char> vtx_buffer_data; //Vertex buffer data. SHOULD I CONVER THIS TO AN IN ENGINE READABLE FORMAT FIRST? OR JUST UPLOAD TO VkBuffer LIKE THIS
-		std::vector<unsigned char> idx_buffer_data;
+		std::vector<unsigned char> vbuffer_data; //Vertex buffer data. 
+		std::vector<unsigned char> index_data;
+		uint32_t index_count;
+		uint32_t index_size = {2};
 		VertexDescription description;
 
 	};
 
-	MeshInfo& loadMeshFromGLTF(const char* filepath);
+	void loadMeshFromGLTF(const char* filepath, MeshInfo &mesh_info);
 
 
 

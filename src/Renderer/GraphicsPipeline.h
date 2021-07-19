@@ -25,6 +25,6 @@ public:
 	virtual void* getPipeline() const = 0;
 	virtual void* getPipelineLayout() const = 0;
 
-	static std::shared_ptr<GraphicsPipeline> Create(std::string shader_name, std::string folder_path, const VertexDescription &vertex_description);
+	static std::shared_ptr<GraphicsPipeline> Create(std::string shader_name, std::string folder_path, const VertexDescription& vertex_description);
 };
 

@@ -19,7 +19,7 @@ public:
 	virtual uint32_t getSize() const override { return m_size; };
 
 	virtual const VertexDescription& getInputDescription() const override { return m_description; }
-	virtual void setInputDescription( const VertexDescription &description) override { m_description = description; };
+	virtual void setInputDescription( const VertexDescription& description) override { m_description = description; };
 	
 
 private:
@@ -37,7 +37,7 @@ class VulkanIndexBuffer : public IndexBuffer
 {
 public:
 
-	VulkanIndexBuffer(void* indices, uint32_t idx_count){};
+	VulkanIndexBuffer(void* indices, uint32_t idx_count, uint32_t index_size);
 
 
 	virtual void* getBuffer() const override { return m_index_buffer; };
@@ -47,9 +47,13 @@ public:
 
 private:
 
-	void allocateBuffer(){};
+	void allocateBuffer();
 
 	VkBuffer			m_index_buffer;
 	VmaAllocation		m_allocation;
 	uint32_t			m_index_count;
+	uint32_t			m_index_size; //VK_INDEX_TYPE_UINT16
 };
+
+
+//no staging buffers for now

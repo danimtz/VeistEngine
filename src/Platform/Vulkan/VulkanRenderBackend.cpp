@@ -937,14 +937,36 @@ void VulkanRenderBackend::RC_bindVertexBuffer(const std::shared_ptr<VertexBuffer
 	VkCommandBuffer cmd_buffer = getCurrentFrame().m_command_buffer;
 
 	VkBuffer buffer = static_cast<VkBuffer>(vertex_buffer->getBuffer());
-	
 
 	VkDeviceSize offset = 0;
+
 	vkCmdBindVertexBuffers(cmd_buffer, 0, 1, &buffer, &offset);
 }
+
+
+void VulkanRenderBackend::RC_bindIndexBuffer(const std::shared_ptr<IndexBuffer> index_buffer)
+{
+	VkCommandBuffer cmd_buffer = getCurrentFrame().m_command_buffer;
+
+	VkBuffer buffer = static_cast<VkBuffer>(index_buffer->getBuffer());
+
+
+	VkDeviceSize offset = 0;
+	vkCmdBindIndexBuffer(cmd_buffer, buffer, 0, VK_INDEX_TYPE_UINT16);
+}
+
 
 void VulkanRenderBackend::RC_drawSumbit(uint32_t size)
 {
 	VkCommandBuffer cmd_buffer = getCurrentFrame().m_command_buffer;
 	vkCmdDraw(cmd_buffer, size, 1, 0, 0);
+}
+
+
+void VulkanRenderBackend::RC_drawIndexed(uint32_t size)
+{
+	VkCommandBuffer cmd_buffer = getCurrentFrame().m_command_buffer;
+
+	vkCmdDrawIndexed(cmd_buffer, size, 1, 0, 0, 0);
+
 }

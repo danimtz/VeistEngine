@@ -14,7 +14,7 @@ class VulkanGraphicsPipeline : public GraphicsPipeline {
 public:
 
 	VulkanGraphicsPipeline(std::string shader_name, std::string folder_path, const VertexDescription& vertex_desc, VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
-		VkPolygonMode polygon_mode = VK_POLYGON_MODE_FILL, VkCullModeFlags cull_mode = VK_CULL_MODE_BACK_BIT,
+		VkPolygonMode polygon_mode = VK_POLYGON_MODE_FILL, VkCullModeFlags cull_mode = VK_CULL_MODE_NONE/*VK_CULL_MODE_BACK_BIT*/,
 		VkFrontFace front_face = VK_FRONT_FACE_CLOCKWISE);
 
 	~VulkanGraphicsPipeline(){};
@@ -34,7 +34,7 @@ private:
 class VulkanGraphicsPipelineBuilder {
 public:
 
-	VulkanGraphicsPipelineBuilder(std::string shader_name, std::string folder_path, const VertexDescription &vertex_desc,  VkPrimitiveTopology topology,
+	VulkanGraphicsPipelineBuilder(std::string shader_name, std::string folder_path, const VertexDescription&vertex_desc,  VkPrimitiveTopology topology,
 		VkPolygonMode polygon_mode, VkCullModeFlags cull_mode,
 		VkFrontFace front_face);
 	
@@ -43,7 +43,7 @@ private:
 	
 
 	void createShaderProgram(const char* file_path, VkShaderStageFlagBits stage);
-	void setVertexInputDescriptions(const VertexDescription &vertex_desc);
+	void setVertexInputDescriptions(const VertexDescription& vertex_desc);
 	void createPipelineStates();
 	void createPipelineLayout();
 	void createPipeline();

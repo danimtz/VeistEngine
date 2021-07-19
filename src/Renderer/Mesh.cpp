@@ -20,8 +20,8 @@ Mesh::Mesh()
 	m_vertex_buffer = VertexBuffer::Create(m_vertices.data(), m_vertices.size() * sizeof(Vertex));
 
 
-
-	VertexDescription vertex_desc = { 0, {			//Must match vertex used iin meshes
+	VertexDescription vertex_desc;
+	vertex_desc = { 0, {			//Must match vertex used iin meshes
 		{VertexAttributeType::Float3, "position"},
 		{VertexAttributeType::Float3, "normal"},
 		{VertexAttributeType::Float3, "color"} } };
@@ -36,11 +36,14 @@ Mesh::Mesh(const char* mesh_filepath)
 {
 
 
-	AssetLoader::MeshInfo mesh_info = AssetLoader::loadMeshFromGLTF(mesh_filepath);
+	AssetLoader::MeshInfo mesh_info;  
+	AssetLoader::loadMeshFromGLTF(mesh_filepath, mesh_info);
 
 	//create vertex buffers
-	//m_vertex_buffer = VertexBuffer::Create(mesh_info.vtx_buffer_data.data(), mesh_info.vtx_buffer_data.size());
-	//m_vertex_buffer->setInputDescription(mesh_info.description);
+	m_vertex_buffer = VertexBuffer::Create(mesh_info.vbuffer_data.data(), mesh_info.vbuffer_data.size()); //index buffer data is mixed with vertex, its occupying extra space atm but thats the only evil
+	m_vertex_buffer->setInputDescription(mesh_info.description);
 
 	//Create index buffers
+	m_index_buffer = IndexBuffer::Create(mesh_info.index_data.data(), mesh_info.index_count, mesh_info.index_size);
+
 }

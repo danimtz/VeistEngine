@@ -18,7 +18,6 @@ int main() {
  
     RenderModule::init(window);
     
-
     
 //Mainloop
     while (!glfwWindowShouldClose(window)) {

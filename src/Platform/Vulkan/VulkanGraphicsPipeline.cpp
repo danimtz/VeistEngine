@@ -15,7 +15,7 @@ VulkanGraphicsPipeline::VulkanGraphicsPipeline(std::string shader_name, std::str
 
 
 
-VulkanGraphicsPipelineBuilder::VulkanGraphicsPipelineBuilder(std::string shader_name, std::string folder_path, const VertexDescription &vertex_desc, VkPrimitiveTopology topology,
+VulkanGraphicsPipelineBuilder::VulkanGraphicsPipelineBuilder(std::string shader_name, std::string folder_path, const VertexDescription&vertex_desc, VkPrimitiveTopology topology,
 	VkPolygonMode polygon_mode, VkCullModeFlags cull_mode, VkFrontFace front_face) : 
 	m_topology(topology), 
 	m_polygon_mode(polygon_mode), 
@@ -101,42 +101,45 @@ void VulkanGraphicsPipelineBuilder::createShaderProgram(const char* file_path, V
 void VulkanGraphicsPipelineBuilder::setVertexInputDescriptions(const VertexDescription& vertex_desc)
 {
 	//Parse Vertexdescription into vulkan vertex attribute and vertex binding descriptors
-
+	uint32_t location_count = 0;
+	
 	VkVertexInputBindingDescription binding_desc = {};
-	binding_desc.binding = vertex_desc.getBinding();
+	binding_desc.binding = 0;//vertex_desc.getBinding();
 	binding_desc.stride = vertex_desc.getStride();
 	binding_desc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-
+	
 	m_vertex_bindings.push_back(binding_desc);
 
-	auto attributes = vertex_desc.getVertexAttrributes();
-
-	for (uint32_t i = 0; i < attributes.size(); i++) {
+	auto attributes = vertex_desc.getVertexAttributes();
+	for (uint32_t j = 0; j < attributes.size(); j++) {
 
 		VkVertexInputAttributeDescription attribute_desc = {};
-		attribute_desc.binding = vertex_desc.getBinding();
-		attribute_desc.location = i;
-		attribute_desc.offset = attributes[i].m_offset;
+		attribute_desc.binding = 0;//vertex_desc.getBinding();
+		attribute_desc.location = location_count;
+		location_count++;
+		attribute_desc.offset = attributes[j].m_offset;
 
-		switch (attributes[i].m_type) {
-			case VertexAttributeType::Float:	
-				attribute_desc.format = VK_FORMAT_R32_SFLOAT;
-				break;
-			case VertexAttributeType::Float2:	
-				attribute_desc.format = VK_FORMAT_R32G32_SFLOAT;
-				break;
-			case VertexAttributeType::Float3:	
-				attribute_desc.format = VK_FORMAT_R32G32B32_SFLOAT;
-				break;
-			case VertexAttributeType::Float4:	
-				attribute_desc.format = VK_FORMAT_R32G32B32A32_SFLOAT;
-				break;
-			default:
-				CRITICAL_ERROR_LOG("Vertex Attribute Type invalid on Pipeline creation");
+		switch (attributes[j].m_type) {
+		case VertexAttributeType::Float:
+			attribute_desc.format = VK_FORMAT_R32_SFLOAT;
+			break;
+		case VertexAttributeType::Float2:
+			attribute_desc.format = VK_FORMAT_R32G32_SFLOAT;
+			break;
+		case VertexAttributeType::Float3:
+			attribute_desc.format = VK_FORMAT_R32G32B32_SFLOAT;
+			break;
+		case VertexAttributeType::Float4:
+			attribute_desc.format = VK_FORMAT_R32G32B32A32_SFLOAT;
+			break;
+		default:
+			CRITICAL_ERROR_LOG("Vertex Attribute Type invalid on Pipeline creation");
 		}
 
 		m_vertex_attributes.push_back(attribute_desc);
 	}
+	
+	
 
 
 }

@@ -84,8 +84,10 @@ public:
     //NOTE TO FUTURE ME should renderbackend have these funcitons? or should GraphicsPipeline and VertexBUffer etc have a  Bind() function that does them
     virtual void RC_bindGraphicsPipeline(const std::shared_ptr<GraphicsPipeline>) override; 
     virtual void RC_pushConstants(const std::shared_ptr<GraphicsPipeline> pipeline, const MatrixPushConstant push_constant) override;
-    virtual void RC_bindVertexBuffer(const std::shared_ptr<VertexBuffer>) override;
+    virtual void RC_bindVertexBuffer(const std::shared_ptr<VertexBuffer> vertex_buffer) override;
+    virtual void RC_bindIndexBuffer(const std::shared_ptr<IndexBuffer> index_buffer) override;
 
+    virtual void RC_drawIndexed(uint32_t size) override;
     virtual void RC_drawSumbit(uint32_t size) override;
 
 private://main vulkan setup

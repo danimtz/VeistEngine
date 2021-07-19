@@ -24,9 +24,11 @@ public:
 private:
 
 	std::shared_ptr<GraphicsPipeline> m_pipeline; 
+	std::shared_ptr<GraphicsPipeline> m_helmetPipeline;
 
 
 	//SHOULDNT BE HERE BUT IS FOR NOW UNTIL SCENE CLASS IS MADE:
 	Mesh test_mesh;
+	Mesh tt_mesh = { "..\\..\\assets\\DamagedHelmet\\DamagedHelmet.gltf" }; //{ "..\\..\\assets\\Box\\Box With Spaces.gltf" }; //
 };
 
