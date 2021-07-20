@@ -4,9 +4,9 @@
 
 
 VulkanGraphicsPipeline::VulkanGraphicsPipeline(std::string shader_name, std::string folder_path, const VertexDescription& vertex_desc, VkPrimitiveTopology topology,
-	VkPolygonMode polygon_mode, VkCullModeFlags cull_mode, VkFrontFace front_face) 
+	VkPolygonMode polygon_mode, VkCullModeFlags cull_mode, VkFrontFace front_face, DepthTest depth_test) 
 {
-	VulkanGraphicsPipelineBuilder pipeline_builder = {shader_name, folder_path, vertex_desc, topology, polygon_mode, cull_mode, front_face};
+	VulkanGraphicsPipelineBuilder pipeline_builder = {shader_name, folder_path, vertex_desc, topology, polygon_mode, cull_mode, front_face, depth_test };
 
 	m_pipeline = pipeline_builder.m_pipeline;
 	m_pipeline_layout = pipeline_builder.m_pipeline_layout;
@@ -16,11 +16,12 @@ VulkanGraphicsPipeline::VulkanGraphicsPipeline(std::string shader_name, std::str
 
 
 VulkanGraphicsPipelineBuilder::VulkanGraphicsPipelineBuilder(std::string shader_name, std::string folder_path, const VertexDescription&vertex_desc, VkPrimitiveTopology topology,
-	VkPolygonMode polygon_mode, VkCullModeFlags cull_mode, VkFrontFace front_face) : 
+	VkPolygonMode polygon_mode, VkCullModeFlags cull_mode, VkFrontFace front_face, DepthTest depth_test) :
 	m_topology(topology), 
 	m_polygon_mode(polygon_mode), 
 	m_cull_mode(cull_mode), 
-	m_front_face(front_face) 
+	m_front_face(front_face),
+	m_depth_test(depth_test)
 {
 	
 	//Simple shaders only for now. Maybe this should be a loop over all shader stages
@@ -165,7 +166,6 @@ void VulkanGraphicsPipelineBuilder::createPipelineStates()
 
 
 
-
 	/////////////////////////
 	//Input assembly state //
 	/////////////////////////
@@ -232,6 +232,41 @@ void VulkanGraphicsPipelineBuilder::createPipelineStates()
 	m_color_blend_state_info.blendConstants[2] = 0.0f; 
 	m_color_blend_state_info.blendConstants[3] = 0.0f; 
 
+
+
+	/////////////////////////
+	//Depth stencil state  //
+	/////////////////////////
+
+	m_depth_stencil_state_info.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+	m_depth_stencil_state_info.pNext = nullptr;
+
+
+	m_depth_stencil_state_info.depthCompareOp = VK_COMPARE_OP_LESS; //VK_COMPARE_OP_LESS
+	m_depth_stencil_state_info.depthBoundsTestEnable = VK_FALSE;
+	//m_depth_stencil_state_info.minDepthBounds = 0.0f; //Optional
+	//m_depth_stencil_state_info.maxDepthBounds = 1.0f; //Optional
+	m_depth_stencil_state_info.stencilTestEnable = VK_FALSE;
+
+
+	switch (m_depth_test) {
+		case DepthTest::None:
+			m_depth_stencil_state_info.depthTestEnable = VK_FALSE;
+			m_depth_stencil_state_info.depthWriteEnable = VK_FALSE;
+			break;
+		case DepthTest::Read:
+			m_depth_stencil_state_info.depthTestEnable = VK_TRUE;
+			m_depth_stencil_state_info.depthWriteEnable = VK_FALSE;
+			break;
+		case DepthTest::Write:
+			m_depth_stencil_state_info.depthTestEnable = VK_FALSE;
+			m_depth_stencil_state_info.depthWriteEnable = VK_TRUE;
+			break;
+		case DepthTest::ReadWrite:
+			m_depth_stencil_state_info.depthTestEnable = VK_TRUE;
+			m_depth_stencil_state_info.depthWriteEnable = VK_TRUE;
+			break;
+	}
 
 	/////////////////////////
 	//Viewport state	   //
@@ -305,6 +340,7 @@ void VulkanGraphicsPipelineBuilder::createPipeline()
 	pipeline_info.pRasterizationState = &m_rasterizer_info;
 	pipeline_info.pMultisampleState = &m_multisample_state_info;
 	pipeline_info.pColorBlendState = &m_color_blend_state_info;
+	pipeline_info.pDepthStencilState = &m_depth_stencil_state_info;
 	pipeline_info.layout = m_pipeline_layout;
 	pipeline_info.renderPass = render_pass;
 	pipeline_info.subpass = 0; //This needs to be an argument later if subpasses are used for deferred rendering. NOTE TO FUTURE ME

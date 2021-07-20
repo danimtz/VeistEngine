@@ -9,13 +9,12 @@
 #include "Renderer/GraphicsPipeline.h"
 
 
-
 class VulkanGraphicsPipeline : public GraphicsPipeline {
 public:
 
 	VulkanGraphicsPipeline(std::string shader_name, std::string folder_path, const VertexDescription& vertex_desc, VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
 		VkPolygonMode polygon_mode = VK_POLYGON_MODE_FILL, VkCullModeFlags cull_mode = VK_CULL_MODE_NONE/*VK_CULL_MODE_BACK_BIT*/,
-		VkFrontFace front_face = VK_FRONT_FACE_CLOCKWISE);
+		VkFrontFace front_face = VK_FRONT_FACE_COUNTER_CLOCKWISE, DepthTest depth_test = DepthTest::ReadWrite);
 
 	~VulkanGraphicsPipeline(){};
 
@@ -36,7 +35,7 @@ public:
 
 	VulkanGraphicsPipelineBuilder(std::string shader_name, std::string folder_path, const VertexDescription&vertex_desc,  VkPrimitiveTopology topology,
 		VkPolygonMode polygon_mode, VkCullModeFlags cull_mode,
-		VkFrontFace front_face);
+		VkFrontFace front_face, DepthTest depth_test);
 	
 
 private:
@@ -54,7 +53,7 @@ private:
 	VkPolygonMode		m_polygon_mode;
 	VkCullModeFlags		m_cull_mode;
 	VkFrontFace			m_front_face;
-
+	DepthTest			m_depth_test;
 
 	//Pipeline attributes
 	VkPipeline										m_pipeline;
@@ -67,6 +66,7 @@ private:
 	VkPipelineMultisampleStateCreateInfo			m_multisample_state_info = {};
 	VkPipelineColorBlendAttachmentState				m_color_blend_attachment_state = {};//This could be a vector if using multiple attachments in a multi-render targer rendering framework
 	VkPipelineColorBlendStateCreateInfo				m_color_blend_state_info = {}; 
+	VkPipelineDepthStencilStateCreateInfo			m_depth_stencil_state_info = {};
 	VkViewport										m_viewport = {};
 	VkRect2D										m_scissor = {};
 	VkPipelineViewportStateCreateInfo				m_viewport_state_info = {};

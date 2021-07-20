@@ -53,6 +53,14 @@ struct DeletionQueue
     }
 };
 
+//Move this to a separate class eventually  -> image or vulkanimage. 
+//Its only used for depth stencil image
+struct VmaImage {
+    VkImage m_image;
+    VmaAllocation m_allocation;
+};
+
+
 struct VulkanFrameData
 {
     VkCommandPool           m_command_pool;
@@ -98,7 +106,7 @@ private://main vulkan setup
     void choosePhysicalDevice();
     void createDeviceAndQueues();
     void createVmaAllocator();
-    void createSwapchain();
+    void createSwapchainAndImages();
     void createCommandPoolAndBuffers();
     void createDefaultRenderPass();
     void createFramebuffers();
@@ -110,6 +118,7 @@ private://main vulkan setup
 
   
 private:
+//context
     GLFWwindow*                     m_glfw_window; //could be abstracted to use different library other than glfw, hard coded for now
     VkInstance                      m_instance;
     VkDebugUtilsMessengerEXT        m_debug_messenger;
@@ -122,11 +131,12 @@ private:
     VkSurfaceKHR                    m_surface;
 
     VmaAllocator                    m_allocator;
- 
-    VkRenderPass                    m_render_pass;//default renderpass
+
+//renderpass
+    VkRenderPass                    m_render_pass;
     std::vector<VkFramebuffer>      m_framebuffers;
 
-
+//swapchain
     VkSwapchainKHR                  m_swapchain;
     VkFormat                        m_swapchain_format;
     VkExtent2D                      m_swapchain_extent;
@@ -135,7 +145,12 @@ private:
     std::vector<VkImageView>        m_swapchain_views;
     uint32_t                        m_swapchain_img_idx;
 
+//depth buffer
+    VmaImage                        m_depth_image;
+    VkImageView                     m_depth_image_view;
+    VkFormat                        m_depth_format;
 
+//Per frame data(command buffers, pool and sync structures)
     VulkanFrameData                 m_frame_data[FRAME_OVERLAP_COUNT];
 
    

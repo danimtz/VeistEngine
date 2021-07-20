@@ -11,8 +11,16 @@
 struct MatrixPushConstant//Very specific and temporary name, so that i know to change it later on
 {
 	glm::mat4 MVPmatrix;
+	glm::mat4 Nmatrix;
 };
 
+
+enum class DepthTest {
+	None = 0,
+	Read = 1,
+	Write = 2,
+	ReadWrite = Read | Write
+};
 
 //API abstraction class
 class GraphicsPipeline

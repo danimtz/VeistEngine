@@ -22,7 +22,7 @@ static VertexAttributeType convertTinyGLTFtype(int type) {
 	}
 }
 
-//TODO: Rewrite this to parse data into an interleaved format. For now only works with non interleaved gltf models that have a buffer view for each primitive attribute
+
 void AssetLoader::loadMeshFromGLTF(const char* filepath, MeshInfo &mesh_info) {
 	
 	
@@ -46,12 +46,9 @@ void AssetLoader::loadMeshFromGLTF(const char* filepath, MeshInfo &mesh_info) {
 	}
 
 
-
-	
 	
 	tinygltf::Mesh &mesh = model.meshes[0];
 	tinygltf::Primitive& primitive = mesh.primitives[0];
-	
 	
 
 	//Step 1: Iterate through attributes in mesh primitive[0]
@@ -77,8 +74,6 @@ void AssetLoader::loadMeshFromGLTF(const char* filepath, MeshInfo &mesh_info) {
 		AttributeInfo attrib_info = { accessor, vtx_attrib};
 
 		vattrib_map.insert({accessor_index, attrib_info });
-
-		
 	}
 	
 
@@ -106,8 +101,18 @@ void AssetLoader::loadMeshFromGLTF(const char* filepath, MeshInfo &mesh_info) {
 	//Iterate through each vertex
 	for (uint32_t i = 0; i < attribute_count; i++) {
 
-		//TODO fill in a vertex out of the accessor data etc
-		//Prefer order Position->normal->(tangent)->Texcoords FOLLOW THE ORDER IN MAP. ORDER MAP ABOVE TO WHATEVER I WANT SOMEHOW
+
+
+
+
+
+		//TODO: Prefer order Position->normal->(tangent)->Texcoords FOLLOW THE ORDER IN MAP. ORDER MAP ABOVE TO WHATEVER I WANT SOMEHOW
+		
+
+
+
+
+
 		//THIS LOOP CAN BE OPTIMIZED. RECORD SOMNE OF THE VARIABLES OUTSIDE IT
 		uint32_t location = 0;
 		for (auto it = vattrib_map.begin(); it != vattrib_map.end(); it++) {
@@ -128,12 +133,8 @@ void AssetLoader::loadMeshFromGLTF(const char* filepath, MeshInfo &mesh_info) {
 
 			location++;
 		}
-
-
-
 	}
 	
-
 
 	//Step 4: Get index buffer data
 	int idx_buff_accessor_index = primitive.indices;
@@ -150,13 +151,3 @@ void AssetLoader::loadMeshFromGLTF(const char* filepath, MeshInfo &mesh_info) {
 
 
 };
-
-
-
-/*std::vector<tinygltf::Mesh> &meshes = model.meshes;
-	for (tinygltf::Mesh mesh : meshes) {
-		for (tinygltf::Primitive primitive : mesh.primitives) {
-
-			primitive.attributes;
-		}
-	}*///Maybe use this in the future, for now just using the first mesh in the gltf model and first primitive

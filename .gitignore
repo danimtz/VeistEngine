@@ -23,6 +23,7 @@ vendor/glfw-3.3.4/src/Debug/
 vendor/glfw-3.3.4/src/glfw.dir/
 vendor/imgui.dir/
 x64/
+src/VulkanEngine.dir
 
 /build/**
 /bin

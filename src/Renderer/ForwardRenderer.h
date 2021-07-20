@@ -4,10 +4,12 @@
 
 #include "Renderer/GraphicsPipeline.h"
 
+#define GLM_DEPTH_ZERO_TO_ONE
 #include "Renderer/Mesh.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/matrix_inverse.hpp>
 
 //Not going to abstract vulkan for now from this class
 //C++ rule of 3 maybe. thought shouldnt be needed since Renderer/ForwardRenderer etc class is only used with unique ptr in RenderModule

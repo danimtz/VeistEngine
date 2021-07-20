@@ -234,7 +234,7 @@ void VulkanRenderBackend::initContext_VK()
 	createVmaAllocator();
 
 	//Initialize swapchain
-	createSwapchain();
+	createSwapchainAndImages();
 
 	//Create command pool and command buffers
 	createCommandPoolAndBuffers();
@@ -554,7 +554,7 @@ void VulkanRenderBackend::createVmaAllocator()
 
 
 
-void VulkanRenderBackend::createSwapchain()
+void VulkanRenderBackend::createSwapchainAndImages()
 {
 
 	GPUinfo_t &gpu = m_gpu_info;
@@ -631,6 +631,56 @@ void VulkanRenderBackend::createSwapchain()
 		m_deletion_queue.pushFunction([=]() { vkDestroyImageView(m_device, m_swapchain_views[i], nullptr); });
 	}
 
+
+	//Create depth image and image view
+	m_depth_format = VK_FORMAT_D32_SFLOAT;
+
+	VkImageCreateInfo depth_image_info = { };
+	depth_image_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+	depth_image_info.pNext = nullptr;
+	depth_image_info.imageType = VK_IMAGE_TYPE_2D;
+	depth_image_info.format = m_depth_format;
+	
+	VkExtent3D depth_image_extent = {extent.width, extent.height, 1};
+	depth_image_info.extent = depth_image_extent;
+
+	depth_image_info.mipLevels = 1;
+	depth_image_info.arrayLayers = 1;
+	depth_image_info.samples = VK_SAMPLE_COUNT_1_BIT;
+	depth_image_info.tiling = VK_IMAGE_TILING_OPTIMAL;
+	depth_image_info.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+
+	//set allocation for GPU memory
+	VmaAllocationCreateInfo depth_image_allocation_info = {};
+	depth_image_allocation_info.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+	depth_image_allocation_info.requiredFlags = VkMemoryPropertyFlags(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);//ensures that memory is allcoated on GPU
+
+	//create image
+	vmaCreateImage(m_allocator, &depth_image_info, &depth_image_allocation_info, &m_depth_image.m_image, &m_depth_image.m_allocation, nullptr);
+
+	m_deletion_queue.pushFunction([=]() { 
+		vmaDestroyImage(m_allocator, m_depth_image.m_image, m_depth_image.m_allocation); 
+		});
+
+
+	VkImageViewCreateInfo d_image_view_info = {};
+	d_image_view_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+	d_image_view_info.pNext = nullptr;
+
+	d_image_view_info.viewType = VK_IMAGE_VIEW_TYPE_2D;
+	d_image_view_info.image = m_depth_image.m_image;
+	d_image_view_info.format = m_depth_format;
+	d_image_view_info.subresourceRange.baseMipLevel = 0;
+	d_image_view_info.subresourceRange.levelCount = 1;
+	d_image_view_info.subresourceRange.baseArrayLayer = 0;
+	d_image_view_info.subresourceRange.layerCount = 1;
+	d_image_view_info.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+
+	VK_CHECK(vkCreateImageView(m_device, &d_image_view_info, nullptr, &m_depth_image_view));
+
+	m_deletion_queue.pushFunction([=]() {
+		vkDestroyImageView(m_device, m_depth_image_view, nullptr);
+		});
 }
 
 
@@ -667,10 +717,11 @@ void VulkanRenderBackend::createCommandPoolAndBuffers() {
 void VulkanRenderBackend::createDefaultRenderPass() 
 {
 
-	//Setup ccolour attachment
+	//Setup colour attachment
 	VkAttachmentDescription color_attachment = {};
 	color_attachment.format = m_swapchain_format;
 	color_attachment.samples = VK_SAMPLE_COUNT_1_BIT;//This can be used for MSAA
+
 	color_attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;//clear when loading attachment
 	color_attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 
@@ -681,10 +732,34 @@ void VulkanRenderBackend::createDefaultRenderPass()
 	color_attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 	
 
-	//Ref to attchment
+	//Ref to color attchment
 	VkAttachmentReference color_attachment_ref = {};
 	color_attachment_ref.attachment = 0;
 	color_attachment_ref.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+
+
+	//Setup depth attachment
+	VkAttachmentDescription depth_attachment = {};
+	depth_attachment.flags = 0;
+	depth_attachment.format = m_depth_format;
+	depth_attachment.samples = VK_SAMPLE_COUNT_1_BIT;
+
+	depth_attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+	depth_attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+
+	depth_attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+	depth_attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+
+	depth_attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	depth_attachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+	//Ref to depth attchment
+	VkAttachmentReference depth_attachment_ref = {};
+	depth_attachment_ref.attachment = 1;
+	depth_attachment_ref.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+
 
 
 	//Create 1 subpass
@@ -692,13 +767,15 @@ void VulkanRenderBackend::createDefaultRenderPass()
 	subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 	subpass.colorAttachmentCount = 1;
 	subpass.pColorAttachments = &color_attachment_ref;
+	subpass.pDepthStencilAttachment = &depth_attachment_ref;
 
 	//Create renderpass
 	VkRenderPassCreateInfo create_info = {};
 	create_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
 
-	create_info.attachmentCount = 1; //connect attachment
-	create_info.pAttachments = &color_attachment;
+	VkAttachmentDescription attachments[2] = { color_attachment, depth_attachment };
+	create_info.attachmentCount = 2; //connect attachment
+	create_info.pAttachments = &attachments[0];
 
 	create_info.subpassCount = 1; //connect subpass
 	create_info.pSubpasses = &subpass;
@@ -719,7 +796,6 @@ void VulkanRenderBackend::createFramebuffers()
 	framebuffer_info.pNext = nullptr;
 
 	framebuffer_info.renderPass = m_render_pass;
-	framebuffer_info.attachmentCount = 1;
 	framebuffer_info.width = m_swapchain_extent.width;
 	framebuffer_info.height = m_swapchain_extent.height;
 	framebuffer_info.layers = 1;
@@ -729,8 +805,13 @@ void VulkanRenderBackend::createFramebuffers()
 	m_framebuffers.resize(swapchain_image_count);
 
 	for (int i = 0; i < swapchain_image_count; i++) {
-		framebuffer_info.pAttachments = &m_swapchain_views[i];
+
+		VkImageView attachments[2] = { m_swapchain_views[i], m_depth_image_view };
+		framebuffer_info.attachmentCount = 2;
+		framebuffer_info.pAttachments = &attachments[0];
+
 		VK_CHECK(vkCreateFramebuffer(m_device, &framebuffer_info, nullptr, &m_framebuffers[i]));
+
 		m_deletion_queue.pushFunction([=]() { vkDestroyFramebuffer(m_device, m_framebuffers[i], nullptr);} );
 	}
 
@@ -843,11 +924,16 @@ void VulkanRenderBackend::RC_beginFrame()
 	render_pass_begin_info.renderArea.extent = m_swapchain_extent;
 	render_pass_begin_info.framebuffer = m_framebuffers[m_swapchain_img_idx];
 
+	VkClearValue color_clear;
+	color_clear.color = { {0.1f, 0.2f, 0.4f, 1.0f} };
 
-	VkClearValue clear_value;
-	clear_value.color = { {0.1f, 0.2f, 0.4f, 1.0f} };
-	render_pass_begin_info.clearValueCount = 1;
-	render_pass_begin_info.pClearValues = &clear_value;
+	VkClearValue depth_clear;
+	depth_clear.depthStencil.depth = 1.0f; //max depth
+
+	VkClearValue clear_values[2] = { color_clear, depth_clear };
+	render_pass_begin_info.clearValueCount = 2;
+	render_pass_begin_info.pClearValues = &clear_values[0];
+
 
 	vkCmdBeginRenderPass(cmd_buffer, &render_pass_begin_info, VK_SUBPASS_CONTENTS_INLINE);
 

@@ -41,12 +41,12 @@ void ForwardRenderer::renderScene()
 	uint32_t framenum = m_render_backend->getFrameNumber();
 	
 	
-	glm::mat4 model = glm::rotate(glm::mat4{ 1.0f }, glm::radians(framenum  * 0.04f), glm::vec3(0, 1, 0));
+	glm::mat4 model = glm::rotate(glm::mat4{ 1.0f }, glm::radians(framenum  * 0.03f), glm::vec3(0, 1, 0));
 	model = glm::rotate(model, glm::degrees(-90.0f), glm::vec3(1, 0, 0));
 
 
 
-	glm::vec3 camPos = { 0.f,0.f,-6.f };
+	glm::vec3 camPos = { 0.f,0.f,-3.f };
 	glm::mat4 view = glm::translate(glm::mat4(1.f), camPos); //Camera matrix for looking down z axis is identity matrix
 
 	glm::mat4 projection = glm::perspective(glm::radians(70.f), 800.0f / 600.0f, 0.1f, 200.0f);
@@ -54,7 +54,7 @@ void ForwardRenderer::renderScene()
 
 	MatrixPushConstant push_constant;
 	push_constant.MVPmatrix = projection * view * model;
-
+	push_constant.Nmatrix = glm::inverseTranspose(glm::mat3(view*model));
 	//m_render_backend->RC_pushConstants(m_pipeline, push_constant);
 	m_render_backend->RC_pushConstants(m_helmetPipeline, push_constant);
 
