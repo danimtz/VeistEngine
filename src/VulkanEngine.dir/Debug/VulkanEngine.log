@@ -1,7 +1,0 @@
-﻿  VulkanGraphicsPipeline.cpp
-C:\dev\VulkanEngine\src\Platform\Vulkan\VulkanGraphicsPipeline.cpp(161,78): warning C4267: '=': conversion from 'size_t' to 'uint32_t', possible loss of data
-C:\dev\VulkanEngine\src\Platform\Vulkan\VulkanGraphicsPipeline.cpp(164,82): warning C4267: '=': conversion from 'size_t' to 'uint32_t', possible loss of data
-C:\dev\VulkanEngine\src\Platform\Vulkan\VulkanGraphicsPipeline.cpp(335,44): warning C4267: '=': conversion from 'size_t' to 'uint32_t', possible loss of data
-  GraphicsPipeline.cpp
-  Generating Code...
-  VulkanEngine.vcxproj -> C:\dev\VulkanEngine\bin\Debug\VulkanEngine.exe
