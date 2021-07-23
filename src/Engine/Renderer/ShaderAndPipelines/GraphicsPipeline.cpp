@@ -1,7 +1,7 @@
 #include "GraphicsPipeline.h"
 
 
-#include "Platform/Vulkan/VulkanGraphicsPipeline.h"
+#include "Platform/Vulkan/ShaderAndPipelines/VulkanGraphicsPipeline.h"
 
 std::shared_ptr<GraphicsPipeline> GraphicsPipeline::Create(std::string shader_name, std::string folder_path, const VertexDescription& vertex_description)
 {

@@ -2,15 +2,15 @@
 
 //Will be rewritten later on into ECS/component system
 
-#include "Renderer/Buffer.h"
+#include "Engine/Renderer/Buffers/Buffer.h"
 #include <vector>
 #include <memory>
 #include <string>
 #include <glm/glm.hpp>
 
-#include "Util/AssetLoader.h"
+#include "Engine/Util/AssetLoader.h"
 
-struct Vertex
+struct Vertex //leftover. remove later
 {
 	glm::vec3 position;
 	glm::vec3 normal;

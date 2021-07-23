@@ -1,11 +1,11 @@
 #pragma once
-#include "Renderer/Renderer.h"
+#include "Engine/Renderer/Renderer.h"
 		 
 
-#include "Renderer/GraphicsPipeline.h"
+#include "Engine/Renderer/ShaderAndPipelines/GraphicsPipeline.h"
 
 #define GLM_DEPTH_ZERO_TO_ONE
-#include "Renderer/Mesh.h"
+#include "Engine/Mesh/Mesh.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>

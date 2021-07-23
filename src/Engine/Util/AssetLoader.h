@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Logger.h"
+#include "Engine/Logger.h"
 
-#include "Renderer/Buffer.h"
+#include "Engine/Renderer/Buffers/Buffer.h"
 
 
 namespace AssetLoader {

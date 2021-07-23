@@ -2,8 +2,8 @@
 
 
 
-#include "Renderer/GraphicsPipeline.h"
-#include "Renderer/Buffer.h"
+#include "Engine/Renderer/ShaderAndPipelines/GraphicsPipeline.h"
+#include "Engine/Renderer/Buffers/Buffer.h"
 #include <GLFW/glfw3.h>
 #include <functional>
 #include <memory>

@@ -1,6 +1,6 @@
 #include "Buffer.h"
-#include "Platform/Vulkan/VulkanBuffer.h"
-
+#include "Platform/Vulkan/Buffers/VulkanVertexBuffer.h"
+#include "Platform/Vulkan/Buffers/VulkanIndexBuffer.h"
 
 std::shared_ptr<VertexBuffer> VertexBuffer::Create(void* vertices, uint32_t size)
 {

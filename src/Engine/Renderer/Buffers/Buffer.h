@@ -4,7 +4,9 @@
 #include <vector>
 #include <string>
 
-#include "Logger.h"
+#include "Engine/Logger.h"
+
+
 enum class VertexAttributeType {
 	None = 0, Float, Float2, Float3, Float4 /*, Mat3, Mat4, Int, Int2, Int3, Int4, Bool*/
 };
@@ -99,7 +101,7 @@ public:
 	virtual ~VertexBuffer() = default;
 
 	virtual void* getBuffer() const = 0;
-	virtual uint32_t getSize() const= 0;
+	virtual uint32_t getSize() const = 0;
 	
 	virtual const VertexDescription & getInputDescription() const = 0;
 	virtual void setInputDescription(const VertexDescription&description) = 0;

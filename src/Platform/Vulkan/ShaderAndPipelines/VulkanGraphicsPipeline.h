@@ -4,9 +4,9 @@
 #include <fstream>
 #include <vector>
 #include <string>
-#include "Logger.h"
-#include "Renderer/RenderModule.h"
-#include "Renderer/GraphicsPipeline.h"
+#include "Engine/Logger.h"
+#include "Engine/Renderer/RenderModule.h"
+#include "Engine/Renderer/ShaderAndPipelines/GraphicsPipeline.h"
 
 
 class VulkanGraphicsPipeline : public GraphicsPipeline {
