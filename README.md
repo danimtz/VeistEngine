@@ -6,9 +6,8 @@ Currently a work in progress, but the objective is to be able to set up forward 
 
 ## Resources:
  Main resources being used are:
- - [VKguide by vblanco20-1](https://vkguide.dev/)
  - [Vulkan tutorial](https://vulkan-tutorial.com/)   
-
+ - [VKguide by vblanco20-1](https://vkguide.dev/)
 
 ## External libraries used:
 - [stbimage](https://github.com/nothings/stb) for texture/image loading.
@@ -16,4 +15,4 @@ Currently a work in progress, but the objective is to be able to set up forward 
 - [GLFW](https://www.glfw.org/) for hardware window abstraction.
 - [glm](https://github.com/g-truc/glm) math library originally written for openGL.
 - [vma](https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator) Vulkan Memory Allocator.
-- more to be used later for mesh/object loading
+- [Tinygltf](https://github.com/syoyo/tinygltf) Header only file for loading gltf parser.
