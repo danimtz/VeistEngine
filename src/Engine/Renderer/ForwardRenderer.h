@@ -32,5 +32,8 @@ private:
 	//SHOULDNT BE HERE BUT IS FOR NOW UNTIL SCENE CLASS IS MADE:
 	Mesh test_mesh;
 	Mesh tt_mesh = { "..\\..\\assets\\DamagedHelmet\\DamagedHelmet.gltf" }; //{ "..\\..\\assets\\Box\\Box With Spaces.gltf" }; //
+
+	//Uniform buffers here im thinking. or in a struct, but in this calss for now
+
 };
 
