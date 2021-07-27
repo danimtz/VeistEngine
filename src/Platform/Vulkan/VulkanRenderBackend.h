@@ -76,6 +76,7 @@ public:
     virtual void shutdown() override;
 
     //Void pointers to work with abstraction. Needs static cast when called
+    virtual GLFWwindow* getWindow() const override { return m_glfw_window;};
     virtual void* getDevice() const override { return m_device; }; 
     virtual void* getSwapchainExtent() override { return &m_swapchain_extent; };
     virtual void* getRenderPass() const override { return m_render_pass; };

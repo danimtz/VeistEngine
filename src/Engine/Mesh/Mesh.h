@@ -28,8 +28,8 @@ public:
 	Mesh(const char* mesh_filepath);
 
 
-	std::shared_ptr<VertexBuffer> getVertexBuffer() { return m_vertex_buffer; };
-	std::shared_ptr<IndexBuffer> getIndexBuffer() { return m_index_buffer; };
+	std::shared_ptr<VertexBuffer> getVertexBuffer() const { return m_vertex_buffer; };
+	std::shared_ptr<IndexBuffer> getIndexBuffer() const { return m_index_buffer; };
 
 private:
 

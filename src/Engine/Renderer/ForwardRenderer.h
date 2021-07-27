@@ -1,11 +1,10 @@
 #pragma once
 #include "Engine/Renderer/Renderer.h"
-		 
-
 #include "Engine/Renderer/ShaderAndPipelines/GraphicsPipeline.h"
 
+
 #define GLM_DEPTH_ZERO_TO_ONE
-#include "Engine/Mesh/Mesh.h"
+
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -21,17 +20,12 @@ public:
 	~ForwardRenderer();
 
 	virtual void init(std::shared_ptr<RenderBackend> backend) override;
-	virtual void renderScene() override;
+	virtual void renderScene(Scene *scene) override;
 
 private:
 
-	std::shared_ptr<GraphicsPipeline> m_pipeline; 
-	std::shared_ptr<GraphicsPipeline> m_helmetPipeline;
 
 
-	//SHOULDNT BE HERE BUT IS FOR NOW UNTIL SCENE CLASS IS MADE:
-	Mesh test_mesh;
-	Mesh tt_mesh = { "..\\..\\assets\\DamagedHelmet\\DamagedHelmet.gltf" }; //{ "..\\..\\assets\\Box\\Box With Spaces.gltf" }; //
 
 	//Uniform buffers here im thinking. or in a struct, but in this calss for now
 

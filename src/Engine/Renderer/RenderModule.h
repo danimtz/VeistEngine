@@ -20,9 +20,9 @@ public:
 	static void selectRenderArchitecture(RendererType renderer_type = RendererType::Forward); //default to forward renderer
 
 	
-	static inline void renderScene()
+	static inline void renderScene(Scene* scene)
 	{
-		s_renderer->renderScene();
+		s_renderer->renderScene(scene);
 	};
 
 private:

@@ -18,6 +18,7 @@ public:
     virtual void shutdown() = 0;
     virtual void pushToDeletionQueue(std::function<void()> function) = 0;
 
+    virtual GLFWwindow* getWindow() const = 0;
     virtual void* getDevice() const = 0;
     virtual void* getSwapchainExtent() = 0;
     virtual void* getRenderPass() const = 0;

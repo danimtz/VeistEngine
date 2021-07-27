@@ -13,7 +13,7 @@ public:
 
 private:
 
-	std::array<glm::vec3, 6> m_normals
+	std::array<glm::vec4, 6> m_normals;
 
 };
 
