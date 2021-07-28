@@ -23,30 +23,26 @@ Camera::Camera(float aspect_ratio, float fov, float far_plane, float near_plane,
 void Camera::setViewMatrix(const glm::mat4 view_mat) 
 {
 	m_view = view_mat;
+	m_dirty_flag = true;
 }
 
 void Camera::setProjectionMatrix(const glm::mat4 proj_mat)
 {
 	m_projection = proj_mat;
 	m_projection[1][1] *= -1; //vulkan flips the y axis
-}
-
-void Camera::setViewProjectionMatrix(const glm::mat4 view_proj_mat)
-{
-	m_view_projection = view_proj_mat;
+	m_dirty_flag = true;
 }
 
 
 void Camera::updateViewProjection() 
 {
-	setViewProjectionMatrix(m_projection * m_view);
+	m_view_projection = (m_projection * m_view);
 }
 
 
 void Camera::setPosition(const glm::vec3 new_pos) 
 {
 	setViewMatrix(glm::lookAt(new_pos, new_pos + forward(), up()));
-	updateViewProjection();
 }
 
 
@@ -74,4 +70,14 @@ glm::vec3 Camera::right() const
 	//First row of view mat
 	glm::vec3 right = { m_view[0][2], m_view[1][2] , m_view[2][2] };
 	return glm::normalize(right);
+}
+
+
+
+void Camera::onUpdate()
+{
+	if(m_dirty_flag){
+		updateViewProjection();
+		m_dirty_flag = false;
+	}
 }

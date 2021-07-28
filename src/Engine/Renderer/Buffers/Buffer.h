@@ -85,8 +85,6 @@ private:
 	uint32_t m_binding; //maybe a static id but i dont think so
 	uint32_t m_stride;
 	std::vector<VertexAttribute> m_attributes;
-
-
 };
 
 

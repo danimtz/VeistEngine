@@ -36,25 +36,23 @@ void ForwardRenderer::renderScene(Scene* scene)
 	push_constant.Nmatrix = glm::inverseTranspose(glm::mat3(scene->getCamera()->viewMatrix() * model));
 
 	
-	for (int i = 0; i < scene->getMeshes().size(); i++) {
+	for (int i = 0; i < scene->getModels().size(); i++) {
 
+		Mesh curr_mesh = *scene->getModels()[i].mesh().get();
+		Material curr_material = *scene->getModels()[i].material().get();
 		//m_render_backend->RC_bindGraphicsPipeline( m_pipeline );
-		m_render_backend->RC_bindGraphicsPipeline(scene->m_test_pipeline);
-
-		
-
-
+		m_render_backend->RC_bindGraphicsPipeline(curr_material.pipeline());
 
 		
 		//m_render_backend->RC_pushConstants(m_pipeline, push_constant);
-		m_render_backend->RC_pushConstants(scene->m_test_pipeline, push_constant);
+		m_render_backend->RC_pushConstants(curr_material.pipeline(), push_constant);
 
 		//m_render_backend->RC_bindVertexBuffer(test_mesh.getVertexBuffer());
-		m_render_backend->RC_bindVertexBuffer(scene->getMeshes()[i].getVertexBuffer());
-		m_render_backend->RC_bindIndexBuffer(scene->getMeshes()[i].getIndexBuffer());
+		m_render_backend->RC_bindVertexBuffer(curr_mesh.getVertexBuffer());
+		m_render_backend->RC_bindIndexBuffer(curr_mesh.getIndexBuffer());
 
 		//m_render_backend->RC_drawSumbit(tt_mesh.getVertexBuffer()->getSize());
-		m_render_backend->RC_drawIndexed(scene->getMeshes()[i].getIndexBuffer()->getSize());
+		m_render_backend->RC_drawIndexed(curr_mesh.getIndexBuffer()->getSize());
 
 
 	}

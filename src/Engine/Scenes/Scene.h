@@ -1,7 +1,7 @@
 #pragma once
 
 #define GLM_DEPTH_ZERO_TO_ONE
-#include "Engine/Mesh/Mesh.h"
+#include "Model.h"
 #include "Engine/Camera/Camera.h"
 
 #include "Engine/Renderer/ShaderAndPipelines/GraphicsPipeline.h"//temp
@@ -13,20 +13,18 @@ public:
 	Scene();
 
 
-	const std::vector<Mesh>& getMeshes() const {return m_scene_meshes;};
+	const std::vector<Model>& getModels() const {return m_scene_models;};
 	Camera* getCamera() const {return m_scene_camera.get();}
 
 
-
-	//VERY TEMPORARY:
-	std::shared_ptr<GraphicsPipeline> m_test_pipeline;
+	void onUpdate();
 
 
 
 private:
 
 	std::unique_ptr<Camera> m_scene_camera;
-	std::vector<Mesh> m_scene_meshes;
+	std::vector<Model> m_scene_models;
 
 	
 

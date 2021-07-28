@@ -15,6 +15,8 @@
 #include "Engine/Logger.h"
 #include "Engine/Renderer/RenderBackend.h"
 
+#include "VulkanImGUIContext.h"
+
 #include <vk_mem_alloc.h>
 
 #define GLFW_EXPOSE_NATIVE_WIN32
@@ -164,4 +166,6 @@ private:
     bool                        m_isInitialized{false};
 
     DeletionQueue               m_deletion_queue;
+
+    friend class VulkanImGUIContext;
 };

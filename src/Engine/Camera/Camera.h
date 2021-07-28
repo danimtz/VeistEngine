@@ -26,12 +26,15 @@ public:
 	void setPosition(const glm::vec3 new_pos);
 	void setViewMatrix(const glm::mat4 view_mat);
 	void setProjectionMatrix(const glm::mat4 proj_mat);
-	void setViewProjectionMatrix(const glm::mat4 view_proj_mat);
+	
 
+
+	void onUpdate();
 
 private:
 
 	void updateViewProjection();
+	//void setViewProjectionMatrix(const glm::mat4 view_proj_mat);
 
 	//position maybe?
 
@@ -40,6 +43,8 @@ private:
 	glm::mat4 m_view_projection;
 
 	Fustrum m_fustrum;
+
+	mutable bool m_dirty_flag = {false};
 
 };
 
