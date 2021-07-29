@@ -1,7 +1,9 @@
 
 #include "Platform/Vulkan/VulkanRenderBackend.h"
 
-
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_vulkan.h>
 
 
 
@@ -710,6 +712,11 @@ void VulkanRenderBackend::createCommandPoolAndBuffers() {
 		m_deletion_queue.pushFunction([=]() { vkDestroyCommandPool(m_device, m_frame_data[i].m_command_pool, nullptr); });
 	}
 	
+
+	//Create command pool for upload context (staging buffers etc)
+	VK_CHECK(vkCreateCommandPool(m_device, &pool_create_info, nullptr, &m_upload_context.m_command_pool));
+	m_deletion_queue.pushFunction([=]() { vkDestroyCommandPool(m_device, m_upload_context.m_command_pool, nullptr); });
+
 }
 
 
@@ -843,6 +850,15 @@ void VulkanRenderBackend::createSemaphoresAndFences()
 		m_deletion_queue.pushFunction([=]() { vkDestroySemaphore(m_device, m_frame_data[i].m_render_semaphore, nullptr); });
 	}
 	
+	//create fence for upload context (staging buffers etc)
+	VkFenceCreateInfo upload_fence_create_info = {};
+	fence_create_info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+	fence_create_info.pNext = nullptr;
+	fence_create_info.flags = 0;
+
+	VK_CHECK(vkCreateFence(m_device, &upload_fence_create_info, nullptr, &m_upload_context.m_fence));
+	m_deletion_queue.pushFunction([=]() { vkDestroyFence(m_device, m_upload_context.m_fence, nullptr); });
+
 }
 
 
@@ -875,6 +891,145 @@ void VulkanRenderBackend::shutdown() {
 
 		vkDestroyInstance(m_instance, nullptr);
 	}
+}
+
+
+/*
+=====================================
+VulkanRenderBackend ImGUI initialization
+=====================================
+*/
+void VulkanRenderBackend::initImGUI()
+{
+/*
+	if (!m_isInitialized)
+	{
+		CRITICAL_ERROR_LOG("IMGUI init failed: vulkan not properly intialized");
+	}
+	
+	//1: create descriptor pool for IMGUI. from imgui demo
+	VkDescriptorPoolSize pool_sizes[] =
+	{
+		{ VK_DESCRIPTOR_TYPE_SAMPLER, 1000 },
+		{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000 },
+		{ VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1000 },
+		{ VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1000 },
+		{ VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1000 },
+		{ VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 1000 },
+		{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000 },
+		{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1000 },
+		{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000 },
+		{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000 },
+		{ VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1000 }
+	};
+
+	VkDescriptorPoolCreateInfo pool_info = {};
+	pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+	pool_info.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+	pool_info.maxSets = 1000;
+	pool_info.poolSizeCount = std::size(pool_sizes);
+	pool_info.pPoolSizes = pool_sizes;
+
+	VkDescriptorPool imguiPool;
+	VK_CHECK(vkCreateDescriptorPool(m_device, &pool_info, nullptr, &imguiPool));
+
+
+	// 2: initialize imgui library
+
+	//this initializes the core structures of imgui
+	ImGui::CreateContext();
+
+	//this initializes imgui for SDL
+	ImGui_ImplGlfw_InitForVulkan(m_glfw_window, false);
+
+	//this initializes imgui for Vulkan
+	ImGui_ImplVulkan_InitInfo init_info = {};
+	init_info.Instance = m_instance;
+	init_info.PhysicalDevice = m_gpu_info.device;
+	init_info.Device = m_device;
+	init_info.Queue = m_graphics_queue;
+	init_info.DescriptorPool = imguiPool;
+	init_info.MinImageCount = 3; //CHECK THIS LATER DEFAULT VALUE FROM TUTORIAL
+	init_info.ImageCount = 3; //CHECK THIS LATER DEFAULT VALUE FROM TUTORIAL
+	init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
+
+	ImGui_ImplVulkan_Init(&init_info, m_render_pass);
+
+	//execute a gpu command to upload imgui font textures
+	immediateSubmit([&](VkCommandBuffer cmd) {
+		ImGui_ImplVulkan_CreateFontsTexture(cmd);
+		});
+
+	//clear font textures from cpu data
+	ImGui_ImplVulkan_DestroyFontUploadObjects();
+
+	//add the destroy the imgui created structures
+	m_deletion_queue.pushFunction([=]() {
+			vkDestroyDescriptorPool(m_device, imguiPool, nullptr);
+			ImGui_ImplVulkan_Shutdown();
+		});
+
+		*/
+}
+
+
+/*
+=====================================
+VulkanRenderBackend Immediate Submit
+=====================================
+*/
+
+void VulkanRenderBackend::immediateSubmit(std::function<void(VkCommandBuffer cmd)> function)
+{
+	//Allocate command buffer
+	VkCommandBufferAllocateInfo cmd_allocate_info = {};
+	cmd_allocate_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+	cmd_allocate_info.commandBufferCount = 1;
+	cmd_allocate_info.commandPool = m_upload_context.m_command_pool;
+	cmd_allocate_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+	cmd_allocate_info.pNext = nullptr;
+
+	VkCommandBuffer cmd;
+	VK_CHECK(vkAllocateCommandBuffers(m_device, &cmd_allocate_info, &cmd));
+
+	//Begin commadn buffer
+	VkCommandBufferBeginInfo begin_info = {};
+	begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	begin_info.pNext = nullptr;
+	begin_info.pInheritanceInfo = nullptr;
+	begin_info.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+	VK_CHECK(vkBeginCommandBuffer(cmd, &begin_info));
+	
+
+	//execute function
+	function(cmd);
+
+
+	VK_CHECK(vkEndCommandBuffer(cmd));
+
+	VkSubmitInfo submit_info = {};
+	submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	submit_info.pNext = nullptr;
+	submit_info.waitSemaphoreCount = 0;
+	submit_info.pWaitSemaphores = nullptr;
+	submit_info.pWaitDstStageMask = nullptr;
+	submit_info.commandBufferCount = 1;
+	submit_info.pCommandBuffers = &cmd;
+	submit_info.signalSemaphoreCount = 0;
+	submit_info.pSignalSemaphores = nullptr;
+
+	//submit command buffer to queue and execute it.
+	//fence will block until the commands finish
+	VK_CHECK(vkQueueSubmit(m_graphics_queue, 1, &submit_info, m_upload_context.m_fence));
+
+	vkWaitForFences(m_device, 1, &m_upload_context.m_fence, true, 9999999999);
+
+	vkResetFences(m_device, 1, &m_upload_context.m_fence);
+
+	//clear the command pool
+	vkResetCommandPool(m_device, m_upload_context.m_command_pool, 0);
+
 }
 
 

@@ -17,6 +17,7 @@ public:
     virtual void init(GLFWwindow* window) = 0;
     virtual void shutdown() = 0;
     virtual void pushToDeletionQueue(std::function<void()> function) = 0;
+    virtual void initImGUI() = 0;
 
     virtual GLFWwindow* getWindow() const = 0;
     virtual void* getDevice() const = 0;
@@ -24,6 +25,7 @@ public:
     virtual void* getRenderPass() const = 0;
     virtual void* getAllocator() const = 0;
     virtual uint32_t getFrameNumber() const = 0;
+
 
     //Backend Commands (RC prefix -> Renderer Command) this includes all commands and functions that use graphics api specific functions
     //MAYBE SHOUDL CHANGE RC PREFIX TO GAPI or GL or something

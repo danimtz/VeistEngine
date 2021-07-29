@@ -71,11 +71,20 @@ struct VulkanFrameData
     VkFence                 m_render_fence;
 };
 
+
+struct GPUUploadContext
+{
+    VkFence m_fence;
+    VkCommandPool m_command_pool;
+};
+
+
 class VulkanRenderBackend : public RenderBackend {
 public:
 
     virtual void init(GLFWwindow* window) override;
     virtual void shutdown() override;
+    virtual void initImGUI() override;
 
     //Void pointers to work with abstraction. Needs static cast when called
     virtual GLFWwindow* getWindow() const override { return m_glfw_window;};
@@ -88,7 +97,9 @@ public:
 
     virtual void pushToDeletionQueue(std::function<void()> function) override;
 
-//render commands/functions that use vulkan commands
+    
+public:
+    //render commands/functions that use vulkan commands
     virtual void RC_beginFrame() override;
     virtual void RC_endFrame() override;
 
@@ -100,6 +111,10 @@ public:
 
     virtual void RC_drawIndexed(uint32_t size) override;
     virtual void RC_drawSumbit(uint32_t size) override;
+
+public://VulkanRenderBackend specific public functions. might need dynamic cast
+
+    void immediateSubmit(std::function<void(VkCommandBuffer cmd)> function);
 
 private://main vulkan setup
     void initContext_VK();
@@ -156,7 +171,8 @@ private:
 //Per frame data(command buffers, pool and sync structures)
     VulkanFrameData                 m_frame_data[FRAME_OVERLAP_COUNT];
 
-   
+    GPUUploadContext                m_upload_context;
+
     uint32_t                    m_frame_count{0};
 
 
@@ -167,5 +183,5 @@ private:
 
     DeletionQueue               m_deletion_queue;
 
-    friend class VulkanImGUIContext;
+    
 };

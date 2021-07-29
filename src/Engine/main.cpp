@@ -5,7 +5,7 @@
 #include "Renderer/RenderModule.h"
 #include "ImGUI/GUIModule.h"
 
-
+#include <imgui.h>
 
 int main() {
 
@@ -19,6 +19,7 @@ int main() {
     GLFWwindow* window = glfwCreateWindow(1280, 720, "Vulkan", nullptr, nullptr);
 
     RenderModule::init(window);
+    ImGui::CreateContext();
     GUIModule::init();
 
     Scene* scene = new Scene();

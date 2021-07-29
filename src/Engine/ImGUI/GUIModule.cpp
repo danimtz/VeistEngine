@@ -6,6 +6,8 @@ std::unique_ptr<ImGUIContext> GUIModule::s_GUIcontext = nullptr;
 
 void GUIModule::init() 
 {
-	s_GUIcontext = ImGUIContext::Create();
+
+	//RenderModule::getRenderBackend()->initImGUI();
+	//s_GUIcontext = ImGUIContext::Create();
 
 }
