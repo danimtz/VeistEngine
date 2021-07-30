@@ -1,10 +1,9 @@
 
 #include "Platform/Vulkan/VulkanRenderBackend.h"
 
-#include <imgui.h>
-#include <imgui_impl_glfw.h>
-#include <imgui_impl_vulkan.h>
-
+#include "imgui.h"
+#include "imgui_impl_vulkan.h"
+#include "imgui_impl_glfw.h"
 
 
 
@@ -852,9 +851,9 @@ void VulkanRenderBackend::createSemaphoresAndFences()
 	
 	//create fence for upload context (staging buffers etc)
 	VkFenceCreateInfo upload_fence_create_info = {};
-	fence_create_info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-	fence_create_info.pNext = nullptr;
-	fence_create_info.flags = 0;
+	upload_fence_create_info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+	upload_fence_create_info.pNext = nullptr;
+	upload_fence_create_info.flags = 0;
 
 	VK_CHECK(vkCreateFence(m_device, &upload_fence_create_info, nullptr, &m_upload_context.m_fence));
 	m_deletion_queue.pushFunction([=]() { vkDestroyFence(m_device, m_upload_context.m_fence, nullptr); });
@@ -901,7 +900,7 @@ VulkanRenderBackend ImGUI initialization
 */
 void VulkanRenderBackend::initImGUI()
 {
-/*
+
 	if (!m_isInitialized)
 	{
 		CRITICAL_ERROR_LOG("IMGUI init failed: vulkan not properly intialized");
@@ -949,8 +948,8 @@ void VulkanRenderBackend::initImGUI()
 	init_info.Device = m_device;
 	init_info.Queue = m_graphics_queue;
 	init_info.DescriptorPool = imguiPool;
-	init_info.MinImageCount = 3; //CHECK THIS LATER DEFAULT VALUE FROM TUTORIAL
-	init_info.ImageCount = 3; //CHECK THIS LATER DEFAULT VALUE FROM TUTORIAL
+	init_info.MinImageCount = 2; //CHECK THIS LATER DEFAULT VALUE FROM TUTORIAL
+	init_info.ImageCount = 2; //CHECK THIS LATER DEFAULT VALUE FROM TUTORIAL
 	init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
 
 	ImGui_ImplVulkan_Init(&init_info, m_render_pass);
@@ -969,7 +968,7 @@ void VulkanRenderBackend::initImGUI()
 			ImGui_ImplVulkan_Shutdown();
 		});
 
-		*/
+		
 }
 
 
@@ -1091,8 +1090,7 @@ void VulkanRenderBackend::RC_beginFrame()
 
 
 	vkCmdBeginRenderPass(cmd_buffer, &render_pass_begin_info, VK_SUBPASS_CONTENTS_INLINE);
-
-
+	
 }
 
 
@@ -1100,6 +1098,13 @@ void VulkanRenderBackend::RC_endFrame()
 {
 
 	VkCommandBuffer cmd_buffer = getCurrentFrame().m_command_buffer;
+
+
+
+	ImGui::Render();
+	ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), cmd_buffer);
+
+
 
 	vkCmdEndRenderPass(cmd_buffer);
 	VK_CHECK(vkEndCommandBuffer(cmd_buffer));
