@@ -24,7 +24,6 @@ void ForwardRenderer::renderScene(Scene* scene)
 	//THIS WILL BE REFACTORED INTO MANY THINGS-> graphics context instead of backend, renderpass and cmd class maybe instead of RC_begin frame
 	//Binding stuff should be abstracted out of the monolithic VulkanRenderBackend at some point as well.
 
-	m_render_backend->RC_beginFrame();
 
 	uint32_t framenum = m_render_backend->getFrameNumber();
 	MatrixPushConstant push_constant;
@@ -57,7 +56,7 @@ void ForwardRenderer::renderScene(Scene* scene)
 
 	}
 	
-	m_render_backend->RC_endFrame();
+	
 
 	//VkDevice device = static_cast<VkDevice>(m_render_backend->getDevice());
 

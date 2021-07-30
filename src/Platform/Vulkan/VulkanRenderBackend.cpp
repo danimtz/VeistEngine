@@ -939,7 +939,7 @@ void VulkanRenderBackend::initImGUI()
 	ImGui::CreateContext();
 
 	//this initializes imgui for SDL
-	ImGui_ImplGlfw_InitForVulkan(m_glfw_window, false);
+	ImGui_ImplGlfw_InitForVulkan(m_glfw_window, true);
 
 	//this initializes imgui for Vulkan
 	ImGui_ImplVulkan_InitInfo init_info = {};
@@ -1098,12 +1098,6 @@ void VulkanRenderBackend::RC_endFrame()
 {
 
 	VkCommandBuffer cmd_buffer = getCurrentFrame().m_command_buffer;
-
-
-
-	ImGui::Render();
-	ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), cmd_buffer);
-
 
 
 	vkCmdEndRenderPass(cmd_buffer);

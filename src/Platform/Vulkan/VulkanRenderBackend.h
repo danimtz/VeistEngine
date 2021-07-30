@@ -15,7 +15,7 @@
 #include "Engine/Logger.h"
 #include "Engine/Renderer/RenderBackend.h"
 
-#include "VulkanImGUIContext.h"
+
 
 #include <vk_mem_alloc.h>
 
@@ -112,9 +112,7 @@ public:
     virtual void RC_drawIndexed(uint32_t size) override;
     virtual void RC_drawSumbit(uint32_t size) override;
 
-public://VulkanRenderBackend specific public functions. might need dynamic cast
 
-    void immediateSubmit(std::function<void(VkCommandBuffer cmd)> function);
 
 private://main vulkan setup
     void initContext_VK();
@@ -134,7 +132,12 @@ private://main vulkan setup
     VulkanFrameData& getCurrentFrame() { return m_frame_data[m_frame_count % FRAME_OVERLAP_COUNT]; };
 
 
-  
+public://VulkanRenderBackend specific public functions. might need dynamic cast
+
+    void immediateSubmit(std::function<void(VkCommandBuffer cmd)> function);
+    VkCommandBuffer getCurrentCmdBuffer() { return getCurrentFrame().m_command_buffer; };
+ 
+ 
 private:
 //context
     GLFWwindow*                     m_glfw_window; //could be abstracted to use different library other than glfw, hard coded for now

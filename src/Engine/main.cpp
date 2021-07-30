@@ -5,9 +5,7 @@
 #include "Renderer/RenderModule.h"
 #include "ImGUI/GUIModule.h"
 
-#include "imgui.h"
-#include "imgui_impl_vulkan.h"
-#include "imgui_impl_glfw.h"
+
 
 int main() {
 
@@ -21,8 +19,7 @@ int main() {
     GLFWwindow* window = glfwCreateWindow(1280, 720, "Vulkan", nullptr, nullptr);
 
     RenderModule::init(window);
-    //ImGui::CreateContext();
-    GUIModule::init();
+    GUIModule::init(RenderModule::getRenderBackend().get());
 
     Scene* scene = new Scene();
 
@@ -30,18 +27,28 @@ int main() {
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
 
-
-        ImGui_ImplVulkan_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
-        //imgui commands
-        ImGui::ShowDemoWindow();
-
-      
-
+        
 
         scene->onUpdate();
-        RenderModule::renderScene(scene);
+      
+
+        //Rendering
+        RenderModule::beginFrame();
+        {
+
+
+            RenderModule::renderScene(scene);
+           
+
+            GUIModule::beginFrame();
+            {
+                //module or whatever->onUpdateImGUI()
+                ImGui::ShowDemoWindow();
+            }
+            GUIModule::endFrame();
+        }
+        RenderModule::endFrame();
+        
     }
 
     
