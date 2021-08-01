@@ -20,6 +20,13 @@ set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 add_subdirectory(glfw-3.3.4)
 
+# Add spirv cross
+add_subdirectory(spirv-cross)
+
+
+#TODO LINK SPIRV CROSS ETC ETC ETC
+
+
 # target_link_libraries(myapp glfw)
 
 # Add imgui library

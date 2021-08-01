@@ -7,12 +7,12 @@
 #include "Engine/Logger.h"
 #include "Engine/Renderer/RenderModule.h"
 #include "Engine/Renderer/ShaderAndPipelines/GraphicsPipeline.h"
-
+#include "Platform/Vulkan/ShaderAndPipelines/VulkanShader.h"
 
 class VulkanGraphicsPipeline : public GraphicsPipeline {
 public:
 
-	VulkanGraphicsPipeline(std::string shader_name, std::string folder_path, const VertexDescription& vertex_desc, VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
+	VulkanGraphicsPipeline(std::string shader_name,  const VertexDescription& vertex_desc, VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
 		VkPolygonMode polygon_mode = VK_POLYGON_MODE_FILL, VkCullModeFlags cull_mode = VK_CULL_MODE_NONE/*VK_CULL_MODE_BACK_BIT*/,
 		VkFrontFace front_face = VK_FRONT_FACE_COUNTER_CLOCKWISE, DepthTest depth_test = DepthTest::ReadWrite);
 
@@ -33,7 +33,7 @@ private:
 class VulkanGraphicsPipelineBuilder {
 public:
 
-	VulkanGraphicsPipelineBuilder(std::string shader_name, std::string folder_path, const VertexDescription&vertex_desc,  VkPrimitiveTopology topology,
+	VulkanGraphicsPipelineBuilder(std::string shader_name, const VertexDescription&vertex_desc,  VkPrimitiveTopology topology,
 		VkPolygonMode polygon_mode, VkCullModeFlags cull_mode,
 		VkFrontFace front_face, DepthTest depth_test);
 	
@@ -41,7 +41,7 @@ public:
 private:
 	
 
-	void createShaderProgram(const char* file_path, VkShaderStageFlagBits stage);
+	void createShaderProgram(std::string shader_name);
 	void setVertexInputDescriptions(const VertexDescription& vertex_desc);
 	void createPipelineStates();
 	void createPipelineLayout();
@@ -58,8 +58,10 @@ private:
 	//Pipeline attributes
 	VkPipeline										m_pipeline;
 
-	std::vector<VkShaderModule>						m_shader_module;
-	std::vector<VkPipelineShaderStageCreateInfo>	m_stages;
+
+	std::shared_ptr<VulkanShaderProgram>			m_shader_program;
+
+	
 	VkPipelineVertexInputStateCreateInfo			m_vertex_input_info = {};
 	VkPipelineInputAssemblyStateCreateInfo			m_input_assembly_info = {};
 	VkPipelineRasterizationStateCreateInfo			m_rasterizer_info = {};
