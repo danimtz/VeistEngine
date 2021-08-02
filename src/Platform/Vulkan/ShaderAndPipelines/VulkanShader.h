@@ -4,6 +4,7 @@
 #include <fstream>
 #include <vector>
 #include <string>
+#include <map>
 #include "Engine/Logger.h"
 #include "Engine/Renderer/RenderModule.h"
 //#include "Engine/Renderer/ShaderAndPipelines/GraphicsPipeline.h"
@@ -28,6 +29,8 @@ public:
 
     std::vector<VkShaderModule>& shaderModules() {return m_shader_module; };
     std::vector<VkPipelineShaderStageCreateInfo>& pipelineStages() {	return m_pipeline_stages; };
+    std::vector<VkDescriptorSetLayout>& descriptorLayouts() { return m_descriptor_layouts; };
+    std::vector<VkPushConstantRange>& pushConstantRanges() { return m_push_constants; };
    
    
    static std::shared_ptr<VulkanShaderProgram> Create(std::string shader_name, std::string folder_path = "..\\..\\src\\Shaders\\");
@@ -35,7 +38,12 @@ public:
 private:
 
     void createShaderModule(const char* file_path, VulkanShaderType shader_type);
-    void reflectShader(){};
+    void reflectShaderModule(std::vector<uint32_t>& buffer, VulkanShaderType shader_type);
+    void createDescriptorSetLayouts();
+
+    static constexpr int MAX_DESCRIPTOR_SETS = 4;//find better palce for this
+
+    std::map<uint32_t, VkDescriptorSetLayoutBinding> m_bindings[MAX_DESCRIPTOR_SETS];
 
     std::vector<VkShaderModule>						m_shader_module;
     std::vector<VkPipelineShaderStageCreateInfo>	m_pipeline_stages;

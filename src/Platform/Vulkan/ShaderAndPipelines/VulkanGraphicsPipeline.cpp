@@ -251,17 +251,17 @@ void VulkanGraphicsPipelineBuilder::createPipelineLayout()
 
 	//Add pushconstant from MatrixPushConstant struct in graphicspipeline.h TEMPORARY, WILL NEED REFACTORING LATER ON
 	//setup push constants
-	VkPushConstantRange push_constant;
+	/*VkPushConstantRange push_constant;
 	push_constant.offset = 0;
 	push_constant.size = sizeof(MatrixPushConstant);
 	push_constant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-
+	*/
 	create_info.pushConstantRangeCount = 1;
-	create_info.pPushConstantRanges = &push_constant;
+	create_info.pPushConstantRanges = &m_shader_program->pushConstantRanges().at(0);
 
 	create_info.flags = 0;
-	create_info.setLayoutCount = 0;
-	create_info.pSetLayouts = nullptr;
+	create_info.setLayoutCount = m_shader_program->descriptorLayouts().size();
+	create_info.pSetLayouts = m_shader_program->descriptorLayouts().data();
 	
 	
 	VkDevice device = static_cast<VkDevice>(RenderModule::getRenderBackend()->getDevice());

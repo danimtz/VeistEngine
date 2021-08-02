@@ -13,13 +13,21 @@ public:
 
 	Model(const char* mesh_filepath, const char* material_name, const char* material_filepath );
 
+
 	std::shared_ptr<Mesh>	mesh() const { return m_mesh; };
 	std::shared_ptr<Material> material() const { return m_material; };
+
+
+	//temp
+	glm::mat4& modelMatrix() const { return m_model_mat; };
 
 private:
 
 	std::shared_ptr<Mesh>	m_mesh;
 	std::shared_ptr<Material> m_material;
+
+	//temp until ECS
+	mutable glm::mat4 m_model_mat{1.0f};
 
 };
 

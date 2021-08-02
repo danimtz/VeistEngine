@@ -9,3 +9,4 @@ Model::Model(const char* mesh_filepath, const char* material_name, const char* m
 	m_material = std::make_shared<Material>(material_name, material_filepath, m_mesh->getVertexBuffer()->getInputDescription());
 
 }
+

@@ -29,13 +29,17 @@ void ForwardRenderer::renderScene(Scene* scene)
 	MatrixPushConstant push_constant;
 
 	//curentaly sharing model matrix
-	glm::mat4 model = glm::rotate(glm::mat4{ 1.0f }, glm::radians(framenum * 0.03f), glm::vec3(0, 1, 0));
-	model = glm::rotate(model, glm::degrees(-90.0f), glm::vec3(1, 0, 0));
-	push_constant.MVPmatrix = scene->getCamera()->viewProjectionMatrix() * model;
-	push_constant.Nmatrix = glm::inverseTranspose(glm::mat3(scene->getCamera()->viewMatrix() * model));
+	
 
 	
 	for (int i = 0; i < scene->getModels().size(); i++) {
+		
+		//Temporary using push constants to update both model matrix and camera (should ne neither i think)
+		glm::mat4 model = glm::rotate(scene->getModels()[i].modelMatrix(), glm::radians(framenum * 0.03f), glm::vec3(0, 1, 0));
+		model = glm::rotate(model, glm::degrees(-90.0f), glm::vec3(1, 0, 0));
+		push_constant.MVPmatrix = scene->getCamera()->viewProjectionMatrix() * model;
+		push_constant.Nmatrix = glm::inverseTranspose(glm::mat3(scene->getCamera()->viewMatrix() * model));
+
 
 		Mesh curr_mesh = *scene->getModels()[i].mesh().get();
 		Material curr_material = *scene->getModels()[i].material().get();

@@ -1,7 +1,27 @@
 #include "VulkanShader.h"
-#include "spirv_reflect.hpp"
 
 
+#include "spirv_cross.hpp"
+
+
+static VkDescriptorSetLayoutBinding& getDescriptorSetLayoutBinding(uint32_t binding, VkDescriptorType descriptor_type, VkShaderStageFlagBits stage_flag)
+{
+	VkDescriptorSetLayoutBinding layout_binding = {};
+	layout_binding.binding = binding;
+	layout_binding.descriptorCount = 1;
+	layout_binding.descriptorType = descriptor_type;
+	layout_binding.stageFlags = stage_flag;
+	
+	return layout_binding;
+
+}
+
+static void addStageFlagToBinding(VkDescriptorSetLayoutBinding& layout_binding, VkShaderStageFlagBits stage_flag)
+{	
+
+	layout_binding.stageFlags = layout_binding.stageFlags | stage_flag;
+
+}
 
 std::shared_ptr<VulkanShaderProgram> VulkanShaderProgram::Create(std::string shader_name, std::string folder_path)
 {
@@ -29,7 +49,7 @@ VulkanShaderProgram::VulkanShaderProgram(std::string shader_name, std::string fo
 	CONSOLE_LOG("Loaded fragment shader");
 
 
-	reflectShader();
+	createDescriptorSetLayouts();
 
 }
 
@@ -91,14 +111,107 @@ void VulkanShaderProgram::createShaderModule(const char* file_path, VulkanShader
 	m_pipeline_stages.push_back(stage_create_info);
 
 
+
+	reflectShaderModule(buffer, shader_type); //on reflect shader extract all sets and bindings etc. 
+	//Then make a function clled build descriptor set layouts or something that sorts them and creates them and the pipeline layouts2
+
+
+
 }
 
 
 
-void VulkanShaderProgram::reflectShader() 
+void VulkanShaderProgram::reflectShaderModule(std::vector<uint32_t>& buffer, VulkanShaderType shader_type) 
 {
 
+	//Reflection
+	spirv_cross::Compiler comp(std::move(buffer));
+
+	// The SPIR-V is now parsed, and we can perform reflection on it.
+	spirv_cross::ShaderResources resources = comp.get_shader_resources();
+
+	//Uniform Buffers
+	for (auto& resource : resources.uniform_buffers)
+	{
+		unsigned set = comp.get_decoration(resource.id, spv::DecorationDescriptorSet);
+		unsigned binding = comp.get_decoration(resource.id, spv::DecorationBinding);
+		if (m_bindings[set].find(binding) == m_bindings[set].end()) //if not found
+		{
+			auto decriptor_binding = getDescriptorSetLayoutBinding(binding, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, static_cast<VkShaderStageFlagBits>(shader_type));
+			m_bindings[set].insert({binding, decriptor_binding});
+		} 
+		else
+		{
+			//Add stage flag
+			addStageFlagToBinding(m_bindings[set][binding], static_cast<VkShaderStageFlagBits>(shader_type)); //UNTESTED MIGHT NOT WORK
+			
+		}
+
+		printf("Buffer %s at set = %u, binding = %u\n", resource.name.c_str(), set, binding);
+	}
+
+	//Storage Buffers
+
+	//Image Samplers
+	
+	//Push Constants (just one and simple for now)
+	if (resources.push_constant_buffers.size() > 1) 
+	{
+		CRITICAL_ERROR_LOG("Shader creation error: Cannot have more than one push constant!!");
+	}
+	
+	for (auto& resource : resources.push_constant_buffers)
+	{
+		auto& type = comp.get_type(resource.type_id);
+
+		VkPushConstantRange constant_range = {};
+		constant_range.stageFlags = static_cast<VkShaderStageFlagBits>(shader_type);
+		constant_range.offset = 0;
+		constant_range.size = comp.get_declared_struct_size(type);
+
+		m_push_constants.push_back(constant_range);
+	}
 
 
+	//TODO: subpass attachments, etc etc
+
+
+	
+}
+
+
+
+
+void VulkanShaderProgram::createDescriptorSetLayouts()
+{
+	
+	for (int i = 0; i < MAX_DESCRIPTOR_SETS; i++)
+	{
+		//Convert bindings to contiguous memory
+		std::vector<VkDescriptorSetLayoutBinding> bindings_array;
+		bindings_array.reserve(m_bindings[i].size());
+		for (int j = 0; j < m_bindings[i].size(); j++) 
+		{
+			bindings_array.push_back( std::move(m_bindings[i][j]) );
+		}
+
+		VkDescriptorSetLayoutCreateInfo set_layout_info = {};
+
+		set_layout_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+		set_layout_info.bindingCount = bindings_array.size();
+		set_layout_info.flags = 0;
+		set_layout_info.pBindings = bindings_array.data();
+		set_layout_info.pNext = nullptr;
+
+		VkDescriptorSetLayout layout;
+		VkDevice device = static_cast<VkDevice>(RenderModule::getRenderBackend()->getDevice());
+		VK_CHECK(vkCreateDescriptorSetLayout(device, &set_layout_info, nullptr, &layout));
+		RenderModule::getRenderBackend()->pushToDeletionQueue([device, layout]() {vkDestroyDescriptorSetLayout(device, layout, nullptr); });
+		
+
+		m_descriptor_layouts.push_back(layout);
+	}
+
+	CONSOLE_LOG("Created Descriptor set layouts")
 
 }
