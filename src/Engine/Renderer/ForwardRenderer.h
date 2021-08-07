@@ -1,7 +1,7 @@
 #pragma once
 #include "Engine/Renderer/Renderer.h"
 #include "Engine/Renderer/ShaderAndPipelines/GraphicsPipeline.h"
-
+#include "Engine/Renderer/Buffers/UniformBuffer.h"
 
 #define GLM_DEPTH_ZERO_TO_ONE
 
@@ -25,9 +25,18 @@ public:
 private:
 
 
+	struct CameraData {
+		glm::mat4 view;
+		glm::mat4 projection;
+		glm::mat4 view_projection;
+	};
 
+	CameraData m_camera_data;
 
 	//Uniform buffers here im thinking. or in a struct, but in this calss for now
+	std::shared_ptr<UniformBuffer> m_global_uniform; //Camera, environment etc (Updated per frame)
+
+	//std::shared_ptr<DescriptorHandler> m_global_descriptor;
 
 };
 

@@ -9,6 +9,13 @@ void ForwardRenderer::init(std::shared_ptr<RenderBackend> backend)
 {
 	setRenderBackend(backend);
 	
+	std::shared_ptr<UniformBuffer> test_buff = UniformBuffer::Create(10); //test buffer suballocations
+
+	
+	
+
+	test_buff->setData("1234567890", 10, 0);
+	test_buff->setData("111", 3, 5);
 }
 
 ForwardRenderer::~ForwardRenderer()

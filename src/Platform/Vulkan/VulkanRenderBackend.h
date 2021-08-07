@@ -92,7 +92,7 @@ public:
     virtual void* getSwapchainExtent() override { return &m_swapchain_extent; };
     virtual void* getRenderPass() const override { return m_render_pass; };
     virtual void* getAllocator() const override { return m_allocator; }; //CONSIDER MOVING ALLOCATOR TO SEPARATE CLASS
-
+    virtual uint32_t getSwapchainBufferCount() const override {return FRAME_OVERLAP_COUNT; }
     virtual uint32_t getFrameNumber() const override { return m_frame_count; };
 
     virtual void pushToDeletionQueue(std::function<void()> function) override;

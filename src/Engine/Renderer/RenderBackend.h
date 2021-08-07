@@ -4,6 +4,7 @@
 
 #include "Engine/Renderer/ShaderAndPipelines/GraphicsPipeline.h"
 #include "Engine/Renderer/Buffers/Buffer.h"
+#include "Engine/Renderer/Buffers/UniformBuffer.h"
 #include <GLFW/glfw3.h>
 #include <functional>
 #include <memory>
@@ -24,6 +25,7 @@ public:
     virtual void* getSwapchainExtent() = 0;
     virtual void* getRenderPass() const = 0;
     virtual void* getAllocator() const = 0;
+    virtual uint32_t getSwapchainBufferCount() const = 0;
     virtual uint32_t getFrameNumber() const = 0;
 
 
