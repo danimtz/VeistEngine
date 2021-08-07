@@ -1,11 +1,10 @@
 #pragma once
 #include "Engine/Renderer/Renderer.h"
-#include "Engine/Renderer/ShaderAndPipelines/GraphicsPipeline.h"
-#include "Engine/Renderer/Buffers/UniformBuffer.h"
+#include "Engine/Renderer/Vulkan/ShaderAndPipelines/VulkanGraphicsPipeline.h"
+#include "Engine/Renderer/Vulkan/Buffers/VulkanUniformBuffer.h"
+
 
 #define GLM_DEPTH_ZERO_TO_ONE
-
-
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/matrix_inverse.hpp>

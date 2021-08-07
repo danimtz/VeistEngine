@@ -6,8 +6,6 @@
 #include <string>
 #include <map>
 #include "Engine/Logger.h"
-#include "Engine/Renderer/RenderModule.h"
-//#include "Engine/Renderer/ShaderAndPipelines/GraphicsPipeline.h"
 
 enum class VulkanShaderType : uint32_t {
     None = 0,

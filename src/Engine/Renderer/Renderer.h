@@ -1,9 +1,9 @@
 #pragma once
 
-
-#include "Engine/Renderer/RenderBackend.h"
-#include "Engine/Scenes/Scene.h"
 #include <memory>
+
+class RenderBackend;
+class Scene;
 
 class Renderer //Effectively an abstract class, but not abstract due to need of preinitialization
 {

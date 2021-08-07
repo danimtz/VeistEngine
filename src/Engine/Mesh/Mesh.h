@@ -2,7 +2,10 @@
 
 //Will be rewritten later on into ECS/component system
 
-#include "Engine/Renderer/Buffers/Buffer.h"
+#include "Engine/Renderer/Buffers/VertexDescription.h"
+
+
+
 #include <vector>
 #include <memory>
 #include <string>
@@ -19,6 +22,8 @@ struct Vertex //leftover. remove later
 	//tangent
 };
 
+class VertexBuffer;
+class IndexBuffer;
 
 class Mesh
 {

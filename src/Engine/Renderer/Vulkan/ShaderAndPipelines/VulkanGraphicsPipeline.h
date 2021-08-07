@@ -5,22 +5,39 @@
 #include <vector>
 #include <string>
 #include "Engine/Logger.h"
-#include "Engine/Renderer/RenderModule.h"
-#include "Engine/Renderer/ShaderAndPipelines/GraphicsPipeline.h"
-#include "Platform/Vulkan/ShaderAndPipelines/VulkanShader.h"
+#include "Engine/Renderer/Vulkan/ShaderAndPipelines/VulkanShader.h"
+#include "Engine/Renderer/Buffers/VertexDescription.h"
 
-class VulkanGraphicsPipeline : public GraphicsPipeline {
+#include <glm/glm.hpp>
+
+//This definately needs to go somewhere else in the future.(shader class? material class?)
+struct MatrixPushConstant//Very specific and temporary name, so that i know to change it later on
+{
+	glm::mat4 MVPmatrix;
+	glm::mat4 Nmatrix;
+};
+
+
+enum class DepthTest {
+	None = 0,
+	Read = 1,
+	Write = 2,
+	ReadWrite = Read | Write
+};
+
+
+class GraphicsPipeline {
 public:
 
-	VulkanGraphicsPipeline(std::string shader_name,  const VertexDescription& vertex_desc, VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
+	GraphicsPipeline(std::string shader_name,  const VertexDescription& vertex_desc, VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
 		VkPolygonMode polygon_mode = VK_POLYGON_MODE_FILL, VkCullModeFlags cull_mode = VK_CULL_MODE_NONE/*VK_CULL_MODE_BACK_BIT*/,
 		VkFrontFace front_face = VK_FRONT_FACE_COUNTER_CLOCKWISE, DepthTest depth_test = DepthTest::ReadWrite);
 
-	~VulkanGraphicsPipeline(){};
+	~GraphicsPipeline(){};
 
 
-	virtual void* getPipeline() const override { return m_pipeline; };
-	virtual void* getPipelineLayout() const override { return m_pipeline_layout; };
+	VkPipeline getPipeline() const { return m_pipeline; };
+	VkPipelineLayout getPipelineLayout() const { return m_pipeline_layout; };
 
 private:
 
@@ -79,7 +96,7 @@ private:
 	VkPipelineLayout								m_pipeline_layout;
 
 
-	friend class VulkanGraphicsPipeline;
+	friend class GraphicsPipeline;
 
 };
 

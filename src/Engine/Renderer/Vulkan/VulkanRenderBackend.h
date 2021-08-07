@@ -1,6 +1,5 @@
-#pragma once
-
-
+ 
+ #pragma once
 
 #define VK_USE_PLATFORM_WIN32_KHR
 #include <vulkan/vulkan.h>
@@ -9,20 +8,28 @@
 #include <vector>
 #include <map>
 #include <deque>
+#include <functional>
 #include <set>
 #include <cmath>
 #include <algorithm>
-#include "Engine/Logger.h"
-#include "Engine/Renderer/RenderBackend.h"
+
+#include "vk_mem_alloc.h"
 
 
-
-#include <vk_mem_alloc.h>
-
+#include <GLFW/glfw3.h>
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3native.h>
 
 
+#include "Engine/Logger.h"
+#include "Engine/Renderer/Vulkan/ShaderAndPipelines/VulkanGraphicsPipeline.h"
+#include "Engine/Renderer/Vulkan/Buffers/VulkanIndexBuffer.h"
+#include "Engine/Renderer/Vulkan/Buffers/VulkanVertexBuffer.h"
+
+
+//class IndexBuffer;
+//class VertexBuffer;
+ 
 
 constexpr int FRAME_OVERLAP_COUNT = 2;
 
@@ -79,42 +86,44 @@ struct GPUUploadContext
 };
 
 
-class VulkanRenderBackend : public RenderBackend {
+class RenderBackend {
 public:
 
-    virtual void init(GLFWwindow* window) override;
-    virtual void shutdown() override;
-    virtual void initImGUI() override;
+    RenderBackend() = default;
+    void init(GLFWwindow* window);
+    void shutdown();
+    void initImGUI();
 
-    //Void pointers to work with abstraction. Needs static cast when called
-    virtual GLFWwindow* getWindow() const override { return m_glfw_window;};
-    virtual void* getDevice() const override { return m_device; }; 
-    virtual void* getSwapchainExtent() override { return &m_swapchain_extent; };
-    virtual void* getRenderPass() const override { return m_render_pass; };
-    virtual void* getAllocator() const override { return m_allocator; }; //CONSIDER MOVING ALLOCATOR TO SEPARATE CLASS
-    virtual uint32_t getSwapchainBufferCount() const override {return FRAME_OVERLAP_COUNT; }
-    virtual uint32_t getFrameNumber() const override { return m_frame_count; };
+    
+    GLFWwindow* getWindow() const { return m_glfw_window;};
+    VkDevice getDevice() const { return m_device; }; 
+    VkExtent2D* getSwapchainExtent() { return &m_swapchain_extent; };
+    VkRenderPass getRenderPass() const { return m_render_pass; };
+    VmaAllocator getAllocator() const { return m_allocator; }; //CONSIDER MOVING ALLOCATOR TO SEPARATE CLASS
+    uint32_t getSwapchainBufferCount() const {return FRAME_OVERLAP_COUNT; }
+    uint32_t getFrameNumber() const { return m_frame_count; };
 
-    virtual void pushToDeletionQueue(std::function<void()> function) override;
+    void pushToDeletionQueue(std::function<void()> function);
 
     
 public:
     //render commands/functions that use vulkan commands
-    virtual void RC_beginFrame() override;
-    virtual void RC_endFrame() override;
+    void RC_beginFrame();
+    void RC_endFrame();
 
     //NOTE TO FUTURE ME should renderbackend have these funcitons? or should GraphicsPipeline and VertexBUffer etc have a  Bind() function that does them
-    virtual void RC_bindGraphicsPipeline(const std::shared_ptr<GraphicsPipeline>) override; 
-    virtual void RC_pushConstants(const std::shared_ptr<GraphicsPipeline> pipeline, const MatrixPushConstant push_constant) override;
-    virtual void RC_bindVertexBuffer(const std::shared_ptr<VertexBuffer> vertex_buffer) override;
-    virtual void RC_bindIndexBuffer(const std::shared_ptr<IndexBuffer> index_buffer) override;
+    void RC_bindGraphicsPipeline(const std::shared_ptr<GraphicsPipeline>); 
+    void RC_pushConstants(const std::shared_ptr<GraphicsPipeline> pipeline, const MatrixPushConstant push_constant);
+    void RC_bindVertexBuffer(const std::shared_ptr<VertexBuffer> vertex_buffer);
+    void RC_bindIndexBuffer(const std::shared_ptr<IndexBuffer> index_buffer);
 
-    virtual void RC_drawIndexed(uint32_t size) override;
-    virtual void RC_drawSumbit(uint32_t size) override;
+    void RC_drawIndexed(uint32_t size);
+    void RC_drawSumbit(uint32_t size);
 
 
 
 private://main vulkan setup
+
     void initContext_VK();
     void createInstance();
     void setupDebugMessenger();

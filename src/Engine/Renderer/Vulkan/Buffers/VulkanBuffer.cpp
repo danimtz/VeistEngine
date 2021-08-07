@@ -1,12 +1,13 @@
 #include "VulkanBuffer.h"
 
+#include "Engine/Renderer/RenderModule.h"
+
 
 //NOTE TO SELF: im putting the definition for VMA here although i would like it to be in VulkanRenderBackend.cpp 
 //BUT compiler gets very angry if i place it there, probably due to initialization order of other libraries that maybe vma or vulkan depend on (<windows.h> or something the sort)
 //FOR now im leaving it here since memory allocator is very related to buffers, but look for a way to put it back in renderbackend later on
 
-#define VMA_IMPLEMENTATION
-#include <vk_mem_alloc.h>
+
 
 
 //Create vertex buffer
@@ -37,7 +38,7 @@ void VulkanBuffer::allocateBuffer(uint32_t size, VkBufferUsageFlagBits buffer_us
 	vma_alloc_info.usage = memory_usage;
 
 	//allocate the buffer
-	VmaAllocator allocator = static_cast<VmaAllocator>(RenderModule::getRenderBackend()->getAllocator());
+	VmaAllocator allocator = RenderModule::getRenderBackend()->getAllocator();
 
 	VkBuffer buffer;
 	VmaAllocation allocation;

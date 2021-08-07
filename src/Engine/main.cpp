@@ -5,9 +5,13 @@
 #include "Renderer/RenderModule.h"
 #include "ImGUI/GUIModule.h"
 
+#include "Engine/Scenes/Scene.h"
+
 
 
 int main() {
+
+
 
 //Init window
 
@@ -51,7 +55,6 @@ int main() {
         
     }
 
-    
 
 //Cleanup Vulkan and window
     
@@ -62,7 +65,7 @@ int main() {
 
     glfwDestroyWindow(window);
     glfwTerminate();
-
+    
 
     return 0;
 }

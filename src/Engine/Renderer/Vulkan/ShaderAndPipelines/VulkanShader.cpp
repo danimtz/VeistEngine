@@ -1,7 +1,10 @@
-#include "VulkanShader.h"
-
+#include "Engine/Renderer/Vulkan/ShaderAndPipelines/VulkanShader.h"
 
 #include "spirv_cross.hpp"
+
+#include "Engine/Renderer/RenderModule.h"
+
+
 
 
 static VkDescriptorSetLayoutBinding& getDescriptorSetLayoutBinding(uint32_t binding, VkDescriptorType descriptor_type, VkShaderStageFlagBits stage_flag)
@@ -90,7 +93,7 @@ void VulkanShaderProgram::createShaderModule(const char* file_path, VulkanShader
 
 
 	VkShaderModule shader_module;
-	VkDevice device = static_cast<VkDevice>(RenderModule::getRenderBackend()->getDevice());
+	VkDevice device = RenderModule::getRenderBackend()->getDevice();
 	VK_CHECK(vkCreateShaderModule(device, &create_info, nullptr, &shader_module));
 	RenderModule::getRenderBackend()->pushToDeletionQueue([=]() {vkDestroyShaderModule(device, shader_module, nullptr); });
 	m_shader_module.push_back(shader_module);
@@ -204,7 +207,7 @@ void VulkanShaderProgram::createDescriptorSetLayouts()
 		set_layout_info.pNext = nullptr;
 
 		VkDescriptorSetLayout layout;
-		VkDevice device = static_cast<VkDevice>(RenderModule::getRenderBackend()->getDevice());
+		VkDevice device = RenderModule::getRenderBackend()->getDevice();
 		VK_CHECK(vkCreateDescriptorSetLayout(device, &set_layout_info, nullptr, &layout));
 		RenderModule::getRenderBackend()->pushToDeletionQueue([device, layout]() {vkDestroyDescriptorSetLayout(device, layout, nullptr); });
 		

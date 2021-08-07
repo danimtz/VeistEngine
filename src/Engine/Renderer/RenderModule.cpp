@@ -1,5 +1,6 @@
-#include "RenderModule.h"
+#include "Engine/Renderer/RenderModule.h"
 #include "Engine/Renderer/ForwardRenderer.h"
+
 
 
 
@@ -9,7 +10,7 @@ std::shared_ptr<RenderBackend> RenderModule::s_render_backend = nullptr;
 void RenderModule::init(GLFWwindow* window) 
 {
 	
-    s_render_backend = RenderBackend::CreateBackend();
+    s_render_backend = std::make_shared<RenderBackend>();
     s_render_backend->init(window);
 
     selectRenderArchitecture(); //By default create forward renderer. Later make init function with custom arguemtn to initialize this to something else

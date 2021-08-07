@@ -1,5 +1,7 @@
 #include "Mesh.h"
 
+#include "Engine/Renderer/Vulkan/Buffers/VulkanVertexBuffer.h"
+#include "Engine/Renderer/Vulkan/Buffers/VulkanIndexBuffer.h"
 
 Mesh::Mesh() 
 {
@@ -17,7 +19,7 @@ Mesh::Mesh()
 
 	//ignore normals for now
 
-	m_vertex_buffer = VertexBuffer::Create(m_vertices.data(), m_vertices.size() * sizeof(Vertex));
+	m_vertex_buffer = std::make_shared<VertexBuffer>(m_vertices.data(), m_vertices.size() * sizeof(Vertex));
 
 
 	VertexDescription vertex_desc;
@@ -40,10 +42,10 @@ Mesh::Mesh(const char* mesh_filepath)
 	AssetLoader::loadMeshFromGLTF(mesh_filepath, mesh_info);
 
 	//create vertex buffers
-	m_vertex_buffer = VertexBuffer::Create(mesh_info.vbuffer_data.data(), mesh_info.vbuffer_data.size()); //index buffer data is mixed with vertex, its occupying extra space atm but thats the only evil
+	m_vertex_buffer = std::make_shared<VertexBuffer>(mesh_info.vbuffer_data.data(), mesh_info.vbuffer_data.size()); //index buffer data is mixed with vertex, its occupying extra space atm but thats the only evil
 	m_vertex_buffer->setInputDescription(mesh_info.description);
 
 	//Create index buffers
-	m_index_buffer = IndexBuffer::Create(mesh_info.index_data.data(), mesh_info.index_count, mesh_info.index_size);
+	m_index_buffer = std::make_shared<IndexBuffer>(mesh_info.index_data.data(), mesh_info.index_count, mesh_info.index_size);
 
 }

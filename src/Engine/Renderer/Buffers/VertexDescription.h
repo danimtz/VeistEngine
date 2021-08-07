@@ -7,6 +7,8 @@
 #include "Engine/Logger.h"
 
 
+
+
 enum class VertexAttributeType {
 	None = 0, Float, Float2, Float3, Float4 /*, Mat3, Mat4, Int, Int2, Int3, Int4, Bool*/
 };
@@ -87,42 +89,4 @@ private:
 	std::vector<VertexAttribute> m_attributes;
 };
 
-
-
-
-
-//API abstraction class
-class VertexBuffer
-{
-public:
-
-	virtual ~VertexBuffer() = default;
-
-	virtual void* getBuffer() const = 0;
-	virtual uint32_t getSize() const = 0;
-	
-	virtual const VertexDescription & getInputDescription() const = 0;
-	virtual void setInputDescription(const VertexDescription&description) = 0;
-
-
-	static std::shared_ptr<VertexBuffer> Create(void* vertices, uint32_t size);
-	//static std::shared_ptr<VertexBuffer> Create(uint32_t size);
-};
-
-
-
-//API abstraction class
-class IndexBuffer
-{
-public:
-
-	virtual ~IndexBuffer() = default;
-
-	virtual void* getBuffer() const = 0;
-	virtual uint32_t getSize() const = 0;
-
-
-
-	static std::shared_ptr<IndexBuffer> Create(void* indices, uint32_t idx_count, uint32_t index_size);
-};
 

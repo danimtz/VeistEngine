@@ -1,6 +1,6 @@
 #include "GUIModule.h"
 
-#include "Platform/Vulkan/VulkanRenderBackend.h"
+#include "Engine/Renderer/Vulkan/VulkanRenderBackend.h"
 
 
 
@@ -50,9 +50,8 @@ void GUIModule::beginFrame()
 void GUIModule::endFrame()
 {
     
-    //I dont like this either. Vulkan stuff outside of platform folder bad
-   
-    VulkanRenderBackend* backend = dynamic_cast<VulkanRenderBackend*>(RenderModule::getRenderBackend().get());
+	//I dont like this either. Vulkan stuff outside of platform folder bad
+    RenderBackend* backend = RenderModule::getRenderBackend().get();
     ImGui::Render();
     ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), backend->getCurrentCmdBuffer());
 

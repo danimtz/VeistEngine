@@ -1,9 +1,9 @@
 
-#include "Platform/Vulkan/ShaderAndPipelines/VulkanGraphicsPipeline.h"
+#include "Engine/Renderer/Vulkan/ShaderAndPipelines/VulkanGraphicsPipeline.h"
+#include "Engine/Renderer/RenderModule.h"
 
 
-
-VulkanGraphicsPipeline::VulkanGraphicsPipeline(std::string shader_name, const VertexDescription& vertex_desc,  VkPrimitiveTopology topology,
+GraphicsPipeline::GraphicsPipeline(std::string shader_name, const VertexDescription& vertex_desc,  VkPrimitiveTopology topology,
 	VkPolygonMode polygon_mode, VkCullModeFlags cull_mode, VkFrontFace front_face, DepthTest depth_test) 
 {
 	VulkanGraphicsPipelineBuilder pipeline_builder = {shader_name, vertex_desc, topology, polygon_mode, cull_mode, front_face, depth_test };
@@ -221,7 +221,7 @@ void VulkanGraphicsPipelineBuilder::createPipelineStates()
 	//Viewport state	   //
 	/////////////////////////
 
-	VkExtent2D* swapchain_extent = static_cast<VkExtent2D*>(RenderModule::getRenderBackend()->getSwapchainExtent());
+	VkExtent2D* swapchain_extent = RenderModule::getRenderBackend()->getSwapchainExtent();
 
 	m_viewport.x = 0.0f;
 	m_viewport.y = 0.0f;
@@ -264,7 +264,7 @@ void VulkanGraphicsPipelineBuilder::createPipelineLayout()
 	create_info.pSetLayouts = m_shader_program->descriptorLayouts().data();
 	
 	
-	VkDevice device = static_cast<VkDevice>(RenderModule::getRenderBackend()->getDevice());
+	VkDevice device = RenderModule::getRenderBackend()->getDevice();
 	VkPipelineLayout layout;
 	VK_CHECK(vkCreatePipelineLayout(device, &create_info, nullptr, &layout));
 	m_pipeline_layout = layout;
@@ -274,8 +274,8 @@ void VulkanGraphicsPipelineBuilder::createPipelineLayout()
 
 void VulkanGraphicsPipelineBuilder::createPipeline()
 {
-	VkDevice device = static_cast<VkDevice>(RenderModule::getRenderBackend()->getDevice());
-	VkRenderPass render_pass = static_cast<VkRenderPass>(RenderModule::getRenderBackend()->getRenderPass());
+	VkDevice device = RenderModule::getRenderBackend()->getDevice();
+	VkRenderPass render_pass = RenderModule::getRenderBackend()->getRenderPass();
 
 	VkGraphicsPipelineCreateInfo pipeline_info = {};
 	pipeline_info.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;

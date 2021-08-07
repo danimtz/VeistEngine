@@ -1,6 +1,8 @@
 #include "Model.h"
 
 
+#include "Engine/Renderer/Vulkan/Buffers/VulkanVertexBuffer.h"
+
 Model::Model(const char* mesh_filepath, const char* material_name, const char* material_filepath)
 {
 

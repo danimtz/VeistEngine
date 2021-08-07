@@ -1,5 +1,11 @@
 
-#include "Platform/Vulkan/VulkanRenderBackend.h"
+
+#include "Engine/Renderer/Vulkan/VulkanRenderBackend.h"
+
+
+
+#define VMA_IMPLEMENTATION
+#include <vk_mem_alloc.h>
 
 #include "imgui.h"
 #include "imgui_impl_vulkan.h"
@@ -195,13 +201,13 @@ VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, GLFWwi
 
 /*
 ================================
-VulkanRenderBackend vulkan boilerplate implementation
+RenderBackend vulkan boilerplate implementation
 ================================
 */
 
 
 
-void VulkanRenderBackend::init(GLFWwindow* window)
+void RenderBackend::init(GLFWwindow* window)
 {
 
 	m_glfw_window = window;
@@ -213,7 +219,7 @@ void VulkanRenderBackend::init(GLFWwindow* window)
 
 
 
-void VulkanRenderBackend::initContext_VK()
+void RenderBackend::initContext_VK()
 {
 
 	//Create vulkan intance
@@ -256,7 +262,7 @@ void VulkanRenderBackend::initContext_VK()
 
 
 
-void VulkanRenderBackend::createInstance() 
+void RenderBackend::createInstance() 
 {
 	if (validation_layers_enabled && !checkValidationLayerSupport()) {
 		CRITICAL_ERROR_LOG("Validation layers requested but not availible");
@@ -315,7 +321,7 @@ void VulkanRenderBackend::createInstance()
 
 
 
-void VulkanRenderBackend::setupDebugMessenger()
+void RenderBackend::setupDebugMessenger()
 {
 	if(!validation_layers_enabled) return;
 
@@ -327,7 +333,7 @@ void VulkanRenderBackend::setupDebugMessenger()
 
 
 
-void VulkanRenderBackend::createSurface() 
+void RenderBackend::createSurface() 
 {
 	VkWin32SurfaceCreateInfoKHR create_info = {};
 	create_info.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
@@ -340,7 +346,7 @@ void VulkanRenderBackend::createSurface()
 
 
 
-void VulkanRenderBackend::choosePhysicalDevice()
+void RenderBackend::choosePhysicalDevice()
 {
 
 	uint32_t device_count = 0;
@@ -492,7 +498,7 @@ void VulkanRenderBackend::choosePhysicalDevice()
 
 
 
-void VulkanRenderBackend::createDeviceAndQueues()
+void RenderBackend::createDeviceAndQueues()
 {
 
 	std::vector<VkDeviceQueueCreateInfo> queue_create_infos;
@@ -543,7 +549,7 @@ void VulkanRenderBackend::createDeviceAndQueues()
 
 
 
-void VulkanRenderBackend::createVmaAllocator()
+void RenderBackend::createVmaAllocator()
 {
 	VmaAllocatorCreateInfo allocator_info = {};
 	allocator_info.physicalDevice = m_gpu_info.device;
@@ -555,7 +561,7 @@ void VulkanRenderBackend::createVmaAllocator()
 
 
 
-void VulkanRenderBackend::createSwapchainAndImages()
+void RenderBackend::createSwapchainAndImages()
 {
 
 	GPUinfo_t &gpu = m_gpu_info;
@@ -685,7 +691,7 @@ void VulkanRenderBackend::createSwapchainAndImages()
 }
 
 
-void VulkanRenderBackend::createCommandPoolAndBuffers() {
+void RenderBackend::createCommandPoolAndBuffers() {
 
 	VkCommandPoolCreateInfo pool_create_info = {};
 	pool_create_info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -720,7 +726,7 @@ void VulkanRenderBackend::createCommandPoolAndBuffers() {
 
 
 
-void VulkanRenderBackend::createDefaultRenderPass() 
+void RenderBackend::createDefaultRenderPass() 
 {
 
 	//Setup colour attachment
@@ -793,7 +799,7 @@ void VulkanRenderBackend::createDefaultRenderPass()
 
 
 
-void VulkanRenderBackend::createFramebuffers() 
+void RenderBackend::createFramebuffers() 
 {
 	//framebuffers link renderpass to imageviews ->images from swapchain
 
@@ -824,7 +830,7 @@ void VulkanRenderBackend::createFramebuffers()
 }
 
 
-void VulkanRenderBackend::createSemaphoresAndFences() 
+void RenderBackend::createSemaphoresAndFences() 
 {
 	//create fence
 	VkFenceCreateInfo fence_create_info = {};
@@ -861,13 +867,13 @@ void VulkanRenderBackend::createSemaphoresAndFences()
 }
 
 
-void VulkanRenderBackend::pushToDeletionQueue(std::function<void()> function) {
+void RenderBackend::pushToDeletionQueue(std::function<void()> function) {
 
 	m_deletion_queue.pushFunction(function);
 
 }
 
-void VulkanRenderBackend::shutdown() {
+void RenderBackend::shutdown() {
 	
 	if(m_isInitialized){
 		
@@ -895,10 +901,10 @@ void VulkanRenderBackend::shutdown() {
 
 /*
 =====================================
-VulkanRenderBackend ImGUI initialization
+RenderBackend ImGUI initialization
 =====================================
 */
-void VulkanRenderBackend::initImGUI()
+void RenderBackend::initImGUI()
 {
 
 	if (!m_isInitialized)
@@ -974,11 +980,11 @@ void VulkanRenderBackend::initImGUI()
 
 /*
 =====================================
-VulkanRenderBackend Immediate Submit
+RenderBackend Immediate Submit
 =====================================
 */
 
-void VulkanRenderBackend::immediateSubmit(std::function<void(VkCommandBuffer cmd)> function)
+void RenderBackend::immediateSubmit(std::function<void(VkCommandBuffer cmd)> function)
 {
 	//Allocate command buffer
 	VkCommandBufferAllocateInfo cmd_allocate_info = {};
@@ -1035,11 +1041,11 @@ void VulkanRenderBackend::immediateSubmit(std::function<void(VkCommandBuffer cmd
 
 /*
 =====================================
-VulkanRenderBackend Rencer commands
+RenderBackend Rencer commands
 =====================================
 */
 
-void VulkanRenderBackend::RC_beginFrame()
+void RenderBackend::RC_beginFrame()
 {
 
 	//Wait for GPU to finish last frame
@@ -1094,7 +1100,7 @@ void VulkanRenderBackend::RC_beginFrame()
 }
 
 
-void VulkanRenderBackend::RC_endFrame() 
+void RenderBackend::RC_endFrame() 
 {
 
 	VkCommandBuffer cmd_buffer = getCurrentFrame().m_command_buffer;
@@ -1150,21 +1156,21 @@ void VulkanRenderBackend::RC_endFrame()
 }
 
 
-void VulkanRenderBackend::RC_bindGraphicsPipeline(const std::shared_ptr<GraphicsPipeline> pipeline)
+void RenderBackend::RC_bindGraphicsPipeline(const std::shared_ptr<GraphicsPipeline> pipeline)
 {
 	VkCommandBuffer cmd_buffer = getCurrentFrame().m_command_buffer;
 
-	VkPipeline vulkan_pipeline = static_cast<VkPipeline>(pipeline->getPipeline());
+	VkPipeline vulkan_pipeline = pipeline->getPipeline();
 	vkCmdBindPipeline(cmd_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkan_pipeline);
 
 }
 
 
-void VulkanRenderBackend::RC_pushConstants(const std::shared_ptr<GraphicsPipeline> pipeline, const MatrixPushConstant push_constant)
+void RenderBackend::RC_pushConstants(const std::shared_ptr<GraphicsPipeline> pipeline, const MatrixPushConstant push_constant)
 {
 	VkCommandBuffer cmd_buffer = getCurrentFrame().m_command_buffer;
 
-	VkPipelineLayout vulkan_pipeline_layout = static_cast<VkPipelineLayout>(pipeline->getPipelineLayout());
+	VkPipelineLayout vulkan_pipeline_layout = pipeline->getPipelineLayout();
 
 	vkCmdPushConstants(cmd_buffer, vulkan_pipeline_layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(MatrixPushConstant), &push_constant);
 
@@ -1172,11 +1178,11 @@ void VulkanRenderBackend::RC_pushConstants(const std::shared_ptr<GraphicsPipelin
 }
 
 
-void VulkanRenderBackend::RC_bindVertexBuffer(const std::shared_ptr<VertexBuffer> vertex_buffer)
+void RenderBackend::RC_bindVertexBuffer(const std::shared_ptr<VertexBuffer> vertex_buffer)
 {
 	VkCommandBuffer cmd_buffer = getCurrentFrame().m_command_buffer;
 
-	VkBuffer buffer = static_cast<VkBuffer>(vertex_buffer->getBuffer());
+	VkBuffer buffer = (vertex_buffer->getBuffer());
 
 	VkDeviceSize offset = 0;
 
@@ -1184,11 +1190,11 @@ void VulkanRenderBackend::RC_bindVertexBuffer(const std::shared_ptr<VertexBuffer
 }
 
 
-void VulkanRenderBackend::RC_bindIndexBuffer(const std::shared_ptr<IndexBuffer> index_buffer)
+void RenderBackend::RC_bindIndexBuffer(const std::shared_ptr<IndexBuffer> index_buffer)
 {
 	VkCommandBuffer cmd_buffer = getCurrentFrame().m_command_buffer;
 
-	VkBuffer buffer = static_cast<VkBuffer>(index_buffer->getBuffer());
+	VkBuffer buffer = (index_buffer->getBuffer());
 
 
 	VkDeviceSize offset = 0;
@@ -1196,14 +1202,14 @@ void VulkanRenderBackend::RC_bindIndexBuffer(const std::shared_ptr<IndexBuffer> 
 }
 
 
-void VulkanRenderBackend::RC_drawSumbit(uint32_t size)
+void RenderBackend::RC_drawSumbit(uint32_t size)
 {
 	VkCommandBuffer cmd_buffer = getCurrentFrame().m_command_buffer;
 	vkCmdDraw(cmd_buffer, size, 1, 0, 0);
 }
 
 
-void VulkanRenderBackend::RC_drawIndexed(uint32_t size)
+void RenderBackend::RC_drawIndexed(uint32_t size)
 {
 	VkCommandBuffer cmd_buffer = getCurrentFrame().m_command_buffer;
 
