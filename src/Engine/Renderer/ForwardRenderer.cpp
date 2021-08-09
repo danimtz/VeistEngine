@@ -1,21 +1,21 @@
 #include "ForwardRenderer.h"
 
-
 #include <GLFW/glfw3.h>
 
 #include "Engine/Scenes/Scene.h"
+#include "Engine/Renderer/RenderModule.h"
 
 void ForwardRenderer::init(std::shared_ptr<RenderBackend> backend)
 {
 	setRenderBackend(backend);
 	
-	//std::shared_ptr<UniformBuffer> test_buff = std::make_shared<UniformBuffer>(10); //test buffer suballocations
+	std::shared_ptr<UniformBuffer> test_buff = std::make_shared<UniformBuffer>(10); //test buffer suballocations
 
 	
 	
 
-	//test_buff->setData("1234567890", 10, 0);
-	//test_buff->setData("111", 3, 5);
+	test_buff->setData("1234567890", 10, 0);
+	test_buff->setData("111", 3, 5);
 }
 
 ForwardRenderer::~ForwardRenderer()

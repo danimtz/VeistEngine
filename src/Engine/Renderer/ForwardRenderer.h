@@ -1,7 +1,7 @@
 #pragma once
 #include "Engine/Renderer/Renderer.h"
-#include "Engine/Renderer/Vulkan/ShaderAndPipelines/VulkanGraphicsPipeline.h"
-#include "Engine/Renderer/Vulkan/Buffers/VulkanUniformBuffer.h"
+#include "Engine/Renderer/Vulkan/ShaderAndPipelines/GraphicsPipeline.h"
+#include "Engine/Renderer/Vulkan/Buffers/UniformBuffer.h"
 
 
 #define GLM_DEPTH_ZERO_TO_ONE

@@ -2,7 +2,7 @@
 
 #include "Engine/Logger.h"
 
-#include "Engine/Renderer/Buffers/VertexDescription.h"
+#include "Engine/Renderer/Vulkan/Buffers/VertexDescription.h"
 
 
 namespace AssetLoader {

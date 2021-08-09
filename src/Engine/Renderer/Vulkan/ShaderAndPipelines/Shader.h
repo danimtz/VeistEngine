@@ -16,12 +16,12 @@ enum class VulkanShaderType : uint32_t {
 };
 
 //Vulkan shader implementation. Push constants   shjould maybe be handled from this? maybe descriptors sets, maybe that goes in material. To be determined. Leaving the class empty for now
-class VulkanShaderProgram
+class ShaderProgram
 {
 
 public:
 
-    VulkanShaderProgram(std::string file_path, std::string folder_path);
+    ShaderProgram(std::string file_path, std::string folder_path);
 
     
 
@@ -31,7 +31,7 @@ public:
     std::vector<VkPushConstantRange>& pushConstantRanges() { return m_push_constants; };
    
    
-   static std::shared_ptr<VulkanShaderProgram> Create(std::string shader_name, std::string folder_path = "..\\..\\src\\Shaders\\");
+   static std::shared_ptr<ShaderProgram> Create(std::string shader_name, std::string folder_path = "..\\..\\src\\Shaders\\");
 
 private:
 

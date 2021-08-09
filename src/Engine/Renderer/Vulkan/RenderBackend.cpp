@@ -1,6 +1,6 @@
 
 
-#include "Engine/Renderer/Vulkan/VulkanRenderBackend.h"
+#include "Engine/Renderer/Vulkan/RenderBackend.h"
 
 
 
@@ -254,6 +254,9 @@ void RenderBackend::initContext_VK()
 
 	//Create synchronisation structures
 	createSemaphoresAndFences();
+
+	//Create descriptor set pool allocator
+	createDescriptorAllocator();
 
 	m_isInitialized = true;
 }
@@ -867,11 +870,22 @@ void RenderBackend::createSemaphoresAndFences()
 }
 
 
+
+void RenderBackend::createDescriptorAllocator()
+{
+
+	m_descriptor_allocator = std::make_unique<DescriptorSetAllocator>();
+
+}
+
+
+
 void RenderBackend::pushToDeletionQueue(std::function<void()> function) {
 
 	m_deletion_queue.pushFunction(function);
 
 }
+
 
 void RenderBackend::shutdown() {
 	
@@ -897,6 +911,8 @@ void RenderBackend::shutdown() {
 		vkDestroyInstance(m_instance, nullptr);
 	}
 }
+
+
 
 
 /*
@@ -1041,7 +1057,7 @@ void RenderBackend::immediateSubmit(std::function<void(VkCommandBuffer cmd)> fun
 
 /*
 =====================================
-RenderBackend Rencer commands
+RenderBackend Render commands
 =====================================
 */
 

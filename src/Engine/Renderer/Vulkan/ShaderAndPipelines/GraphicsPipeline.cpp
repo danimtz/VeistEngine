@@ -1,21 +1,22 @@
 
-#include "Engine/Renderer/Vulkan/ShaderAndPipelines/VulkanGraphicsPipeline.h"
+#include "Engine/Renderer/Vulkan/ShaderAndPipelines/GraphicsPipeline.h"
 #include "Engine/Renderer/RenderModule.h"
 
 
 GraphicsPipeline::GraphicsPipeline(std::string shader_name, const VertexDescription& vertex_desc,  VkPrimitiveTopology topology,
 	VkPolygonMode polygon_mode, VkCullModeFlags cull_mode, VkFrontFace front_face, DepthTest depth_test) 
 {
-	VulkanGraphicsPipelineBuilder pipeline_builder = {shader_name, vertex_desc, topology, polygon_mode, cull_mode, front_face, depth_test };
+	GraphicsPipelineBuilder pipeline_builder = {shader_name, vertex_desc, topology, polygon_mode, cull_mode, front_face, depth_test };
 
 	m_pipeline = pipeline_builder.m_pipeline;
 	m_pipeline_layout = pipeline_builder.m_pipeline_layout;
+	m_shader_program = pipeline_builder.m_shader_program;
 
 };
 
 
 
-VulkanGraphicsPipelineBuilder::VulkanGraphicsPipelineBuilder(std::string shader_name, const VertexDescription&vertex_desc, VkPrimitiveTopology topology,
+GraphicsPipelineBuilder::GraphicsPipelineBuilder(std::string shader_name, const VertexDescription&vertex_desc, VkPrimitiveTopology topology,
 	VkPolygonMode polygon_mode, VkCullModeFlags cull_mode, VkFrontFace front_face, DepthTest depth_test) :
 	m_topology(topology), 
 	m_polygon_mode(polygon_mode), 
@@ -40,15 +41,15 @@ VulkanGraphicsPipelineBuilder::VulkanGraphicsPipelineBuilder(std::string shader_
 }
 
 
-void VulkanGraphicsPipelineBuilder::createShaderProgram(std::string shader_name)
+void GraphicsPipelineBuilder::createShaderProgram(std::string shader_name)
 {
 
-	m_shader_program = VulkanShaderProgram::Create(shader_name);
+	m_shader_program = ShaderProgram::Create(shader_name);
 	
 }
 
 
-void VulkanGraphicsPipelineBuilder::setVertexInputDescriptions(const VertexDescription& vertex_desc)
+void GraphicsPipelineBuilder::setVertexInputDescriptions(const VertexDescription& vertex_desc)
 {
 	//Parse Vertexdescription into vulkan vertex attribute and vertex binding descriptors
 	uint32_t location_count = 0;
@@ -98,7 +99,7 @@ void VulkanGraphicsPipelineBuilder::setVertexInputDescriptions(const VertexDescr
 
 
 
-void VulkanGraphicsPipelineBuilder::createPipelineStates()
+void GraphicsPipelineBuilder::createPipelineStates()
 {
 	////////////////////////////////////////
 	//Vertex input state (nothing for now)//
@@ -243,7 +244,7 @@ void VulkanGraphicsPipelineBuilder::createPipelineStates()
 }
 
 
-void VulkanGraphicsPipelineBuilder::createPipelineLayout()
+void GraphicsPipelineBuilder::createPipelineLayout()
 {
 	VkPipelineLayoutCreateInfo create_info{};
 	create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
@@ -272,7 +273,7 @@ void VulkanGraphicsPipelineBuilder::createPipelineLayout()
 }
 
 
-void VulkanGraphicsPipelineBuilder::createPipeline()
+void GraphicsPipelineBuilder::createPipeline()
 {
 	VkDevice device = RenderModule::getRenderBackend()->getDevice();
 	VkRenderPass render_pass = RenderModule::getRenderBackend()->getRenderPass();

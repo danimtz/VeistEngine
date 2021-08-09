@@ -22,14 +22,13 @@
 
 
 #include "Engine/Logger.h"
-#include "Engine/Renderer/Vulkan/ShaderAndPipelines/VulkanGraphicsPipeline.h"
-#include "Engine/Renderer/Vulkan/Buffers/VulkanIndexBuffer.h"
-#include "Engine/Renderer/Vulkan/Buffers/VulkanVertexBuffer.h"
+#include "Engine/Renderer/Vulkan/ShaderAndPipelines/GraphicsPipeline.h"
+#include "Engine/Renderer/Vulkan/Buffers/IndexBuffer.h" //HAVING THESE TWO BUFFER HEADERS HERE THAT LEAD TO vk mem alloc gives redefinition errors
+#include "Engine/Renderer/Vulkan/Buffers/VertexBuffer.h"
+#include "Engine/Renderer/Vulkan/Descriptors/DescriptorSetAllocator.h"
 
 
-//class IndexBuffer;
-//class VertexBuffer;
- 
+
 
 constexpr int FRAME_OVERLAP_COUNT = 2;
 
@@ -48,7 +47,7 @@ struct GPUinfo_t {
 
 struct DeletionQueue
 {
-    std::deque<std::function<void()>> deletors;
+    std::deque< std::function<void()> > deletors;
 
     void pushFunction(std::function<void()> function) {
         deletors.push_back(function);
@@ -100,7 +99,10 @@ public:
     VkExtent2D* getSwapchainExtent() { return &m_swapchain_extent; };
     VkRenderPass getRenderPass() const { return m_render_pass; };
     VmaAllocator getAllocator() const { return m_allocator; }; //CONSIDER MOVING ALLOCATOR TO SEPARATE CLASS
-    uint32_t getSwapchainBufferCount() const {return FRAME_OVERLAP_COUNT; }
+
+    DescriptorSetAllocator* getDescriptorAllocator() const { return m_descriptor_allocator.get(); };
+    
+    uint32_t getSwapchainBufferCount() const {return FRAME_OVERLAP_COUNT; };
     uint32_t getFrameNumber() const { return m_frame_count; };
 
     void pushToDeletionQueue(std::function<void()> function);
@@ -136,7 +138,7 @@ private://main vulkan setup
     void createDefaultRenderPass();
     void createFramebuffers();
     void createSemaphoresAndFences();
-
+    void createDescriptorAllocator();
     
     VulkanFrameData& getCurrentFrame() { return m_frame_data[m_frame_count % FRAME_OVERLAP_COUNT]; };
 
@@ -195,5 +197,8 @@ private:
 
     DeletionQueue               m_deletion_queue;
 
+//Descriptors
+    
+    std::unique_ptr<DescriptorSetAllocator> m_descriptor_allocator;
     
 };

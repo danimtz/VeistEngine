@@ -1,4 +1,4 @@
-#include "Engine/Renderer/Vulkan/Buffers/VulkanIndexBuffer.h"
+#include "Engine/Renderer/Vulkan/Buffers/IndexBuffer.h"
 #include "Engine/Renderer/RenderModule.h"
 
 

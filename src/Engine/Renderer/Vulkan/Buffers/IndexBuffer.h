@@ -2,7 +2,7 @@
 
 
 #include "vulkan/vulkan.h"
-#include "Engine/Renderer/Vulkan/Buffers/VulkanBuffer.h"
+#include "Engine/Renderer/Vulkan/Buffers/Buffer.h"
 #include "Engine/Logger.h"
 
 

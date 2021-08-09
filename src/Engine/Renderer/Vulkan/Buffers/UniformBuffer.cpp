@@ -1,5 +1,5 @@
-#include "VulkanUniformBuffer.h"
-
+#include "Engine/Renderer/Vulkan/Buffers/UniformBuffer.h"
+#include "Engine/Renderer/RenderModule.h"
 
 UniformBuffer::UniformBuffer(uint32_t size) : m_size(size), m_buffer({ size, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU })
 {

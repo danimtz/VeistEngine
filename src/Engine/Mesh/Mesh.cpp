@@ -1,7 +1,7 @@
 #include "Mesh.h"
 
-#include "Engine/Renderer/Vulkan/Buffers/VulkanVertexBuffer.h"
-#include "Engine/Renderer/Vulkan/Buffers/VulkanIndexBuffer.h"
+#include "Engine/Renderer/Vulkan/Buffers/VertexBuffer.h"
+#include "Engine/Renderer/Vulkan/Buffers/IndexBuffer.h"
 
 Mesh::Mesh() 
 {

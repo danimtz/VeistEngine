@@ -5,8 +5,8 @@
 #include <vector>
 #include <string>
 #include "Engine/Logger.h"
-#include "Engine/Renderer/Vulkan/ShaderAndPipelines/VulkanShader.h"
-#include "Engine/Renderer/Buffers/VertexDescription.h"
+#include "Engine/Renderer/Vulkan/ShaderAndPipelines/Shader.h"
+#include "Engine/Renderer/Vulkan/Buffers/VertexDescription.h"
 
 #include <glm/glm.hpp>
 
@@ -43,14 +43,14 @@ private:
 
 	VkPipeline				m_pipeline;
 	VkPipelineLayout		m_pipeline_layout;
-
+	std::shared_ptr<ShaderProgram>	m_shader_program;
 };
 
 
-class VulkanGraphicsPipelineBuilder {
+class GraphicsPipelineBuilder {
 public:
 
-	VulkanGraphicsPipelineBuilder(std::string shader_name, const VertexDescription&vertex_desc,  VkPrimitiveTopology topology,
+	GraphicsPipelineBuilder(std::string shader_name, const VertexDescription&vertex_desc,  VkPrimitiveTopology topology,
 		VkPolygonMode polygon_mode, VkCullModeFlags cull_mode,
 		VkFrontFace front_face, DepthTest depth_test);
 	
@@ -76,7 +76,7 @@ private:
 	VkPipeline										m_pipeline;
 
 
-	std::shared_ptr<VulkanShaderProgram>			m_shader_program;
+	std::shared_ptr<ShaderProgram>			m_shader_program;
 
 	
 	VkPipelineVertexInputStateCreateInfo			m_vertex_input_info = {};

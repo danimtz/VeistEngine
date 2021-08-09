@@ -1,4 +1,4 @@
-#include "Engine/Renderer/Vulkan/ShaderAndPipelines/VulkanShader.h"
+#include "Engine/Renderer/Vulkan/ShaderAndPipelines/Shader.h"
 
 #include "spirv_cross.hpp"
 
@@ -26,20 +26,20 @@ static void addStageFlagToBinding(VkDescriptorSetLayoutBinding& layout_binding, 
 
 }
 
-std::shared_ptr<VulkanShaderProgram> VulkanShaderProgram::Create(std::string shader_name, std::string folder_path)
+std::shared_ptr<ShaderProgram> ShaderProgram::Create(std::string shader_name, std::string folder_path)
 {
 
 	//Check if shader with that name exists, if it does return pointer to it
 			//TODO
 
 	//Else create new shader
-	return std::make_shared<VulkanShaderProgram>(shader_name, folder_path);
+	return std::make_shared<ShaderProgram>(shader_name, folder_path);
 
 }
 
 
 
-VulkanShaderProgram::VulkanShaderProgram(std::string shader_name, std::string folder_path)
+ShaderProgram::ShaderProgram(std::string shader_name, std::string folder_path)
 {
 
 	//Simple shaders only for now. Maybe this should be a loop over all shader stages
@@ -57,7 +57,7 @@ VulkanShaderProgram::VulkanShaderProgram(std::string shader_name, std::string fo
 }
 
 
-void VulkanShaderProgram::createShaderModule(const char* file_path, VulkanShaderType shader_type)
+void ShaderProgram::createShaderModule(const char* file_path, VulkanShaderType shader_type)
 {
 
 
@@ -124,7 +124,7 @@ void VulkanShaderProgram::createShaderModule(const char* file_path, VulkanShader
 
 
 
-void VulkanShaderProgram::reflectShaderModule(std::vector<uint32_t>& buffer, VulkanShaderType shader_type) 
+void ShaderProgram::reflectShaderModule(std::vector<uint32_t>& buffer, VulkanShaderType shader_type)
 {
 
 	//Reflection
@@ -185,7 +185,7 @@ void VulkanShaderProgram::reflectShaderModule(std::vector<uint32_t>& buffer, Vul
 
 
 
-void VulkanShaderProgram::createDescriptorSetLayouts()
+void ShaderProgram::createDescriptorSetLayouts()
 {
 	
 	for (int i = 0; i < MAX_DESCRIPTOR_SETS; i++)
@@ -206,9 +206,13 @@ void VulkanShaderProgram::createDescriptorSetLayouts()
 		set_layout_info.pBindings = bindings_array.data();
 		set_layout_info.pNext = nullptr;
 
-		VkDescriptorSetLayout layout;
+		
 		VkDevice device = RenderModule::getRenderBackend()->getDevice();
-		VK_CHECK(vkCreateDescriptorSetLayout(device, &set_layout_info, nullptr, &layout));
+
+		//TODO: Replace descriptor set layout creation here with descriptorsetlayoutCache function instead
+		DescriptorSetLayoutCache* layout_cache = RenderModule::getRenderBackend()->getDescriptorAllocator()->layoutCache();
+		VkDescriptorSetLayout layout = layout_cache->createDescriptorSetLayout(device, &set_layout_info);
+
 		RenderModule::getRenderBackend()->pushToDeletionQueue([device, layout]() {vkDestroyDescriptorSetLayout(device, layout, nullptr); });
 		
 

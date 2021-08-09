@@ -1,4 +1,4 @@
-#include "Engine/Renderer/Vulkan/Buffers/VulkanVertexBuffer.h"
+#include "Engine/Renderer/Vulkan/Buffers/VertexBuffer.h"
 #include "Engine/Renderer/RenderModule.h"
 
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Engine/Renderer/Vulkan/ShaderAndPipelines/VulkanGraphicsPipeline.h"
+#include "Engine/Renderer/Vulkan/ShaderAndPipelines/GraphicsPipeline.h"
 
 
 //TODO

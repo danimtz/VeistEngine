@@ -2,7 +2,7 @@
 
 //Will be rewritten later on into ECS/component system
 
-#include "Engine/Renderer/Buffers/VertexDescription.h"
+#include "Engine/Renderer/Vulkan/Buffers/VertexDescription.h"
 
 
 
