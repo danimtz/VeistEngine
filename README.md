@@ -16,3 +16,4 @@ Currently a work in progress, but the objective is to be able to set up forward 
 - [glm](https://github.com/g-truc/glm) math library originally written for openGL.
 - [vma](https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator) Vulkan Memory Allocator.
 - [Tinygltf](https://github.com/syoyo/tinygltf) Header only file for loading gltf parser.
+- [Spirv-Cross](https://github.com/KhronosGroup/SPIRV-Cross) Used for automatic shader reflection of descriptor layouts.
