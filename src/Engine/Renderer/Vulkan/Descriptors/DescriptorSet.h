@@ -8,12 +8,12 @@ class UniformBuffer;
 class DescriptorSet
 {
 public:
-
+	
 	DescriptorSet(){};
-
-	void bindUniformBuffer(UniformBuffer& buffer, uint32_t binding){};
+	void bindUniformBuffer( const UniformBuffer& buffer, uint32_t binding, uint32_t buffer_size ) {};
+	void bindUniformBuffer( const UniformBuffer& buffer, const char* name ) {};
 	void updateDescriptorSet(){};
-
+	
 private:
 
 	VkDescriptorSetLayout m_descriptor_layout;

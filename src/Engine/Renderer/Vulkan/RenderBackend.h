@@ -102,7 +102,7 @@ public:
 
     DescriptorSetAllocator* getDescriptorAllocator() const { return m_descriptor_allocator.get(); };
     
-    uint32_t getSwapchainBufferCount() const {return FRAME_OVERLAP_COUNT; };
+    const uint32_t getSwapchainBufferCount() const {return FRAME_OVERLAP_COUNT; };
     uint32_t getFrameNumber() const { return m_frame_count; };
 
     void pushToDeletionQueue(std::function<void()> function);

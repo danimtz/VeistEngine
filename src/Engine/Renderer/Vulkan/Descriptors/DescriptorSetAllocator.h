@@ -2,7 +2,7 @@
 
 #include <vulkan/vulkan.h>
 #include <memory>
-//#include "Engine/Renderer/Vulkan/Descriptors/DescriptorSet.h"
+#include "Engine/Renderer/Vulkan/Descriptors/DescriptorSet.h"
 #include "Engine/Renderer/Vulkan/Descriptors/DescriptorSetLayoutCache.h"
 
 class DescriptorSetAllocator
@@ -12,7 +12,7 @@ public:
 	DescriptorSetAllocator();
 
 
-	//bool allocateDescriptorSet(DescriptorSet& descriptor_set){};
+	bool allocateDescriptorSet(DescriptorSet& descriptor_set){};
 
 
 	DescriptorSetLayoutCache* layoutCache() { return m_layout_cache.get(); };

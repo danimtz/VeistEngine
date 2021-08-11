@@ -209,11 +209,11 @@ void ShaderProgram::createDescriptorSetLayouts()
 		
 		VkDevice device = RenderModule::getRenderBackend()->getDevice();
 
-		//TODO: Replace descriptor set layout creation here with descriptorsetlayoutCache function instead
+	
 		DescriptorSetLayoutCache* layout_cache = RenderModule::getRenderBackend()->getDescriptorAllocator()->layoutCache();
 		VkDescriptorSetLayout layout = layout_cache->createDescriptorSetLayout(device, &set_layout_info);
 
-		RenderModule::getRenderBackend()->pushToDeletionQueue([device, layout]() {vkDestroyDescriptorSetLayout(device, layout, nullptr); });
+		
 		
 
 		m_descriptor_layouts.push_back(layout);
