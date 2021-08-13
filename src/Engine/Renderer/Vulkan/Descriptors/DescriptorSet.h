@@ -2,6 +2,7 @@
 
 
 #include <vulkan/vulkan.h>
+#include "Engine/Renderer/Vulkan/ShaderAndPipelines/GraphicsPipeline.h"
 
 class UniformBuffer;
 
@@ -9,15 +10,21 @@ class DescriptorSet
 {
 public:
 	
-	DescriptorSet(){};
-	void bindUniformBuffer( const UniformBuffer& buffer, uint32_t binding, uint32_t buffer_size ) {};
-	void bindUniformBuffer( const UniformBuffer& buffer, const char* name ) {};
-	void updateDescriptorSet(){};
+	DescriptorSet() = default;
+	void setDescriptorSetLayout(uint32_t set, const GraphicsPipeline* pipeline);
+	void bindUniformBuffer(uint32_t binding, const UniformBuffer* buffer, uint32_t range);
+	
+	void buildDescriptorSet();
+	void updateDescriptorSet();
+
+	VkDescriptorSet descriptorSet() const { return m_descriptor_set; };
 	
 private:
 
-	VkDescriptorSetLayout m_descriptor_layout;
-	VkDescriptorSet m_descriptor_set;
+	VkDescriptorSetLayout m_descriptor_layout = nullptr;
+	VkDescriptorSet m_descriptor_set = nullptr;
+
+	std::vector<VkWriteDescriptorSet> m_writes;
 
 };
 

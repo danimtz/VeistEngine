@@ -10,6 +10,7 @@ class VulkanBuffer
 {
 public:
 	
+	VulkanBuffer() = default;
 	VulkanBuffer(uint32_t size, VkBufferUsageFlagBits buffer_usage, VmaMemoryUsage memory_usage);
 
 	VkBuffer buffer() const { return m_buffer; };

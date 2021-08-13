@@ -36,8 +36,9 @@ public:
 	~GraphicsPipeline(){};
 
 
-	VkPipeline getPipeline() const { return m_pipeline; };
-	VkPipelineLayout getPipelineLayout() const { return m_pipeline_layout; };
+	VkPipeline pipeline() const { return m_pipeline; };
+	VkPipelineLayout pipelineLayout() const { return m_pipeline_layout; };
+	ShaderProgram* shaderProgram() const { return m_shader_program.get(); };
 
 private:
 

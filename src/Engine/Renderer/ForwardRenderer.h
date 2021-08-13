@@ -2,7 +2,7 @@
 #include "Engine/Renderer/Renderer.h"
 #include "Engine/Renderer/Vulkan/ShaderAndPipelines/GraphicsPipeline.h"
 #include "Engine/Renderer/Vulkan/Buffers/UniformBuffer.h"
-
+#include "Engine/Renderer/Vulkan/Descriptors/DescriptorSet.h"
 
 #define GLM_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
@@ -24,6 +24,9 @@ public:
 private:
 
 
+
+	//Maybe put all this in a RendererData struct or something
+
 	struct CameraData {
 		glm::mat4 view;
 		glm::mat4 projection;
@@ -32,10 +35,11 @@ private:
 
 	CameraData m_camera_data;
 
-	//Uniform buffers here im thinking. or in a struct, but in this calss for now
-	std::shared_ptr<UniformBuffer> m_global_uniform; //Camera, environment etc (Updated per frame)
+	
+	std::unique_ptr<UniformBuffer> m_global_uniform; //Camera, environment etc (Updated per frame)
+	std::vector<DescriptorSet> m_global_descriptor;
 
-	//std::shared_ptr<DescriptorHandler> m_global_descriptor;
+
 
 };
 

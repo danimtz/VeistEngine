@@ -99,12 +99,13 @@ public:
     VkExtent2D* getSwapchainExtent() { return &m_swapchain_extent; };
     VkRenderPass getRenderPass() const { return m_render_pass; };
     VmaAllocator getAllocator() const { return m_allocator; }; //CONSIDER MOVING ALLOCATOR TO SEPARATE CLASS
+    const GPUinfo_t& getGPUinfo() const { return m_gpu_info; }
 
     DescriptorSetAllocator* getDescriptorAllocator() const { return m_descriptor_allocator.get(); };
     
     const uint32_t getSwapchainBufferCount() const {return FRAME_OVERLAP_COUNT; };
     uint32_t getFrameNumber() const { return m_frame_count; };
-
+    uint32_t getSwapchainImageNumber() const { return (m_frame_count % FRAME_OVERLAP_COUNT); };
     void pushToDeletionQueue(std::function<void()> function);
 
     

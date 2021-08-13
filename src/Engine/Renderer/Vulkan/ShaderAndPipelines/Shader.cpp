@@ -46,9 +46,9 @@ ShaderProgram::ShaderProgram(std::string shader_name, std::string folder_path)
 	std::string filepath_vert = folder_path + shader_name + ".vert.spv";
 	std::string filepath_frag = folder_path + shader_name + ".frag.spv";
 
-	createShaderModule(filepath_vert.c_str(), VulkanShaderType::Vertex);
+	createShaderModule(filepath_vert.c_str(), ShaderStageFlag::Vertex);
 	CONSOLE_LOG("Loaded vertex shader");
-	createShaderModule(filepath_frag.c_str(), VulkanShaderType::Fragment);
+	createShaderModule(filepath_frag.c_str(), ShaderStageFlag::Fragment);
 	CONSOLE_LOG("Loaded fragment shader");
 
 
@@ -57,7 +57,7 @@ ShaderProgram::ShaderProgram(std::string shader_name, std::string folder_path)
 }
 
 
-void ShaderProgram::createShaderModule(const char* file_path, VulkanShaderType shader_type)
+void ShaderProgram::createShaderModule(const char* file_path, ShaderStageFlag shader_type)
 {
 
 
@@ -124,7 +124,7 @@ void ShaderProgram::createShaderModule(const char* file_path, VulkanShaderType s
 
 
 
-void ShaderProgram::reflectShaderModule(std::vector<uint32_t>& buffer, VulkanShaderType shader_type)
+void ShaderProgram::reflectShaderModule(std::vector<uint32_t>& buffer, ShaderStageFlag shader_type)
 {
 
 	//Reflection

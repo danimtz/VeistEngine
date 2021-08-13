@@ -7,11 +7,11 @@
 #include <map>
 #include "Engine/Logger.h"
 
-enum class VulkanShaderType : uint32_t {
+enum class ShaderStageFlag : uint32_t {
     None = 0,
     Fragment = VK_SHADER_STAGE_FRAGMENT_BIT,
     Vertex = VK_SHADER_STAGE_VERTEX_BIT,
-    Geomery = VK_SHADER_STAGE_GEOMETRY_BIT,
+    Geometry = VK_SHADER_STAGE_GEOMETRY_BIT,
     Compute = VK_SHADER_STAGE_COMPUTE_BIT
 };
 
@@ -35,8 +35,8 @@ public:
 
 private:
 
-    void createShaderModule(const char* file_path, VulkanShaderType shader_type);
-    void reflectShaderModule(std::vector<uint32_t>& buffer, VulkanShaderType shader_type);
+    void createShaderModule(const char* file_path, ShaderStageFlag shader_type);
+    void reflectShaderModule(std::vector<uint32_t>& buffer, ShaderStageFlag shader_type);
     void createDescriptorSetLayouts();
 
     static constexpr int MAX_DESCRIPTOR_SETS = 4;//find better palce for this

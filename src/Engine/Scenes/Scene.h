@@ -12,7 +12,7 @@ public:
 	Scene();
 
 
-	const std::vector<Model>& getModels() const {return m_scene_models;};
+	const std::vector<Model>& getModels() const {return m_scene_models;}; // this function should order models by material then pipeline
 	Camera* getCamera() const {return m_scene_camera.get();}
 
 

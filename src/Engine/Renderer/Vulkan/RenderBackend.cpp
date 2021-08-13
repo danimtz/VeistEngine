@@ -1176,7 +1176,7 @@ void RenderBackend::RC_bindGraphicsPipeline(const std::shared_ptr<GraphicsPipeli
 {
 	VkCommandBuffer cmd_buffer = getCurrentFrame().m_command_buffer;
 
-	VkPipeline vulkan_pipeline = pipeline->getPipeline();
+	VkPipeline vulkan_pipeline = pipeline->pipeline();
 	vkCmdBindPipeline(cmd_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkan_pipeline);
 
 }
@@ -1186,7 +1186,7 @@ void RenderBackend::RC_pushConstants(const std::shared_ptr<GraphicsPipeline> pip
 {
 	VkCommandBuffer cmd_buffer = getCurrentFrame().m_command_buffer;
 
-	VkPipelineLayout vulkan_pipeline_layout = pipeline->getPipelineLayout();
+	VkPipelineLayout vulkan_pipeline_layout = pipeline->pipelineLayout();
 
 	vkCmdPushConstants(cmd_buffer, vulkan_pipeline_layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(MatrixPushConstant), &push_constant);
 
