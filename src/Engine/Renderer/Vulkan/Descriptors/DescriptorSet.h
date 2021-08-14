@@ -17,14 +17,17 @@ public:
 	void buildDescriptorSet();
 	void updateDescriptorSet();
 
-	VkDescriptorSet descriptorSet() const { return m_descriptor_set; };
-	
+	uint32_t setNumber() const { return m_set_number; };
+	VkDescriptorSet& descriptorSet() { return m_descriptor_set; };
+	VkDescriptorSetLayout descriptorSetLayout() const { return m_descriptor_layout; };
+
 private:
+	uint32_t m_set_number;
 
 	VkDescriptorSetLayout m_descriptor_layout = nullptr;
 	VkDescriptorSet m_descriptor_set = nullptr;
-
+	
 	std::vector<VkWriteDescriptorSet> m_writes;
-
+	std::vector<VkDescriptorBufferInfo> m_buffer_infos; //this could be elsewhere maybe?
 };
 

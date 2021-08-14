@@ -17,6 +17,7 @@ public:
 
 	VkBuffer buffer() const { return m_buffer.buffer(); };
 	uint32_t size() const { return m_size; };
+	uint32_t offset() const { return m_offset; };
 
 	void setData(const void* data, uint32_t size, uint32_t sub_allocation_num = 0);
 

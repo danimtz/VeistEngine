@@ -140,7 +140,7 @@ void ShaderProgram::reflectShaderModule(std::vector<uint32_t>& buffer, ShaderSta
 		unsigned binding = comp.get_decoration(resource.id, spv::DecorationBinding);
 		if (m_bindings[set].find(binding) == m_bindings[set].end()) //if not found
 		{
-			auto decriptor_binding = getDescriptorSetLayoutBinding(binding, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, static_cast<VkShaderStageFlagBits>(shader_type));
+			auto decriptor_binding = getDescriptorSetLayoutBinding(binding, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, static_cast<VkShaderStageFlagBits>(shader_type));
 			m_bindings[set].insert({binding, decriptor_binding});
 		} 
 		else

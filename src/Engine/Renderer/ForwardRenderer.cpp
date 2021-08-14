@@ -50,19 +50,18 @@ void ForwardRenderer::renderScene(Scene* scene)
 		GraphicsPipeline* curr_pipeline = curr_material->pipeline().get();
 
 
-		//TEMPORARY
+
+
 		glm::mat4 model = glm::rotate(scene->getModels()[i].modelMatrix(), glm::radians(frame_counter * 0.03f), glm::vec3(0, 1, 0));
 		model = glm::rotate(model, glm::degrees(-90.0f), glm::vec3(1, 0, 0));
-		push_constant.MVPmatrix = scene->getCamera()->viewProjectionMatrix() * model;
-		push_constant.Nmatrix = glm::inverseTranspose(glm::mat3(scene->getCamera()->viewMatrix() * model));
-		//END TEMPORARY
-
-
+		push_constant.model_mat = model;
+		
 
 		//Write camera data to buffer
 		m_camera_data.projection = scene->getCamera()->projectionMatrix();
 		m_camera_data.view = scene->getCamera()->viewMatrix();
 		m_camera_data.view_projection = scene->getCamera()->viewProjectionMatrix();
+		m_camera_data.normal_matrix = glm::inverseTranspose(glm::mat3(scene->getCamera()->viewMatrix() * model));
 		m_global_uniform.get()->setData(&m_camera_data, sizeof(m_camera_data), frame_num);
 
 		
@@ -71,12 +70,7 @@ void ForwardRenderer::renderScene(Scene* scene)
 
 			m_global_descriptor[frame_num].setDescriptorSetLayout(0, curr_pipeline);
 			m_global_descriptor[frame_num].bindUniformBuffer(0, m_global_uniform.get(), sizeof(CameraData));
-			//m_global_descriptor[frame_num].buildDescriptorSet();
-			
-			//Create descriptor set
-			//TODO
-
-
+			m_global_descriptor[frame_num].buildDescriptorSet();
 		}
 
 
@@ -90,6 +84,8 @@ void ForwardRenderer::renderScene(Scene* scene)
 			m_render_backend->RC_bindGraphicsPipeline(curr_material->pipeline());
 			m_render_backend->RC_pushConstants(curr_material->pipeline(), push_constant);
 
+			uint32_t offset = m_global_uniform.get()->offset() * frame_num;
+			m_render_backend->RC_bindDescriptorSet(curr_material->pipeline(), m_global_descriptor[frame_num], m_render_backend->getSwapchainBufferCount()-1, &offset);
 
 			//Check if material changed
 			if (curr_material != last_material) {
@@ -102,7 +98,6 @@ void ForwardRenderer::renderScene(Scene* scene)
 			}
 		}
 		
-
 
 		m_render_backend->RC_bindVertexBuffer(curr_mesh->getVertexBuffer());
 		m_render_backend->RC_bindIndexBuffer(curr_mesh->getIndexBuffer());

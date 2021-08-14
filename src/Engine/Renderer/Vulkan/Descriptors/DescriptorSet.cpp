@@ -7,6 +7,7 @@
 void DescriptorSet::setDescriptorSetLayout(uint32_t set, const GraphicsPipeline* pipeline)
 {
 	m_descriptor_layout = pipeline->shaderProgram()->descriptorLayouts()[0];
+	m_set_number = set;
 }
 
 
@@ -16,14 +17,15 @@ void DescriptorSet::bindUniformBuffer(uint32_t binding, const UniformBuffer* buf
 	buffer_info.buffer = buffer->buffer();
 	buffer_info.offset = 0;
 	buffer_info.range = range;
+	m_buffer_infos.push_back(buffer_info);
 
 	VkWriteDescriptorSet set_write = {};
 	set_write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 	set_write.pNext = nullptr;
 	set_write.dstBinding = binding;
-	set_write.dstSet = m_descriptor_set;
 	set_write.descriptorCount = 1;
 	set_write.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
+	set_write.pBufferInfo = &m_buffer_infos.back();
 
 	m_writes.push_back(set_write);
 
@@ -42,6 +44,18 @@ void DescriptorSet::buildDescriptorSet()
 {
 	//Allocate descriptor set
 	//TODO
+	DescriptorSetAllocator* set_allocator = RenderModule::getRenderBackend()->getDescriptorAllocator();
+
+	if (!set_allocator->allocateDescriptorSet(*this)) {
+		CRITICAL_ERROR_LOG("Could not allocate descriptor set!");
+	}
+
+
+	//set descriptor set in descriptor writes
+	for (VkWriteDescriptorSet& write : m_writes) {
+		write.dstSet = m_descriptor_set;
+	}
+
 
 
 	//update descriptor set

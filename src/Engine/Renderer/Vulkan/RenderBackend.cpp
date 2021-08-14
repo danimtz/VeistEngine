@@ -895,6 +895,8 @@ void RenderBackend::shutdown() {
 		vkWaitForFences(m_device, 1, &getCurrentFrame().m_render_fence, true, 1000000000);
 		++m_frame_count;
 
+		m_descriptor_allocator->cleanup();
+
 		m_deletion_queue.executeDeletionQueue(); //maybe add the rest to the deletion queue
 
 
@@ -1230,5 +1232,18 @@ void RenderBackend::RC_drawIndexed(uint32_t size)
 	VkCommandBuffer cmd_buffer = getCurrentFrame().m_command_buffer;
 
 	vkCmdDrawIndexed(cmd_buffer, size, 1, 0, 0, 0);
+
+}
+
+
+
+void RenderBackend::RC_bindDescriptorSet(const std::shared_ptr<GraphicsPipeline> pipeline, DescriptorSet& descriptor_set, uint32_t offset_count, uint32_t* p_dynamic_offset)
+{
+
+	VkCommandBuffer cmd_buffer = getCurrentFrame().m_command_buffer;
+
+	VkPipelineLayout vulkan_pipeline_layout = pipeline->pipelineLayout();
+
+	vkCmdBindDescriptorSets(cmd_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkan_pipeline_layout, descriptor_set.setNumber(), 1, &descriptor_set.descriptorSet(), offset_count, p_dynamic_offset);
 
 }
