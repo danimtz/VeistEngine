@@ -26,18 +26,26 @@ private:
 
 
 	//Maybe put all this in a RendererData struct or something
+	
 
 	struct CameraData {
 		glm::mat4 view;
 		glm::mat4 projection;
 		glm::mat4 view_projection;
-		glm::mat4 normal_matrix;
+	};
+
+	struct GPUDirLight {
+		glm::vec3 direction;
+		float intensity;
+		glm::vec3 colour;
+		uint32_t num_lights;
 	};
 
 	CameraData m_camera_data;
 
 	
-	std::unique_ptr<UniformBuffer> m_global_uniform; //Camera, environment etc (Updated per frame)
+	std::unique_ptr<UniformBuffer> m_camera_buffer; //Camera, environment etc (Updated per frame)
+	std::unique_ptr<UniformBuffer> m_dir_lights_buffer; //Camera, environment etc (Updated per frame)
 	std::vector<DescriptorSet> m_global_descriptor;
 
 

@@ -7,6 +7,7 @@ layout (location = 2) in vec2 uv;
 
 layout (location = 0) out vec3 outColor;
 layout (location = 1) out vec3 outNormal;
+layout (location = 2) out vec3 outPosition;
 
 layout( push_constant ) uniform constants
 {
@@ -14,7 +15,8 @@ layout( push_constant ) uniform constants
 	mat4 Nmat;
 } push_constant;
 
-layout(set = 0, binding = 0) uniform  cameraBuffer{
+layout(set = 0, binding = 0) uniform  cameraBuffer
+{
 	mat4 Vmat;
 	mat4 Pmat;
 	mat4 VPmat;
@@ -29,7 +31,9 @@ void main()
 	
 	//output the position of each vertex
 	gl_Position = (camera_data.VPmat*push_constant.Mmat)*vec4(position, 1.0f);
+	outPosition = vec3(gl_Position);
 	//outColor = vec3(abs(normal.x), abs(normal.y), abs(normal.z));
 	outNormal = vec3(push_constant.Nmat * vec4(normal, 1.0f));
-	outColor = vec3(0.5, 0.8, 0.4);
+	outColor = vec3(0.2, 0.6, 0.1);
+
 }

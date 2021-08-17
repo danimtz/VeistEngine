@@ -14,6 +14,7 @@
 struct MatrixPushConstant//Very specific and temporary name, so that i know to change it later on
 {
 	glm::mat4 model_mat;
+	glm::mat4 normal_mat;
 };
 
 

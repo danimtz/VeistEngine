@@ -6,7 +6,7 @@
 Camera::Camera(float aspect_ratio, float fov, float far_plane, float near_plane, glm::vec3 pos)
 {
 
-	setViewMatrix(glm::lookAt(pos, glm::vec3{ 0.0f, 0.0f, 0.0f }, glm::vec3{ 0.0f, 1.0f, 0.0f }));
+	setViewMatrix(glm::lookAt(pos, glm::vec3{ 0.0f, 0.0f, 0.0f }, glm::vec3{ 0.0f, -1.0f, 0.0f })); //up vector negative 1 for now
 	setProjectionMatrix(glm::perspective(glm::radians(fov), aspect_ratio, near_plane, far_plane));
 
 	
@@ -29,7 +29,7 @@ void Camera::setViewMatrix(const glm::mat4 view_mat)
 void Camera::setProjectionMatrix(const glm::mat4 proj_mat)
 {
 	m_projection = proj_mat;
-	m_projection[1][1] *= -1; //vulkan flips the y axis
+	//m_projection[1][1] *= -1; //vulkan flips the y axis
 	m_dirty_flag = true;
 }
 

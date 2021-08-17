@@ -25,7 +25,7 @@ void DescriptorSet::bindUniformBuffer(uint32_t binding, const UniformBuffer* buf
 	set_write.dstBinding = binding;
 	set_write.descriptorCount = 1;
 	set_write.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
-	set_write.pBufferInfo = &m_buffer_infos.back();
+	
 
 	m_writes.push_back(set_write);
 
@@ -51,9 +51,10 @@ void DescriptorSet::buildDescriptorSet()
 	}
 
 
-	//set descriptor set in descriptor writes
-	for (VkWriteDescriptorSet& write : m_writes) {
-		write.dstSet = m_descriptor_set;
+	//set descriptor set and buffer infos in descriptor writes
+	for (int i = 0; i < m_writes.size(); i++) {
+		m_writes[i].dstSet = m_descriptor_set;
+		m_writes[i].pBufferInfo = &m_buffer_infos[i];
 	}
 
 

@@ -11,12 +11,24 @@ Scene::Scene() {
 	m_scene_camera->setPosition(glm::vec3{ 0.0f, 0.0f, -3.0f });
 
 	//m_scene_models.push_back({ "..\\..\\assets\\DamagedHelmet\\DamagedHelmet.gltf",  "descriptortest",  "..\\..\\src\\Shaders\\" }); //{ "..\\..\\assets\\Box\\Box With Spaces.gltf" }; //
-	m_scene_models.push_back({ "..\\..\\assets\\DamagedHelmet\\DamagedHelmet.gltf",  "descriptortest",  "..\\..\\src\\Shaders\\" }); //{ "..\\..\\assets\\Box\\Box With Spaces.gltf" }; //
-	m_scene_models.push_back({ "..\\..\\assets\\DamagedHelmet\\DamagedHelmet.gltf",  "descriptortest",  "..\\..\\src\\Shaders\\" }); //{ "..\\..\\assets\\Box\\Box With Spaces.gltf" }; //
+	m_scene_models.push_back({ "..\\..\\assets\\DamagedHelmet\\DamagedHelmet.gltf",  "mainShader",  "..\\..\\src\\Shaders\\" }); //{ "..\\..\\assets\\Box\\Box With Spaces.gltf" }; //
+	//m_scene_models.push_back({ "..\\..\\assets\\DamagedHelmet\\DamagedHelmet.gltf",  "mainShader",  "..\\..\\src\\Shaders\\" }); //{ "..\\..\\assets\\Box\\Box With Spaces.gltf" }; //
 
-	m_scene_models[0].modelMatrix() = glm::translate(m_scene_models[0].modelMatrix(), glm::vec3{1.0, 0.0, 0.0});
-	//m_scene_models[1].modelMatrix() = glm::translate(m_scene_models[1].modelMatrix(), glm::vec3{-1.0, 0.0, 0.0 });
+	m_scene_models[0].modelMatrix() = glm::translate(m_scene_models[0].modelMatrix(), glm::vec3{-2.0, 0.0, 0.0});
+	//m_scene_models[1].modelMatrix() = glm::translate(m_scene_models[1].modelMatrix(), glm::vec3{-1.0, -1.0, 0.0 });
 	//m_scene_models[1].modelMatrix() = glm::scale(m_scene_models[1].modelMatrix(), glm::vec3{ 0.9, 0.5, 0.4 });
+
+
+
+
+	//Lights
+
+	glm::vec3 dir = glm::normalize(glm::vec3(1.0, 0.7, -1.0));
+	glm::vec3 col = glm::vec3(1.0, 0.83, 0.51);
+	m_directional_lights.push_back(DirectionalLight(dir, glm::vec3(1.0), 0.5));//sun
+
+	m_directional_lights.push_back(DirectionalLight());
+	//m_directional_lights.push_back(DirectionalLight(glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.5, 0.8, 0.6)));//sky
 
 
 
@@ -34,6 +46,9 @@ void Scene::onUpdate()
 {
 
 	m_scene_camera->onUpdate();
+
+
+	//update lights, models etc
 
 
 }
