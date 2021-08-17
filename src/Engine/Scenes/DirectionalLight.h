@@ -23,6 +23,6 @@ private:
 	glm::vec3 m_direction;
 	float m_intensity;
 	glm::vec3 m_colour;
-
+	uint32_t pad32;//padding for memcpy
 };
 

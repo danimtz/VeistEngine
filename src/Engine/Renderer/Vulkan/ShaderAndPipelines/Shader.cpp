@@ -150,10 +150,30 @@ void ShaderProgram::reflectShaderModule(std::vector<uint32_t>& buffer, ShaderSta
 			
 		}
 
-		printf("Buffer %s at set = %u, binding = %u\n", resource.name.c_str(), set, binding);
+		printf("Uniform Buffer %s at set = %u, binding = %u\n", resource.name.c_str(), set, binding);
 	}
 
 	//Storage Buffers
+	for (auto& resource : resources.storage_buffers)
+	{
+		unsigned set = comp.get_decoration(resource.id, spv::DecorationDescriptorSet);
+		unsigned binding = comp.get_decoration(resource.id, spv::DecorationBinding);
+		if (m_bindings[set].find(binding) == m_bindings[set].end()) //if not found
+		{
+			auto decriptor_binding = getDescriptorSetLayoutBinding(binding, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, static_cast<VkShaderStageFlagBits>(shader_type));
+			m_bindings[set].insert({ binding, decriptor_binding });
+		}
+		else
+		{
+			//Add stage flag
+			addStageFlagToBinding(m_bindings[set][binding], static_cast<VkShaderStageFlagBits>(shader_type)); //UNTESTED MIGHT NOT WORK
+
+		}
+
+		printf("Storage Buffer %s at set = %u, binding = %u\n", resource.name.c_str(), set, binding);
+
+	}
+
 
 	//Image Samplers
 	

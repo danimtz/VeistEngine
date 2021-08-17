@@ -8,12 +8,17 @@
 #include "Engine/Logger.h"
 
 
-class UniformBuffer 
+enum class ShaderBufferType {
+	Uniform = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+	Storage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT
+};
+
+class ShaderBuffer 
 {
 public:
 
-	UniformBuffer(uint32_t size);
-	UniformBuffer(uint32_t subbuffer_size, uint32_t subbuffer_count);
+	ShaderBuffer(uint32_t size, ShaderBufferType type);
+	ShaderBuffer(uint32_t subbuffer_size, uint32_t subbuffer_count, ShaderBufferType type);
 
 	VkBuffer buffer() const { return m_buffer.buffer(); };
 	uint32_t size() const { return m_size; };

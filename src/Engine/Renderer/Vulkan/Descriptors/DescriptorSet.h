@@ -4,7 +4,7 @@
 #include <vulkan/vulkan.h>
 #include "Engine/Renderer/Vulkan/ShaderAndPipelines/GraphicsPipeline.h"
 
-class UniformBuffer;
+class ShaderBuffer;
 
 class DescriptorSet
 {
@@ -12,8 +12,9 @@ public:
 	
 	DescriptorSet() = default;
 	void setDescriptorSetLayout(uint32_t set, const GraphicsPipeline* pipeline);
-	void bindUniformBuffer(uint32_t binding, const UniformBuffer* buffer, uint32_t range);
-	
+	void bindUniformBuffer(uint32_t binding, const ShaderBuffer* buffer, uint32_t range);
+	void bindStorageBuffer(uint32_t binding, const ShaderBuffer* buffer, uint32_t range);
+
 	void buildDescriptorSet();
 	void updateDescriptorSet();
 
@@ -22,6 +23,8 @@ public:
 	VkDescriptorSetLayout descriptorSetLayout() const { return m_descriptor_layout; };
 
 private:
+	void bindBuffer(uint32_t binding, const ShaderBuffer* buffer, uint32_t range, VkDescriptorType type);
+
 	uint32_t m_set_number;
 
 	VkDescriptorSetLayout m_descriptor_layout = nullptr;

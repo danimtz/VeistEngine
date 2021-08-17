@@ -1,22 +1,39 @@
 #version 450
 
 #define MAX_DIR_LIGHTS 4
+
+
 struct DirLights{
 	vec3 direction;
 	float intensity;
 	vec3 colour;
-	uint light_count;//padding/array length
+	uint padding;//TODO REPLACE WITH PADDING.THIS IS DEPRECATED
 };
 
+struct PointLights{
+	vec3 position;
+	float intensity;
+	vec3 colour;
+	float radius;
+};
 
 layout (location = 0) in  vec3 infragColor;
 layout (location = 1) in  vec3 normal;
-layout (location = 2) in  vec3 position;
+layout (location = 2) in  vec3 fragPos;
 
 layout (location = 0) out vec4 outFragColor;
 
-layout(set = 0, binding = 1) uniform  directionalLights{
+layout(set = 0, binding = 0) uniform  sceneInfo{
+	float dir_light_count;
+	float point_light_count;
+}scene_info;
+
+layout(set = 0, binding = 2) uniform  directionalLights{
 	DirLights dir_lights[MAX_DIR_LIGHTS];
+};
+
+layout(std140, set = 0, binding = 3) readonly buffer pointLights{
+	PointLights point_lights[];
 };
 
 
@@ -29,7 +46,7 @@ void main()
 	float kd = 0.8;//should be from material
 	float ks = 0.3;
 
-	for(int i = 0; i < dir_lights[0].light_count; i++){
+	for(int i = 0; i < scene_info.dir_light_count; i++){
 
 		vec3 light_dir = dir_lights[i].direction;
 		vec3 light_colour = dir_lights[i].colour;
@@ -37,14 +54,41 @@ void main()
 		float diffuse = max(0.0, dot(normal, light_dir));
 
 		//specular TODO
-		vec3 h = normalize(light_dir + position);
+		vec3 h = normalize(light_dir + fragPos);
  		float spec = pow(max(0.0, dot(normal, h)), 128.0);//128 from material too 
+		spec = diffuse > 0.0 ? spec : 0.0;
 
 		total_light +=  light_colour * (diffuse*kd + spec*ks)  * intensity;
 
 	}
 	
+	//point lights
+	for (int i = 0; i < scene_info.point_light_count; i++)
+	{
+		vec3 light_dir = normalize(point_lights[i].position - fragPos);
+		vec3 light_colour = point_lights[i].colour;
+		float intensity = point_lights[i].intensity;
+		float diffuse = max(0.0, dot(normal, light_dir));
+
+		float dist = length(point_lights[i].position-fragPos);
+		float k_linear = 2.0/point_lights[i].radius;
+		float k_quadratic = 1.0/(point_lights[i].radius*point_lights[i].radius);
+		float attenuation = 1.0/(1.0 + k_linear*dist + k_quadratic*dist*dist); //TODO implement cutoff
+	
+		
+
+		vec3 h = normalize(light_dir + fragPos);
+ 		float spec = pow(max(0.0, dot(normal, h)), 128.0);//128 from material too 
+
+		total_light +=  light_colour * (diffuse*kd + spec*ks)  * intensity * attenuation ;
+	}
+
+	
+	
+
 	vec3 color =  total_light * infragColor;
+
+	color += infragColor*0.005; //ambient light
 
 	//gamma correct
 	vec3 corrected_color = pow(color, vec3(0.4545));

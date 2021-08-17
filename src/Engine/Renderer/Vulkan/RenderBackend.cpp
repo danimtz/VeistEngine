@@ -1103,8 +1103,8 @@ void RenderBackend::RC_beginFrame()
 	render_pass_begin_info.framebuffer = m_framebuffers[m_swapchain_img_idx];
 
 	VkClearValue color_clear;
-	color_clear.color = { {0.1f, 0.2f, 0.4f, 1.0f} };
-
+	//color_clear.color = { {0.1f, 0.2f, 0.4f, 1.0f} };//sky blue
+	color_clear.color = { {0.005f, 0.005f, 0.005f, 1.0f} };
 	VkClearValue depth_clear;
 	depth_clear.depthStencil.depth = 1.0f; //max depth
 

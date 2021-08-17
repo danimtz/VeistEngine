@@ -1,9 +1,9 @@
-#include "Engine/Renderer/Vulkan/Buffers/UniformBuffer.h"
+#include "Engine/Renderer/Vulkan/Buffers/ShaderBuffer.h"
 #include "Engine/Renderer/RenderModule.h"
 
 
 
-UniformBuffer::UniformBuffer(uint32_t subbuffer_size, uint32_t subbuffer_count)
+ShaderBuffer::ShaderBuffer(uint32_t subbuffer_size, uint32_t subbuffer_count, ShaderBufferType type)
 {
 	uint32_t size = subbuffer_size;
 	uint32_t minUBOalignment = RenderModule::getRenderBackend()->getGPUinfo().properties.limits.minUniformBufferOffsetAlignment;
@@ -13,7 +13,7 @@ UniformBuffer::UniformBuffer(uint32_t subbuffer_size, uint32_t subbuffer_count)
 	}
 
 	m_size = size * subbuffer_count;
-	m_buffer = { m_size, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU };
+	m_buffer = { m_size, static_cast<VkBufferUsageFlagBits>(type), VMA_MEMORY_USAGE_CPU_TO_GPU };
 	m_offset = size;
 }
 
@@ -21,7 +21,8 @@ UniformBuffer::UniformBuffer(uint32_t subbuffer_size, uint32_t subbuffer_count)
 
 
 
-UniformBuffer::UniformBuffer(uint32_t size) : m_size(size), m_buffer({ size, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU })
+ShaderBuffer::ShaderBuffer(uint32_t size, ShaderBufferType type) : m_size(size), 
+	m_buffer({ size, static_cast<VkBufferUsageFlagBits>(type), VMA_MEMORY_USAGE_CPU_TO_GPU })
 {
 
 }
@@ -29,7 +30,7 @@ UniformBuffer::UniformBuffer(uint32_t size) : m_size(size), m_buffer({ size, VK_
 
 
 
-void UniformBuffer::setData(const void* data, uint32_t size, uint32_t sub_allocation_num)
+void ShaderBuffer::setData(const void* data, uint32_t size, uint32_t sub_allocation_num)
 {
 	//assert that size and offset is not greater than size of uniform buffer
 	if (((sub_allocation_num*m_offset)+size)>m_size) {CRITICAL_ERROR_LOG("Uniform suballocation larger than buffer size!!")}

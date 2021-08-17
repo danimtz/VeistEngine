@@ -1,6 +1,6 @@
 #include "Engine/Renderer/Vulkan/Descriptors/DescriptorSet.h"
 
-#include "Engine/Renderer/Vulkan/Buffers/UniformBuffer.h"
+#include "Engine/Renderer/Vulkan/Buffers/ShaderBuffer.h"
 #include "Engine/Renderer/RenderModule.h"
 
 
@@ -10,8 +10,7 @@ void DescriptorSet::setDescriptorSetLayout(uint32_t set, const GraphicsPipeline*
 	m_set_number = set;
 }
 
-
-void DescriptorSet::bindUniformBuffer(uint32_t binding, const UniformBuffer* buffer, uint32_t range)
+void DescriptorSet::bindBuffer(uint32_t binding, const ShaderBuffer* buffer, uint32_t range, VkDescriptorType type)
 {
 	VkDescriptorBufferInfo buffer_info = {};
 	buffer_info.buffer = buffer->buffer();
@@ -24,13 +23,21 @@ void DescriptorSet::bindUniformBuffer(uint32_t binding, const UniformBuffer* buf
 	set_write.pNext = nullptr;
 	set_write.dstBinding = binding;
 	set_write.descriptorCount = 1;
-	set_write.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
-	
+	set_write.descriptorType = type;
+
 
 	m_writes.push_back(set_write);
-
 }
 
+void DescriptorSet::bindUniformBuffer(uint32_t binding, const ShaderBuffer* buffer, uint32_t range)
+{
+	bindBuffer(binding, buffer, range, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC);
+}
+
+void DescriptorSet::bindStorageBuffer(uint32_t binding, const ShaderBuffer* buffer, uint32_t range)
+{
+	bindBuffer(binding, buffer, range, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC);
+}
 
 void DescriptorSet::updateDescriptorSet()
 {

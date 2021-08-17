@@ -12,10 +12,10 @@ Scene::Scene() {
 
 	//m_scene_models.push_back({ "..\\..\\assets\\DamagedHelmet\\DamagedHelmet.gltf",  "descriptortest",  "..\\..\\src\\Shaders\\" }); //{ "..\\..\\assets\\Box\\Box With Spaces.gltf" }; //
 	m_scene_models.push_back({ "..\\..\\assets\\DamagedHelmet\\DamagedHelmet.gltf",  "mainShader",  "..\\..\\src\\Shaders\\" }); //{ "..\\..\\assets\\Box\\Box With Spaces.gltf" }; //
-	//m_scene_models.push_back({ "..\\..\\assets\\DamagedHelmet\\DamagedHelmet.gltf",  "mainShader",  "..\\..\\src\\Shaders\\" }); //{ "..\\..\\assets\\Box\\Box With Spaces.gltf" }; //
+	m_scene_models.push_back({ "..\\..\\assets\\DamagedHelmet\\DamagedHelmet.gltf",  "mainShader",  "..\\..\\src\\Shaders\\" }); //{ "..\\..\\assets\\Box\\Box With Spaces.gltf" }; //
 
-	m_scene_models[0].modelMatrix() = glm::translate(m_scene_models[0].modelMatrix(), glm::vec3{-2.0, 0.0, 0.0});
-	//m_scene_models[1].modelMatrix() = glm::translate(m_scene_models[1].modelMatrix(), glm::vec3{-1.0, -1.0, 0.0 });
+	m_scene_models[0].modelMatrix() = glm::translate(m_scene_models[0].modelMatrix(), glm::vec3{1.0, 0.0, 0.0});
+	m_scene_models[1].modelMatrix() = glm::translate(m_scene_models[1].modelMatrix(), glm::vec3{-1.0, 0.0, 0.0 });
 	//m_scene_models[1].modelMatrix() = glm::scale(m_scene_models[1].modelMatrix(), glm::vec3{ 0.9, 0.5, 0.4 });
 
 
@@ -24,11 +24,20 @@ Scene::Scene() {
 	//Lights
 
 	glm::vec3 dir = glm::normalize(glm::vec3(1.0, 0.7, -1.0));
+	glm::vec3 sky_dir = glm::vec3(0.0, 1.0, 0.0);
 	glm::vec3 col = glm::vec3(1.0, 0.83, 0.51);
-	m_directional_lights.push_back(DirectionalLight(dir, glm::vec3(1.0), 0.5));//sun
+	m_directional_lights.push_back(DirectionalLight(sky_dir, glm::vec3(1.0), 0.5));//sun
 
-	m_directional_lights.push_back(DirectionalLight());
+	//m_directional_lights.push_back(DirectionalLight());
 	//m_directional_lights.push_back(DirectionalLight(glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.5, 0.8, 0.6)));//sky
+
+	glm::vec3 pos = glm::vec3(-3.0, 0.0, 0.0);
+	col = glm::vec3(0.7, 0.13, 0.21);
+	m_point_lights.push_back(PointLight(pos, col)); 
+
+	pos = glm::vec3(3.0, 0.0, 0.0);
+	col = glm::vec3(0.1, 0.13, 0.81);
+	m_point_lights.push_back(PointLight(pos, col));
 
 
 

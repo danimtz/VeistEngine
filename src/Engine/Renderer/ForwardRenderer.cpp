@@ -7,14 +7,13 @@
 
 
 
-static constexpr int MAX_DIR_LIGHTS = 4;
 
 
 void ForwardRenderer::init(std::shared_ptr<RenderBackend> backend)
 {
 	setRenderBackend(backend);
 	
-	std::unique_ptr<UniformBuffer> test_buff = std::make_unique<UniformBuffer>(10,2); //test buffer suballocations
+	std::unique_ptr<ShaderBuffer> test_buff = std::make_unique<ShaderBuffer>(10,2, ShaderBufferType::Uniform); //test buffer suballocations
 
 	
 	
@@ -24,8 +23,11 @@ void ForwardRenderer::init(std::shared_ptr<RenderBackend> backend)
 
 
 
-	m_camera_buffer = std::make_unique<UniformBuffer>(sizeof(CameraData), m_render_backend->getSwapchainBufferCount());
-	m_dir_lights_buffer = std::make_unique<UniformBuffer>(sizeof(GPUDirLight)*MAX_DIR_LIGHTS, m_render_backend->getSwapchainBufferCount());
+	m_camera_buffer = std::make_unique<ShaderBuffer>(sizeof(CameraData), m_render_backend->getSwapchainBufferCount(), ShaderBufferType::Uniform);
+	m_scene_info_buffer = std::make_unique<ShaderBuffer>(sizeof(SceneInfo), m_render_backend->getSwapchainBufferCount(), ShaderBufferType::Uniform);
+	m_dir_lights_buffer = std::make_unique<ShaderBuffer>(sizeof(GPUDirLight) * MAX_DIR_LIGHTS, m_render_backend->getSwapchainBufferCount(), ShaderBufferType::Uniform);
+	m_point_lights_buffer = std::make_unique<ShaderBuffer>(sizeof(GPUPointLight) * MAX_POINT_LIGHTS, m_render_backend->getSwapchainBufferCount(), ShaderBufferType::Storage);
+
 	m_global_descriptor.resize(m_render_backend->getSwapchainBufferCount());
 
 }
@@ -45,7 +47,6 @@ void ForwardRenderer::renderScene(Scene* scene)
 	uint32_t frame_num = m_render_backend->getSwapchainImageNumber();
 	MatrixPushConstant push_constant;
 
-	//curentaly sharing model matrix
 	
 	Material* last_material = nullptr;
 	GraphicsPipeline* last_pipeline = nullptr;
@@ -57,18 +58,32 @@ void ForwardRenderer::renderScene(Scene* scene)
 	m_camera_data.view_projection = scene->getCamera()->viewProjectionMatrix();
 	m_camera_buffer.get()->setData(&m_camera_data, sizeof(m_camera_data), frame_num);
 
-	//Directional lighting
-	uint32_t dir_lights_count = scene->getDirLights().size();
-	GPUDirLight dir_lights[MAX_DIR_LIGHTS];
+	m_scene_info.dir_lights_count = scene->getDirLights().size();
+	m_scene_info.point_lights_count = scene->getPointLights().size();
+	m_scene_info_buffer.get()->setData(&m_scene_info, sizeof(m_scene_info), frame_num);
 
-	glm::mat4 world_to_view = glm::mat4(glm::mat3(scene->getCamera()->viewMatrix()));
-	for (int i = 0; i < dir_lights_count; i++) {
-		GPUDirLight &light = dir_lights[i];
-		memcpy(&light, &scene->getDirLights()[i], sizeof(DirectionalLight));
-		light.num_lights = dir_lights_count;
-		light.direction = world_to_view * glm::vec4(scene->getDirLights()[i].direction(), 1.0);
+	//Directional lighting
+	if (m_scene_info.dir_lights_count > 0) {
+		GPUDirLight dir_lights[MAX_DIR_LIGHTS];
+		memcpy(dir_lights, scene->getDirLights().data(), sizeof(DirectionalLight)* m_scene_info.dir_lights_count);
+		glm::mat4 world_to_view = glm::mat4(glm::mat3(scene->getCamera()->viewMatrix()));
+		for (int i = 0; i < m_scene_info.dir_lights_count; i++) {
+			dir_lights[i].direction = world_to_view * glm::vec4(scene->getDirLights()[i].direction(), 1.0);
+		}
+		m_dir_lights_buffer.get()->setData(&dir_lights, sizeof(GPUDirLight)* MAX_DIR_LIGHTS, frame_num);
 	}
-	m_dir_lights_buffer.get()->setData(&dir_lights, sizeof(GPUDirLight)* MAX_DIR_LIGHTS, frame_num);
+
+	//Point lights
+	if (m_scene_info.point_lights_count > 0){
+		GPUPointLight point_lights[MAX_POINT_LIGHTS];
+		memcpy(point_lights, scene->getPointLights().data(), sizeof(PointLight)* m_scene_info.point_lights_count);
+		scene->getCamera()->viewMatrix();
+		for (int i = 0; i < m_scene_info.point_lights_count; i++) {
+			point_lights[i].position = scene->getCamera()->viewMatrix() * glm::vec4(scene->getPointLights()[i].position(), 1.0);
+		}
+		m_point_lights_buffer.get()->setData(&point_lights, sizeof(GPUDirLight) * MAX_POINT_LIGHTS, frame_num);
+	}
+
 
 
 	//Render each model
@@ -95,8 +110,12 @@ void ForwardRenderer::renderScene(Scene* scene)
 		//Create Global descriptor set for that frame if it doenst exists aready
 		if (m_global_descriptor[frame_num].descriptorSet() == nullptr) {
 			m_global_descriptor[frame_num].setDescriptorSetLayout(0, curr_pipeline);
-			m_global_descriptor[frame_num].bindUniformBuffer(0, m_camera_buffer.get(), sizeof(CameraData));
-			m_global_descriptor[frame_num].bindUniformBuffer(1, m_dir_lights_buffer.get(), sizeof(GPUDirLight) * MAX_DIR_LIGHTS);
+
+			m_global_descriptor[frame_num].bindUniformBuffer(0, m_scene_info_buffer.get(), sizeof(SceneInfo));
+			m_global_descriptor[frame_num].bindUniformBuffer(1, m_camera_buffer.get(), sizeof(CameraData));
+			m_global_descriptor[frame_num].bindUniformBuffer(2, m_dir_lights_buffer.get(), sizeof(GPUDirLight) * MAX_DIR_LIGHTS);
+			m_global_descriptor[frame_num].bindStorageBuffer(3, m_point_lights_buffer.get(), sizeof(GPUPointLight) * MAX_POINT_LIGHTS);
+
 			m_global_descriptor[frame_num].buildDescriptorSet();
 		}
 
@@ -108,10 +127,13 @@ void ForwardRenderer::renderScene(Scene* scene)
 			m_render_backend->RC_bindGraphicsPipeline(curr_material->pipeline());
 			m_render_backend->RC_pushConstants(curr_material->pipeline(), push_constant);
 
-			uint32_t offset[2];
-			offset[0] = m_camera_buffer.get()->offset() * frame_num;
-			offset[1] = m_dir_lights_buffer.get()->offset() * frame_num;
-			m_render_backend->RC_bindDescriptorSet(curr_material->pipeline(), m_global_descriptor[frame_num], 2, offset);
+			constexpr int offset_count = 4;
+			uint32_t offset[offset_count];
+			offset[0] = m_scene_info_buffer.get()->offset() * frame_num;
+			offset[1] = m_camera_buffer.get()->offset() * frame_num;
+			offset[2] = m_dir_lights_buffer.get()->offset() * frame_num;
+			offset[3] = m_point_lights_buffer.get()->offset() * frame_num;
+			m_render_backend->RC_bindDescriptorSet(curr_material->pipeline(), m_global_descriptor[frame_num], offset_count, offset);
 
 			//Check if material changed
 			if (curr_material != last_material) {
@@ -130,4 +152,5 @@ void ForwardRenderer::renderScene(Scene* scene)
 
 		m_render_backend->RC_drawIndexed(curr_mesh->getIndexBuffer()->getSize());
 	}
+
 }

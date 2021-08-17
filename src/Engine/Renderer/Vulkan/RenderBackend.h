@@ -108,6 +108,10 @@ public:
     uint32_t getSwapchainImageNumber() const { return (m_frame_count % FRAME_OVERLAP_COUNT); };
     void pushToDeletionQueue(std::function<void()> function);
 
+
+
+    void immediateSubmit(std::function<void(VkCommandBuffer cmd)> function);
+    VkCommandBuffer getCurrentCmdBuffer() { return getCurrentFrame().m_command_buffer; };
     
 public:
     //render commands/functions that use vulkan commands
@@ -145,10 +149,6 @@ private://main vulkan setup
     VulkanFrameData& getCurrentFrame() { return m_frame_data[m_frame_count % FRAME_OVERLAP_COUNT]; };
 
 
-public://VulkanRenderBackend specific public functions. might need dynamic cast
-
-    void immediateSubmit(std::function<void(VkCommandBuffer cmd)> function);
-    VkCommandBuffer getCurrentCmdBuffer() { return getCurrentFrame().m_command_buffer; };
  
  
 private:
