@@ -4,7 +4,7 @@
 
 #include "Engine/Renderer/Vulkan/Buffers/VertexDescription.h"
 
-
+//WIll be reworked alongisde resource/asset system
 namespace AssetLoader {
 
 

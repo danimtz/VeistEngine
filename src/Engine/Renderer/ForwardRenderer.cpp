@@ -13,7 +13,7 @@ void ForwardRenderer::init(std::shared_ptr<RenderBackend> backend)
 {
 	setRenderBackend(backend);
 	
-	std::unique_ptr<ShaderBuffer> test_buff = std::make_unique<ShaderBuffer>(10,2, ShaderBufferType::Uniform); //test buffer suballocations
+	std::unique_ptr<ShaderBuffer> test_buff = std::make_unique<ShaderBuffer>(10,2, ShaderBufferUsage::Uniform); //test buffer suballocations
 
 	
 	
@@ -23,10 +23,10 @@ void ForwardRenderer::init(std::shared_ptr<RenderBackend> backend)
 
 
 
-	m_camera_buffer = std::make_unique<ShaderBuffer>(sizeof(CameraData), m_render_backend->getSwapchainBufferCount(), ShaderBufferType::Uniform);
-	m_scene_info_buffer = std::make_unique<ShaderBuffer>(sizeof(SceneInfo), m_render_backend->getSwapchainBufferCount(), ShaderBufferType::Uniform);
-	m_dir_lights_buffer = std::make_unique<ShaderBuffer>(sizeof(GPUDirLight) * MAX_DIR_LIGHTS, m_render_backend->getSwapchainBufferCount(), ShaderBufferType::Uniform);
-	m_point_lights_buffer = std::make_unique<ShaderBuffer>(sizeof(GPUPointLight) * MAX_POINT_LIGHTS, m_render_backend->getSwapchainBufferCount(), ShaderBufferType::Storage);
+	m_camera_buffer = std::make_unique<ShaderBuffer>(sizeof(CameraData), m_render_backend->getSwapchainBufferCount(), ShaderBufferUsage::Uniform);
+	m_scene_info_buffer = std::make_unique<ShaderBuffer>(sizeof(SceneInfo), m_render_backend->getSwapchainBufferCount(), ShaderBufferUsage::Uniform);
+	m_dir_lights_buffer = std::make_unique<ShaderBuffer>(sizeof(GPUDirLight) * MAX_DIR_LIGHTS, m_render_backend->getSwapchainBufferCount(), ShaderBufferUsage::Uniform);
+	m_point_lights_buffer = std::make_unique<ShaderBuffer>(sizeof(GPUPointLight) * MAX_POINT_LIGHTS, m_render_backend->getSwapchainBufferCount(), ShaderBufferUsage::Storage);
 
 	m_global_descriptor.resize(m_render_backend->getSwapchainBufferCount());
 

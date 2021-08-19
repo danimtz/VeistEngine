@@ -1011,7 +1011,7 @@ void RenderBackend::immediateSubmit(std::function<void(VkCommandBuffer cmd)> fun
 	cmd_allocate_info.commandPool = m_upload_context.m_command_pool;
 	cmd_allocate_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 	cmd_allocate_info.pNext = nullptr;
-
+		
 	VkCommandBuffer cmd;
 	VK_CHECK(vkAllocateCommandBuffers(m_device, &cmd_allocate_info, &cmd));
 

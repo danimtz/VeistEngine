@@ -5,7 +5,7 @@
 
 Mesh::Mesh() 
 {
-
+//TODO: REMOVE THIS
 	m_vertices.resize(3);
 
 	m_vertices[0].position = { 0.f, -0.5f, 0.0f };
