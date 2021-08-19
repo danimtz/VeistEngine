@@ -11,7 +11,6 @@
 #include <string>
 #include <glm/glm.hpp>
 
-#include "Engine/Util/AssetLoader.h"
 
 struct Vertex //leftover. remove later
 {
@@ -20,6 +19,16 @@ struct Vertex //leftover. remove later
 	glm::vec3 color;
 	//uv
 	//tangent
+};
+
+struct MeshData {
+
+	std::vector<unsigned char> vbuffer_data; //Vertex buffer data. 
+	std::vector<unsigned char> index_data;
+	uint32_t index_count;
+	uint32_t index_size = { 2 };
+	VertexDescription description;
+
 };
 
 class VertexBuffer;
@@ -31,7 +40,7 @@ public:
 	
 	Mesh();
 	Mesh(const char* mesh_filepath);
-
+	Mesh(MeshData& data);
 
 	std::shared_ptr<VertexBuffer> getVertexBuffer() const { return m_vertex_buffer; };
 	std::shared_ptr<IndexBuffer> getIndexBuffer() const { return m_index_buffer; };

@@ -34,18 +34,14 @@ Mesh::Mesh()
 }
 
 
-Mesh::Mesh(const char* mesh_filepath)
+Mesh::Mesh(MeshData& data)
 {
 
-
-	AssetLoader::MeshInfo mesh_info;  
-	AssetLoader::loadMeshFromGLTF(mesh_filepath, mesh_info);
-
 	//create vertex buffers
-	m_vertex_buffer = std::make_shared<VertexBuffer>(mesh_info.vbuffer_data.data(), mesh_info.vbuffer_data.size()); //index buffer data is mixed with vertex, its occupying extra space atm but thats the only evil
-	m_vertex_buffer->setInputDescription(mesh_info.description);
+	m_vertex_buffer = std::make_shared<VertexBuffer>(data.vbuffer_data.data(), data.vbuffer_data.size()); //index buffer data is mixed with vertex, its occupying extra space atm but thats the only evil
+	m_vertex_buffer->setInputDescription(data.description);
 
 	//Create index buffers
-	m_index_buffer = std::make_shared<IndexBuffer>(mesh_info.index_data.data(), mesh_info.index_count, mesh_info.index_size);
+	m_index_buffer = std::make_shared<IndexBuffer>(data.index_data.data(), data.index_count, data.index_size);
 
 }

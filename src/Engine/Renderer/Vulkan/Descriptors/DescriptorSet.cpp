@@ -50,7 +50,6 @@ void DescriptorSet::updateDescriptorSet()
 void DescriptorSet::buildDescriptorSet()
 {
 	//Allocate descriptor set
-	//TODO
 	DescriptorSetAllocator* set_allocator = RenderModule::getRenderBackend()->getDescriptorAllocator();
 
 	if (!set_allocator->allocateDescriptorSet(*this)) {

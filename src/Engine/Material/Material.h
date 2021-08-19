@@ -8,7 +8,7 @@ class Material
 {
 public:
 
-	Material(const char* material_name, const char * material_filepath, const VertexDescription& vertex_desc);
+	Material(const char* material_name,  const VertexDescription& vertex_desc);
 
 
 

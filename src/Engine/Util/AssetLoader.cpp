@@ -11,6 +11,8 @@
 #include "AssetLoader.h"
 
 
+
+
 static VertexAttributeType convertTinyGLTFtype(int type) {
 
 	switch (type) {
@@ -23,10 +25,10 @@ static VertexAttributeType convertTinyGLTFtype(int type) {
 }
 
 
-void AssetLoader::loadMeshFromGLTF(const char* filepath, MeshInfo &mesh_info) {
+std::shared_ptr<Mesh> AssetLoader::meshFromGLTF(const char* filepath) {
 	
 	
-	
+	MeshData mesh_data;
 	//Load TinyGLTF model
 	tinygltf::TinyGLTF loader;
 	tinygltf::Model model;
@@ -86,12 +88,12 @@ void AssetLoader::loadMeshFromGLTF(const char* filepath, MeshInfo &mesh_info) {
 	}
 
 	VertexDescription vertex_desc = { 0, vertex_attributes };
-	mesh_info.description = vertex_desc;
+	mesh_data.description = vertex_desc;
 
 
 
 	//Step 3: Parse vertex data into interleaved format
-	std::vector<unsigned char>& vertex_buffer = mesh_info.vbuffer_data;//working variable
+	std::vector<unsigned char>& vertex_buffer = mesh_data.vbuffer_data;//working variable
 
 	uint32_t stride = vertex_desc.getStride();
 	uint32_t attribute_count = vattrib_map.begin()->second.accessor.count;
@@ -139,15 +141,20 @@ void AssetLoader::loadMeshFromGLTF(const char* filepath, MeshInfo &mesh_info) {
 	//Step 4: Get index buffer data
 	int idx_buff_accessor_index = primitive.indices;
 	tinygltf::Accessor idx_buff_accessor = model.accessors[idx_buff_accessor_index];
-	mesh_info.index_count = idx_buff_accessor.count;
+	mesh_data.index_count = idx_buff_accessor.count;
 	
 
 	
 	//slice inndex buffer data
 	uint32_t idx_buff_offset = model.bufferViews[idx_buff_accessor.bufferView].byteOffset;
 	uint32_t idx_buff_size = model.bufferViews[idx_buff_accessor.bufferView].byteLength; //which should be equal to-> idx_buff_accessor.count * mesh_info.index_size
-	mesh_info.index_data.resize(idx_buff_size);
-	memcpy(mesh_info.index_data.data(), &model.buffers[0].data[idx_buff_offset], idx_buff_size);
+	mesh_data.index_data.resize(idx_buff_size);
+	memcpy(mesh_data.index_data.data(), &model.buffers[0].data[idx_buff_offset], idx_buff_size);
 
+
+
+	return std::make_shared<Mesh>(mesh_data);
 
 };
+
+

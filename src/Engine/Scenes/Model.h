@@ -2,8 +2,9 @@
 
 #include "Engine/Mesh/Mesh.h"
 #include "Engine/Material/Material.h"
+#include "Engine/Util/AssetLoader.h"
 
-//Implementation is very temporary, needs a rework:
+//TODO: Refactor this entire class. only temporary.
 //This class holds a mesh and a material. This should be later replaced when an ECS is implemented. should be called
 //mesh component or something the sort. Also for now holds a full copy for each mesh and material. This should be a pointer to the resource stored somewhere
 //so that meshes and materials can be resued without occupying more memeory
@@ -11,7 +12,7 @@ class Model
 {
 public:
 
-	Model(const char* mesh_filepath, const char* material_name, const char* material_filepath );
+	Model(const char* mesh_filepath, const char* material_name);
 
 
 	std::shared_ptr<Mesh>	mesh() const { return m_mesh; };
