@@ -138,10 +138,11 @@ void ForwardRenderer::renderScene(Scene* scene)
 			//Check if material changed
 			if (curr_material != last_material) {
 
-
 				//Change material descriptors
-				
-
+				if (curr_material->textures().size() > 0) {
+					//texture descriptor
+				//	m_render_backend->RC_bindDescriptorSet(curr_material->pipeline(), curr_material->descriptorSet(), 0, nullptr);
+				}
 
 			}
 		}

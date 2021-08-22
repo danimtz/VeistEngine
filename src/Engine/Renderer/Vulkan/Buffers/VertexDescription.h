@@ -3,10 +3,19 @@
 #include <memory>
 #include <vector>
 #include <string>
+#include <glm/glm.hpp>
 
 #include "Engine/Logger.h"
 
 
+struct Vertex
+{
+	glm::vec3 position;
+	glm::vec3 normal;
+	glm::vec3 color;
+	glm::vec2 uv;
+	//tangent
+};
 
 
 enum class VertexAttributeType {

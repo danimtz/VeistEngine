@@ -40,15 +40,18 @@ struct ImageSize {
 	uint32_t n_channels;
 };
 
-class Image
+class ImageBase
 {
 public:
 
-	Image(void* data, ImageSize size, ImageUsage usage, ImageFormat format = {VK_FORMAT_R8G8B8A8_SRGB});
+	VkImage image() const { return m_image; };
+	VkImageView imageView() const { return m_image_view; };
+
+protected:
+
+	ImageBase(void* data, ImageSize size, ImageUsage usage, ImageFormat format);
 
 
-private:
-	
 	uint32_t m_mip_levels = 1;
 	uint32_t m_layers = 1;
 
@@ -58,3 +61,12 @@ private:
 
 };
 
+template<ImageUsage usage>
+class Image : public ImageBase {
+public:
+	
+	Image(void* data, ImageSize size, ImageFormat format) : ImageBase(data, size, usage, format){};
+	
+};
+
+using Texture = Image<ImageUsage::Texture>;

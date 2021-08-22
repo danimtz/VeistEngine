@@ -8,6 +8,7 @@ layout (location = 2) in vec2 uv;
 layout (location = 0) out vec3 outColor;
 layout (location = 1) out vec3 outNormal;
 layout (location = 2) out vec3 outPosition;
+layout (location = 3) out vec2 outUV;
 
 layout( push_constant ) uniform constants
 {
@@ -35,5 +36,5 @@ void main()
 	//outColor = vec3(abs(normal.x), abs(normal.y), abs(normal.z));
 	outNormal = vec3(push_constant.Nmat * vec4(normal, 1.0f));
 	outColor = vec3(0.2, 0.6, 0.1);
-
+	outUV = uv;
 }

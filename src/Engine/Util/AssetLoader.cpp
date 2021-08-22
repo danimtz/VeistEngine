@@ -25,7 +25,7 @@ static VertexAttributeType convertTinyGLTFtype(int type) {
 }
 
 
-std::shared_ptr<Mesh> AssetLoader::meshFromGLTF(const char* filepath) {
+std::shared_ptr<Mesh> AssetLoader::loadMeshFromGLTF(const char* filepath) {
 	
 	
 	MeshData mesh_data;
@@ -158,3 +158,27 @@ std::shared_ptr<Mesh> AssetLoader::meshFromGLTF(const char* filepath) {
 };
 
 
+
+
+std::shared_ptr<Texture> AssetLoader::loadTextureFromFile(const char* filepath, ImageFormat format)
+{
+
+	int width, height, n_channels;
+
+	stbi_uc* pixels = stbi_load(filepath, &width, &height, &n_channels, STBI_rgb_alpha);
+
+	n_channels = 4;//rgb aplha format
+	ImageSize img_size{ (uint32_t)width, (uint32_t)height, (uint32_t)n_channels };
+
+	if (!pixels) {
+		std::cout << "Error loading file: " << filepath << std::endl;
+		CRITICAL_ERROR_LOG("Failed to load texture file");
+	}
+
+	void* data = pixels;
+	std::shared_ptr<Texture> resource = std::make_shared<Texture>(data, img_size, format);
+	
+	stbi_image_free(pixels);
+	
+	return resource;
+}

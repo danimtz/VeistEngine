@@ -83,6 +83,7 @@ void GraphicsPipelineBuilder::setVertexInputDescriptions(const VertexDescription
 		case VertexAttributeType::Float4:
 			attribute_desc.format = VK_FORMAT_R32G32B32A32_SFLOAT;
 			break;
+		//More can be added later
 		default:
 			CRITICAL_ERROR_LOG("Vertex Attribute Type invalid on Pipeline creation");
 		}

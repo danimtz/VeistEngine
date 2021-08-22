@@ -12,14 +12,6 @@
 #include <glm/glm.hpp>
 
 
-struct Vertex //leftover. remove later
-{
-	glm::vec3 position;
-	glm::vec3 normal;
-	glm::vec3 color;
-	//uv
-	//tangent
-};
 
 struct MeshData {
 

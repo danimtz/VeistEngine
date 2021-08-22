@@ -20,6 +20,7 @@ struct PointLights{
 layout (location = 0) in  vec3 infragColor;
 layout (location = 1) in  vec3 normal;
 layout (location = 2) in  vec3 fragPos;
+layout (location = 3) in  vec2 uv;
 
 layout (location = 0) out vec4 outFragColor;
 
@@ -84,12 +85,14 @@ void main()
 	}
 
 	
+	//temporary  
+	vec3 texture_color = vec3(uv.x,uv.y,0.5f); //change to sample those coordinates
+
+	vec3 color =  total_light * texture_color;
+
 	
-
-	vec3 color =  total_light * infragColor;
-
-	color += infragColor*0.005; //ambient light
-
+	color += texture_color*0.005; //ambient light
+	
 	//gamma correct
 	vec3 corrected_color = pow(color, vec3(0.4545));
 	vec3 final_color = clamp(corrected_color, 0.0, 1.0);

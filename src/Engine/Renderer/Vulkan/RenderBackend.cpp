@@ -1237,7 +1237,7 @@ void RenderBackend::RC_drawIndexed(uint32_t size)
 
 
 
-void RenderBackend::RC_bindDescriptorSet(const std::shared_ptr<GraphicsPipeline> pipeline, DescriptorSet& descriptor_set, uint32_t offset_count, uint32_t* p_dynamic_offset)
+void RenderBackend::RC_bindDescriptorSet(const std::shared_ptr<GraphicsPipeline> pipeline, const DescriptorSet& descriptor_set, uint32_t offset_count, uint32_t* p_dynamic_offset)
 {
 
 	VkCommandBuffer cmd_buffer = getCurrentFrame().m_command_buffer;

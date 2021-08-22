@@ -3,8 +3,10 @@
 
 #include <vulkan/vulkan.h>
 #include "Engine/Renderer/Vulkan/ShaderAndPipelines/GraphicsPipeline.h"
+#include "Engine/Renderer/Vulkan/Images/Image.h"
 
 class ShaderBuffer;
+
 
 class DescriptorSet
 {
@@ -14,16 +16,22 @@ public:
 	void setDescriptorSetLayout(uint32_t set, const GraphicsPipeline* pipeline);
 	void bindUniformBuffer(uint32_t binding, const ShaderBuffer* buffer, uint32_t range);
 	void bindStorageBuffer(uint32_t binding, const ShaderBuffer* buffer, uint32_t range);
+	void bindCombinedSamplerTexture(uint32_t binding, const Texture* texture/*sampler view etc?*/);
 
 	void buildDescriptorSet();
 	void updateDescriptorSet();
 
 	uint32_t setNumber() const { return m_set_number; };
+
 	VkDescriptorSet& descriptorSet() { return m_descriptor_set; };
+	const VkDescriptorSet& descriptorSet() const { return m_descriptor_set; };
+	
+
 	VkDescriptorSetLayout descriptorSetLayout() const { return m_descriptor_layout; };
 
 private:
 	void bindBuffer(uint32_t binding, const ShaderBuffer* buffer, uint32_t range, VkDescriptorType type);
+	void bindSampledTexture(uint32_t binding, const Texture* image, VkDescriptorType type, VkSampler sampler);
 
 	uint32_t m_set_number;
 
@@ -31,6 +39,13 @@ private:
 	VkDescriptorSet m_descriptor_set = nullptr;
 	
 	std::vector<VkWriteDescriptorSet> m_writes;
-	std::vector<VkDescriptorBufferInfo> m_buffer_infos; //this could be elsewhere maybe?
+
+	//change this to a map
+	struct DescriptorInfo {
+		VkDescriptorBufferInfo buffer_info = {};
+		VkDescriptorImageInfo image_info = {};
+	};
+
+	std::vector<DescriptorInfo> m_write_data;
 };
 

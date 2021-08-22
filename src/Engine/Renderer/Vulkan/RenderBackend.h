@@ -124,7 +124,7 @@ public:
     void RC_bindVertexBuffer(const std::shared_ptr<VertexBuffer> vertex_buffer);
     void RC_bindIndexBuffer(const std::shared_ptr<IndexBuffer> index_buffer);
 
-    void RC_bindDescriptorSet(const std::shared_ptr<GraphicsPipeline> pipeline, DescriptorSet& descriptor_set, uint32_t offset_count = 0, uint32_t* p_dynamic_offset = nullptr);
+    void RC_bindDescriptorSet(const std::shared_ptr<GraphicsPipeline> pipeline, const DescriptorSet& descriptor_set, uint32_t offset_count = 0, uint32_t* p_dynamic_offset = nullptr);
     void RC_drawIndexed(uint32_t size);
     void RC_drawSumbit(uint32_t size);
 

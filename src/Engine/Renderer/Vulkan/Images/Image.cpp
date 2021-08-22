@@ -22,12 +22,30 @@ static VkImageCreateInfo& getImageCreateInfo(ImageSize size, ImageUsage usage, I
 	return img_info;
 }
 
+static VkImageViewCreateInfo& getImageViewCreateInfo(VkImage image, ImageFormat format, uint32_t mips, uint32_t layers) {
+	
+	VkImageViewCreateInfo img_view_info = {};
+	img_view_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+	img_view_info.pNext = nullptr;
 
-Image::Image(void* data, ImageSize size, ImageUsage usage, ImageFormat format)
+	img_view_info.viewType = VK_IMAGE_VIEW_TYPE_2D;
+	img_view_info.image = image;
+	img_view_info.format = format.format();
+	img_view_info.subresourceRange.baseMipLevel = 0;
+	img_view_info.subresourceRange.levelCount = mips;
+	img_view_info.subresourceRange.baseArrayLayer = 0;
+	img_view_info.subresourceRange.layerCount = layers;
+	img_view_info.subresourceRange.aspectMask = format.imageAspectFlags();
+	return img_view_info;
+}
+
+ImageBase::ImageBase(void* data, ImageSize size, ImageUsage usage, ImageFormat format)
 {
+	usage = usage | ImageUsage::TransferDst;
 	//Allocate VkImage
 	VmaAllocator allocator = RenderModule::getRenderBackend()->getAllocator();
-	
+	VkDevice device = RenderModule::getRenderBackend()->getDevice();
+
 	VkImageCreateInfo img_info = getImageCreateInfo(size, usage, format, m_mip_levels, m_layers);
 
 	VmaAllocationCreateInfo img_alloc_info = {};
@@ -43,7 +61,7 @@ Image::Image(void* data, ImageSize size, ImageUsage usage, ImageFormat format)
 
 
 	//Create staging buffer and map image data to it
-	uint32_t buffer_size = size.width * size.height * size.depth * size.n_channels;
+	uint32_t buffer_size = size.width * size.height * size.depth * size.n_channels; //* pixel size?
 	StagingBuffer stage_buff = {data, buffer_size};
 
 
@@ -109,4 +127,13 @@ Image::Image(void* data, ImageSize size, ImageUsage usage, ImageFormat format)
 		vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier_toReadable);
 
 	});
+
+
+	//Create image view
+	VkImageViewCreateInfo view_info = getImageViewCreateInfo(m_image, format, m_mip_levels, m_layers);
+	VkImageView image_view;
+	vkCreateImageView(device, &view_info, nullptr, &image_view);
+	m_image_view = image_view;
+
+	RenderModule::getRenderBackend()->pushToDeletionQueue([=](){ vkDestroyImageView(device, image_view, nullptr);});
 }
