@@ -175,7 +175,27 @@ void ShaderProgram::reflectShaderModule(std::vector<uint32_t>& buffer, ShaderSta
 	}
 
 
-	//Image Samplers
+	//Combined Image Samplers
+	for (auto& resource : resources.sampled_images)
+	{
+		unsigned set = comp.get_decoration(resource.id, spv::DecorationDescriptorSet);
+		unsigned binding = comp.get_decoration(resource.id, spv::DecorationBinding);
+		if (m_bindings[set].find(binding) == m_bindings[set].end()) //if not found
+		{
+			auto decriptor_binding = getDescriptorSetLayoutBinding(binding, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, static_cast<VkShaderStageFlagBits>(shader_type));
+			m_bindings[set].insert({ binding, decriptor_binding });
+		}
+		else
+		{
+			//Add stage flag
+			addStageFlagToBinding(m_bindings[set][binding], static_cast<VkShaderStageFlagBits>(shader_type)); //UNTESTED MIGHT NOT WORK
+
+		}
+
+		printf("Combined Image Sampler %s at set = %u, binding = %u\n", resource.name.c_str(), set, binding);
+
+	}
+
 	
 	//Push Constants (just one and simple for now)
 	if (resources.push_constant_buffers.size() > 1) 
@@ -210,6 +230,12 @@ void ShaderProgram::createDescriptorSetLayouts()
 	
 	for (int i = 0; i < MAX_DESCRIPTOR_SETS; i++)
 	{
+		//Check that descriptor set exists
+		if(m_bindings[i].size() == 0)
+		{
+			continue;
+		};
+
 		//Convert bindings to contiguous memory
 		std::vector<VkDescriptorSetLayoutBinding> bindings_array;
 		bindings_array.reserve(m_bindings[i].size());

@@ -141,7 +141,7 @@ void ForwardRenderer::renderScene(Scene* scene)
 				//Change material descriptors
 				if (curr_material->textures().size() > 0) {
 					//texture descriptor
-				//	m_render_backend->RC_bindDescriptorSet(curr_material->pipeline(), curr_material->descriptorSet(), 0, nullptr);
+					m_render_backend->RC_bindDescriptorSet(curr_material->pipeline(), curr_material->descriptorSet(), 0, nullptr);
 				}
 
 			}

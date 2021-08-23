@@ -37,6 +37,7 @@ layout(std140, set = 0, binding = 3) readonly buffer pointLights{
 	PointLights point_lights[];
 };
 
+layout(set = 1, binding = 0) uniform sampler2D inAlbedo;
 
 
 void main()
@@ -86,7 +87,7 @@ void main()
 
 	
 	//temporary  
-	vec3 texture_color = vec3(uv.x,uv.y,0.5f); //change to sample those coordinates
+	vec3 texture_color = texture(inAlbedo, uv).xyz; //change to sample those coordinates
 
 	vec3 color =  total_light * texture_color;
 

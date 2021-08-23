@@ -7,9 +7,14 @@
 #include "Engine/Renderer/RenderModule.h"
 
 
+//Note: if for example descriptor set 3 is used, the pipeline MUST have descriptors 1 and 2 declared in the shaders.
 void DescriptorSet::setDescriptorSetLayout(uint32_t set, const GraphicsPipeline* pipeline)
 {
-	m_descriptor_layout = pipeline->shaderProgram()->descriptorLayouts()[0];
+	if (set > pipeline->shaderProgram()->descriptorLayouts().size())
+	{
+		CRITICAL_ERROR_LOG("Pipeline does not contain descriptor set number used");
+	}
+	m_descriptor_layout = pipeline->shaderProgram()->descriptorLayouts()[set];
 	m_set_number = set;
 }
 
@@ -22,7 +27,6 @@ void DescriptorSet::bindSampledTexture(uint32_t binding, const Texture* image, V
 	desc_info.image_info.sampler = sampler;
 
 
-	
 	m_write_data.push_back({ desc_info });
 	//m_buffer_infos.push_back({desc_info});
 
@@ -72,9 +76,9 @@ void DescriptorSet::bindStorageBuffer(uint32_t binding, const ShaderBuffer* buff
 void DescriptorSet::bindCombinedSamplerTexture(uint32_t binding, const Texture* texture/*sampler view etc?*/)
 {
 	//Create sampler here TODO
-	VkSampler sampler;// = Sampler::Create(SamplerFiltering::Linear, etc);
+	Sampler sampler = Sampler{ SamplerType::RepeatLinear };
 
-	bindSampledTexture(binding, texture, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, sampler /*sampler view etc?*/);
+	bindSampledTexture(binding, texture, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, sampler.sampler() /*sampler view etc?*/);
 }
 
 void DescriptorSet::updateDescriptorSet()

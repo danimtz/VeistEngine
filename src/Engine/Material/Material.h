@@ -25,5 +25,7 @@ private:
 	std::vector< std::shared_ptr<Texture> > m_textures;
 	DescriptorSet m_descriptor_set;
 
+	static const uint32_t MATERIAL_DESCRIPTOR_SET_NUMBER = 1;
+
 };
 
