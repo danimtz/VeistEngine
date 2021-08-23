@@ -10,6 +10,7 @@
 #include <memory>
 #include "AssetLoader.h"
 
+#include "Engine/Material/Material.h"
 
 
 
@@ -25,7 +26,7 @@ static VertexAttributeType convertTinyGLTFtype(int type) {
 }
 
 
-std::shared_ptr<Mesh> AssetLoader::loadMeshFromGLTF(const char* filepath) {
+std::shared_ptr<Mesh> AssetLoader::loadMeshFromGLTF(const char* gltf_filepath) {
 	
 	
 	MeshData mesh_data;
@@ -34,7 +35,7 @@ std::shared_ptr<Mesh> AssetLoader::loadMeshFromGLTF(const char* filepath) {
 	tinygltf::Model model;
 	std::string err;
 	std::string warn;
-	bool res = loader.LoadASCIIFromFile(&model, &err, &warn, filepath);
+	bool res = loader.LoadASCIIFromFile(&model, &err, &warn, gltf_filepath);
 	if(!warn.empty()){
 		CRITICAL_ERROR_LOG(warn);
 	}
@@ -42,9 +43,9 @@ std::shared_ptr<Mesh> AssetLoader::loadMeshFromGLTF(const char* filepath) {
 		CRITICAL_ERROR_LOG(err);
 	}
 	if (!res){
-		CRITICAL_ERROR_LOG("Failed to load gltf file:" + std::string(filepath))
+		CRITICAL_ERROR_LOG("Failed to load gltf file:" + std::string(gltf_filepath))
 	} else {
-		CONSOLE_LOG("Loaded: " + std::string(filepath))
+		CONSOLE_LOG("Loaded: " + std::string(gltf_filepath))
 	}
 
 
@@ -104,16 +105,8 @@ std::shared_ptr<Mesh> AssetLoader::loadMeshFromGLTF(const char* filepath) {
 	for (uint32_t i = 0; i < attribute_count; i++) {
 
 
-
-
-
-
 		//TODO: Prefer order Position->normal->(tangent)->Texcoords FOLLOW THE ORDER IN MAP. ORDER MAP ABOVE TO WHATEVER I WANT SOMEHOW
 		
-
-
-
-
 
 		//THIS LOOP CAN BE OPTIMIZED. RECORD SOMNE OF THE VARIABLES OUTSIDE IT
 		uint32_t location = 0;
@@ -181,4 +174,57 @@ std::shared_ptr<Texture> AssetLoader::loadTextureFromFile(const char* filepath, 
 	stbi_image_free(pixels);
 	
 	return resource;
+}
+
+
+std::shared_ptr<Material> AssetLoader::loadMaterialFromGLTF(const char* material_name, const char* gltf_filepath, std::string folder_path, const VertexDescription& vertex_desc)
+{
+	//Load TinyGLTF model
+	tinygltf::TinyGLTF loader;
+	tinygltf::Model model;
+	std::string err;
+	std::string warn;
+	bool res = loader.LoadASCIIFromFile(&model, &err, &warn, gltf_filepath);
+	if (!warn.empty()) {
+		CRITICAL_ERROR_LOG(warn);
+	}
+	if (!err.empty()) {
+		CRITICAL_ERROR_LOG(err);
+	}
+	if (!res) {
+		CRITICAL_ERROR_LOG("Failed to load gltf file:" + std::string(gltf_filepath))
+	}
+	else {
+		CONSOLE_LOG("Loaded: " + std::string(gltf_filepath))
+	}
+
+
+	//List materials from gltf
+	tinygltf::Material gltf_material = model.materials[0];
+
+	//Albedo
+	int albedo_idx = gltf_material.pbrMetallicRoughness.baseColorTexture.index;
+	int tex_src = model.textures[albedo_idx].source;
+	std::string uri = model.images[tex_src].uri;
+	std::string folder = folder_path;
+	std::shared_ptr<Texture> albedo = AssetLoader::loadTextureFromFile(folder.append(uri).c_str(), {VK_FORMAT_R8G8B8A8_SRGB});
+	
+	//Metallic/roughness
+
+	//Normal
+	int normal_idx = gltf_material.normalTexture.index;
+	tex_src = model.textures[albedo_idx].source;
+	uri = model.images[tex_src].uri;
+	folder = folder_path;
+	std::shared_ptr<Texture> normal = AssetLoader::loadTextureFromFile(folder.append(uri).c_str(), { VK_FORMAT_R8G8B8A8_SRGB });
+
+	//Occlusion
+
+	//Emmissive
+
+	MaterialData mat_data{material_name, vertex_desc};
+	mat_data.addTexture(albedo, MaterialData::PBRTextures::Albedo);
+	mat_data.addTexture(normal, MaterialData::PBRTextures::Normal);
+
+	return std::make_shared<Material>(mat_data);
 }

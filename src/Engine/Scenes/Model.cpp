@@ -3,15 +3,13 @@
 
 #include "Engine/Renderer/Vulkan/Buffers/VertexBuffer.h"
 
-Model::Model(const char* mesh_filepath, const char* material_name)
+Model::Model(std::string folder_filepath, std::string material_name, std::string gltf_file)
 {
+	std::string gltf_filepath_str = folder_filepath;
+	const char* gltf_filepath = gltf_filepath_str.append(gltf_file).c_str();
 
-	
-	m_mesh = AssetLoader::loadMeshFromGLTF(mesh_filepath);
+	m_mesh = AssetLoader::loadMeshFromGLTF(gltf_filepath);
 
-
-	//TODO: Dont have resources take in filepaths in constructor. rework this
-	m_material = std::make_shared<Material>(material_name, m_mesh->getVertexBuffer()->getInputDescription());
-
+	m_material = AssetLoader::loadMaterialFromGLTF(material_name.c_str(), gltf_filepath, folder_filepath, m_mesh->getVertexBuffer()->getInputDescription());
 }
 

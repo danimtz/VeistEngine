@@ -12,7 +12,7 @@ class Model
 {
 public:
 
-	Model(const char* mesh_filepath, const char* material_name);
+	Model(std::string folder_filepath, std::string material_name, std::string gltf_file);
 
 
 	std::shared_ptr<Mesh>	mesh() const { return m_mesh; };

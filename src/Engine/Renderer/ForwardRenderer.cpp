@@ -91,7 +91,7 @@ void ForwardRenderer::renderScene(Scene* scene)
 		
 		Mesh* curr_mesh = scene->getModels()[i].mesh().get();
 		Material* curr_material = scene->getModels()[i].material().get();
-		GraphicsPipeline* curr_pipeline = curr_material->pipeline().get();
+		GraphicsPipeline* curr_pipeline = curr_material->materialData().pipeline().get();
 
 
 
@@ -124,8 +124,8 @@ void ForwardRenderer::renderScene(Scene* scene)
 		if (curr_pipeline != last_pipeline) {
 			
 
-			m_render_backend->RC_bindGraphicsPipeline(curr_material->pipeline());
-			m_render_backend->RC_pushConstants(curr_material->pipeline(), push_constant);
+			m_render_backend->RC_bindGraphicsPipeline(curr_material->materialData().pipeline());
+			m_render_backend->RC_pushConstants(curr_material->materialData().pipeline(), push_constant);
 
 			constexpr int offset_count = 4;
 			uint32_t offset[offset_count];
@@ -133,15 +133,15 @@ void ForwardRenderer::renderScene(Scene* scene)
 			offset[1] = m_camera_buffer.get()->offset() * frame_num;
 			offset[2] = m_dir_lights_buffer.get()->offset() * frame_num;
 			offset[3] = m_point_lights_buffer.get()->offset() * frame_num;
-			m_render_backend->RC_bindDescriptorSet(curr_material->pipeline(), m_global_descriptor[frame_num], offset_count, offset);
+			m_render_backend->RC_bindDescriptorSet(curr_material->materialData().pipeline(), m_global_descriptor[frame_num], offset_count, offset);
 
 			//Check if material changed
 			if (curr_material != last_material) {
 
 				//Change material descriptors
-				if (curr_material->textures().size() > 0) {
+				if (curr_material->materialData().textures().size() > 0) {
 					//texture descriptor
-					m_render_backend->RC_bindDescriptorSet(curr_material->pipeline(), curr_material->descriptorSet(), 0, nullptr);
+					m_render_backend->RC_bindDescriptorSet(curr_material->materialData().pipeline(), curr_material->descriptorSet(), 0, nullptr);
 				}
 
 			}
