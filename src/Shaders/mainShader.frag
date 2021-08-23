@@ -42,7 +42,7 @@ layout(set = 1, binding = 1) uniform sampler2D inNormal;
 
 void main()
 {
-
+	vec3 normal_map = texture(inNormal, uv).xyz;
 	vec3 total_light = vec3(0.0);
 
 	float kd = 0.8;//should be from material

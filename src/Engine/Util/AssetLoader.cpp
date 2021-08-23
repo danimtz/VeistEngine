@@ -213,7 +213,7 @@ std::shared_ptr<Material> AssetLoader::loadMaterialFromGLTF(const char* material
 
 	//Normal
 	int normal_idx = gltf_material.normalTexture.index;
-	tex_src = model.textures[albedo_idx].source;
+	tex_src = model.textures[normal_idx].source;
 	uri = model.images[tex_src].uri;
 	folder = folder_path;
 	std::shared_ptr<Texture> normal = AssetLoader::loadTextureFromFile(folder.append(uri).c_str(), { VK_FORMAT_R8G8B8A8_SRGB });
