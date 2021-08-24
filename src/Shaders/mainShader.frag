@@ -17,10 +17,13 @@ struct PointLights{
 	float radius;
 };
 
-layout (location = 0) in  vec3 infragColor;
-layout (location = 1) in  vec3 normal;
-layout (location = 2) in  vec3 fragPos;
-layout (location = 3) in  vec2 uv;
+layout (location = 0) in  vec3 inFragPos;
+
+layout (location = 1) in  vec3 inNormal;
+layout (location = 2) in  vec3 inTangent;
+layout (location = 3) in  vec3 inBitangent;
+
+layout (location = 4) in  vec2 inUV;
 
 layout (location = 0) out vec4 outFragColor;
 
@@ -38,11 +41,23 @@ layout(std140, set = 0, binding = 3) readonly buffer pointLights{
 };
 
 layout(set = 1, binding = 0) uniform sampler2D inAlbedo;
-layout(set = 1, binding = 1) uniform sampler2D inNormal;
+layout(set = 1, binding = 1) uniform sampler2D inNormalTex;
+
+
+vec3 getNormalMappedNormal(vec3 texture_normal, vec3 normal, vec3 tangent, vec3 bitangent) {
+    texture_normal = normalize(texture_normal * 2.0 - 1.0);
+
+	mat3 TBNmat = mat3(tangent, bitangent, normal);
+	vec3 mapped_normal = normalize(TBNmat * texture_normal);
+    return mapped_normal;
+}
 
 void main()
 {
-	vec3 normal_map = texture(inNormal, uv).xyz;
+	//outColor = vec3(0.2, 0.6, 0.1);
+	vec3 tex_normal = texture(inNormalTex, inUV).xyz;
+	vec3 normal = getNormalMappedNormal(tex_normal, inNormal, inTangent, inBitangent);
+	
 	vec3 total_light = vec3(0.0);
 
 	float kd = 0.8;//should be from material
@@ -56,7 +71,7 @@ void main()
 		float diffuse = max(0.0, dot(normal, light_dir));
 
 		//specular TODO
-		vec3 h = normalize(light_dir + fragPos);
+		vec3 h = normalize(light_dir + inFragPos);
  		float spec = pow(max(0.0, dot(normal, h)), 128.0);//128 from material too 
 		spec = diffuse > 0.0 ? spec : 0.0;
 
@@ -67,19 +82,19 @@ void main()
 	//point lights
 	for (int i = 0; i < scene_info.point_light_count; i++)
 	{
-		vec3 light_dir = normalize(point_lights[i].position - fragPos);
+		vec3 light_dir = normalize(point_lights[i].position - inFragPos);
 		vec3 light_colour = point_lights[i].colour;
 		float intensity = point_lights[i].intensity;
 		float diffuse = max(0.0, dot(normal, light_dir));
 
-		float dist = length(point_lights[i].position-fragPos);
+		float dist = length(point_lights[i].position-inFragPos);
 		float k_linear = 2.0/point_lights[i].radius;
 		float k_quadratic = 1.0/(point_lights[i].radius*point_lights[i].radius);
 		float attenuation = 1.0/(1.0 + k_linear*dist + k_quadratic*dist*dist); //TODO implement cutoff
 	
 		
 
-		vec3 h = normalize(light_dir + fragPos);
+		vec3 h = normalize(light_dir + inFragPos);
  		float spec = pow(max(0.0, dot(normal, h)), 128.0);//128 from material too 
 
 		total_light +=  light_colour * (diffuse*kd + spec*ks)  * intensity * attenuation ;
@@ -87,7 +102,7 @@ void main()
 
 	
 	//temporary  
-	vec3 texture_color = texture(inAlbedo, uv).xyz; //change to sample those coordinates
+	vec3 texture_color = texture(inAlbedo, inUV).xyz; //change to sample those coordinates
 
 	vec3 color =  total_light * texture_color;
 

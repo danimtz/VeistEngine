@@ -25,6 +25,109 @@ static VertexAttributeType convertTinyGLTFtype(int type) {
 	}
 }
 
+static uint32_t getAttributeSlot(std::string attribute)
+{
+	if (!attribute.compare("POSITION")) 
+	{
+		return 0;
+	}
+	else if (!attribute.compare("NORMAL")) 
+	{
+		return 1;
+	}
+	else if(!attribute.compare("TEXCOORD_0")) 
+	{
+		return 3;
+	}
+	else if(!attribute.compare("TANGENT")) 
+	{
+		return 2;
+	}
+	else{ return 999;}//never get here
+	
+}
+
+//maybe move thisone elsewhere
+static void generateTangents(MeshData& mesh_data)
+{
+	
+	
+	//Iterate through each triangle
+	auto& vertices = mesh_data.vbuffer_data;
+	auto& indeces = mesh_data.index_data;
+
+	std::vector<glm::vec3> vert_tangents;
+	std::vector<glm::vec3> vert_bitangents;
+	std::vector<int> tangent_count; //used for averaging
+	vert_tangents.resize(vertices.size());
+	vert_bitangents.resize(vertices.size());
+	tangent_count.resize(vertices.size());
+
+	for (int i = 0; i < mesh_data.index_count; i += 3)
+	{
+		//Calculate tangents for each triangle
+		glm::vec3 vert0 = vertices[indeces[i + 0]].position;
+		glm::vec3 vert1 = vertices[indeces[i + 1]].position;
+		glm::vec3 vert2 = vertices[indeces[i + 2]].position;
+
+		glm::vec2 texcoord0 = vertices[indeces[i + 0]].uv;
+		glm::vec2 texcoord1 = vertices[indeces[i + 1]].uv;
+		glm::vec2 texcoord2 = vertices[indeces[i + 2]].uv;
+
+		glm::vec3 edge1 = vert1 - vert0;
+		glm::vec3 edge2 = vert2 - vert0;
+
+		glm::vec2 deltaUV1 = texcoord1 - texcoord0;
+		glm::vec2 deltaUV2 = texcoord2 - texcoord0;
+
+		//r = 1 over determinant
+		float r = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV1.y * deltaUV2.x); 
+
+		glm::vec3 tangent = (edge1 * deltaUV2.y - edge2 * deltaUV1.y) * r;
+		glm::vec3 bitangent = (edge2 * deltaUV1.x - edge1 * deltaUV2.x) * r;
+
+		//Add tangent and bitangents to array at the indexed slot
+		vert_tangents[indeces[i + 0]] += tangent;
+		vert_tangents[indeces[i + 1]] += tangent;
+		vert_tangents[indeces[i + 2]] += tangent;
+
+		vert_bitangents[indeces[i + 0]] += bitangent;
+		vert_bitangents[indeces[i + 1]] += bitangent;
+		vert_bitangents[indeces[i + 2]] += bitangent;
+
+		tangent_count[indeces[i + 0]] += 1;
+		tangent_count[indeces[i + 1]] += 1;
+		tangent_count[indeces[i + 2]] += 1;
+	}
+
+	//Average tangents
+	for (int i = 0; i < vertices.size(); i++) 
+	{
+		vert_tangents[i] = vert_tangents[i] * (1.0f / tangent_count[i]);
+		vert_bitangents[i] = vert_bitangents[i] * (1.0f / tangent_count[i]);
+	}
+
+	for (int i = 0; i < vertices.size(); i++)
+	{
+		//Gram-Schmidt orthogonalisation
+		glm::vec3 n = vertices[i].normal;
+		glm::vec3 t0 = vert_tangents[i];
+		glm::vec3 b = vert_bitangents[i];
+		
+		glm::vec3 t = t0 - (n * glm::dot(n,t0));
+		t = glm::normalize(t);
+
+		//Correct handedness
+		glm::vec3 c = glm::cross(n, t);
+		if (glm::dot(b, c) < 0.0f) {
+			t = t * -1.0f;
+		}
+
+		//Add tangent to vertex
+		vertices[i].tangent = t;
+	}
+}
+
 
 std::shared_ptr<Mesh> AssetLoader::loadMeshFromGLTF(const char* gltf_filepath) {
 	
@@ -53,39 +156,54 @@ std::shared_ptr<Mesh> AssetLoader::loadMeshFromGLTF(const char* gltf_filepath) {
 	tinygltf::Mesh &mesh = model.meshes[0];
 	tinygltf::Primitive& primitive = mesh.primitives[0];
 	
-
+	
 	//Step 1: Iterate through attributes in mesh primitive[0]
 	struct AttributeInfo
 	{
-		AttributeInfo(tinygltf::Accessor accessor_in, VertexAttribute attribute) : accessor(accessor_in), vattribute(attribute) {};
+		AttributeInfo( tinygltf::Accessor accessor_in, VertexAttribute attribute) : accessor(accessor_in), vattribute(attribute) {};
 		tinygltf::Accessor accessor;
 		VertexAttribute vattribute;
 	};
 
 	std::map<int, AttributeInfo> vattrib_map;
+
 	
+	bool has_tangent = false;
 	for (auto it = primitive.attributes.begin(); it != primitive.attributes.end(); it++ ) {
+		
 		std::string attribute_name = it->first;
-		int accessor_index = it->second;
+		
+		if(!attribute_name.compare("TANGENT")) { has_tangent = true;};
+
+		uint32_t attribute_slot = getAttributeSlot(attribute_name);
 
 		//Get accessor referenced by primitive attribute
-		tinygltf::Accessor accessor = model.accessors[accessor_index];
+		tinygltf::Accessor accessor = model.accessors[it->second];
 
 		//Create VertexAttribute for accessor and store it in map based on its corresponding bufferview
-		VertexAttribute vtx_attrib = { convertTinyGLTFtype(accessor.type), attribute_name}; 
+		VertexAttribute vtx_attrib = { convertTinyGLTFtype(accessor.type), attribute_name }; 
 		
 		AttributeInfo attrib_info = { accessor, vtx_attrib};
 
-		vattrib_map.insert({accessor_index, attrib_info });
+		vattrib_map.insert({ attribute_slot, attrib_info });
 	}
-	
+	//Adds tangent if not in model
+	if(!has_tangent){
+		VertexAttribute tangent_attrib = { VertexAttributeType::Float3, "TANGENT"};
+		tinygltf::Accessor accessor;
+		AttributeInfo attrib_info = { accessor, tangent_attrib };
+		vattrib_map.insert({ getAttributeSlot("TANGENT"), attrib_info });
+	}
+
 
 	//Step 2: Create descriptions
 	//Fill in vertex description
 	std::vector<VertexAttribute> vertex_attributes;
+	vertex_attributes.resize(vattrib_map.size());
 	for (auto it = vattrib_map.begin(); it != vattrib_map.end(); it++) {
 
-		vertex_attributes.push_back(it->second.vattribute);
+		vertex_attributes[it->first] = it->second.vattribute;
+
 	}
 
 	VertexDescription vertex_desc = { 0, vertex_attributes };
@@ -94,12 +212,17 @@ std::shared_ptr<Mesh> AssetLoader::loadMeshFromGLTF(const char* gltf_filepath) {
 
 
 	//Step 3: Parse vertex data into interleaved format
-	std::vector<unsigned char>& vertex_buffer = mesh_data.vbuffer_data;//working variable
+	//std::vector<unsigned char>& vertex_buffer = mesh_data.vbuffer_data;//working variable
+	std::vector<Vertex>& vertex_data = mesh_data.vbuffer_data;
 
 	uint32_t stride = vertex_desc.getStride();
 	uint32_t attribute_count = vattrib_map.begin()->second.accessor.count;
 	uint32_t buffer_size = stride*attribute_count;
-	vertex_buffer.resize(buffer_size);
+	mesh_data.vbuffer_size = buffer_size;
+	//vertex_buffer.resize(buffer_size);
+
+	vertex_data.resize(attribute_count);
+
 
 	//Iterate through each vertex
 	for (uint32_t i = 0; i < attribute_count; i++) {
@@ -108,10 +231,16 @@ std::shared_ptr<Mesh> AssetLoader::loadMeshFromGLTF(const char* gltf_filepath) {
 		//TODO: Prefer order Position->normal->(tangent)->Texcoords FOLLOW THE ORDER IN MAP. ORDER MAP ABOVE TO WHATEVER I WANT SOMEHOW
 		
 
-		//THIS LOOP CAN BE OPTIMIZED. RECORD SOMNE OF THE VARIABLES OUTSIDE IT
 		uint32_t location = 0;
 		for (auto it = vattrib_map.begin(); it != vattrib_map.end(); it++) {
-			
+				
+			//if tangent not in buffer skip
+			if(!has_tangent && location == 2) 
+			{
+				location++;
+				continue;
+			}
+
 			uint32_t accessor_byte_offset = it->second.accessor.byteOffset;
 			uint32_t buffer_view_byte_offset = model.bufferViews[it->second.accessor.bufferView].byteOffset;
 
@@ -123,12 +252,18 @@ std::shared_ptr<Mesh> AssetLoader::loadMeshFromGLTF(const char* gltf_filepath) {
 
 			//copy memory
 			std::vector<unsigned char>& src_buffer = model.buffers[model.bufferViews[it->second.accessor.bufferView].buffer].data;
-			memcpy( &vertex_buffer.at(i*vertex_desc.getStride() + vertex_desc.getVertexAttributes()[location].m_offset), &src_buffer.at(buffer_offset+access_point), it->second.vattribute.m_size);
+			//memcpy( &vertex_buffer.at(i*vertex_desc.getStride() + vertex_desc.getVertexAttributes()[location].m_offset), &src_buffer.at(buffer_offset+access_point), it->second.vattribute.m_size);
+			
+			Vertex* vertex_address = &vertex_data.at(i);
+			char* dst_address = reinterpret_cast<char*>(vertex_address);
+			dst_address += vertex_desc.getVertexAttributes()[location].m_offset;
+			memcpy(dst_address, &src_buffer.at(buffer_offset + access_point), it->second.vattribute.m_size);
 
 
 			location++;
 		}
 	}
+
 	
 
 	//Step 4: Get index buffer data
@@ -140,10 +275,16 @@ std::shared_ptr<Mesh> AssetLoader::loadMeshFromGLTF(const char* gltf_filepath) {
 	
 	//slice inndex buffer data
 	uint32_t idx_buff_offset = model.bufferViews[idx_buff_accessor.bufferView].byteOffset;
-	uint32_t idx_buff_size = model.bufferViews[idx_buff_accessor.bufferView].byteLength; //which should be equal to-> idx_buff_accessor.count * mesh_info.index_size
-	mesh_data.index_data.resize(idx_buff_size);
+	uint32_t idx_buff_size = model.bufferViews[idx_buff_accessor.bufferView].byteLength ; //byteLength should be equal to-> idx_buff_accessor.count * mesh_info.index_size
+	mesh_data.index_data.resize(mesh_data.index_count);//resize to number of indeces
 	memcpy(mesh_data.index_data.data(), &model.buffers[0].data[idx_buff_offset], idx_buff_size);
 
+
+	//Generate tangents and add them to vector
+	if (!has_tangent)
+	{
+		generateTangents(mesh_data);
+	}
 
 
 	return std::make_shared<Mesh>(mesh_data);

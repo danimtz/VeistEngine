@@ -15,8 +15,9 @@
 
 struct MeshData {
 
-	std::vector<unsigned char> vbuffer_data; //Vertex buffer data. 
-	std::vector<unsigned char> index_data;
+	std::vector<Vertex> vbuffer_data; //Vertex buffer data. 
+	std::vector<uint16_t> index_data; //Assumes 16 bit index buffers (change from uint16_t to uint32_t for 32)
+	uint32_t vbuffer_size;
 	uint32_t index_count;
 	uint32_t index_size = { 2 };
 	VertexDescription description;

@@ -8,14 +8,16 @@
 #include "Engine/Logger.h"
 
 
+
+#pragma pack(push, 1)
 struct Vertex
 {
 	glm::vec3 position;
 	glm::vec3 normal;
-	glm::vec3 color;
+	glm::vec3 tangent;
 	glm::vec2 uv;
-	//tangent
 };
+#pragma pack(pop)
 
 
 enum class VertexAttributeType {
@@ -50,11 +52,12 @@ static uint32_t VertexAttributeTypeSize(VertexAttributeType type)
 
 struct VertexAttribute
 {
-	uint32_t m_size;
-	uint32_t m_offset;
+	uint32_t m_size{0};
+	uint32_t m_offset{0};
 	std::string m_name;
 	VertexAttributeType m_type;
 
+	VertexAttribute() = default;
 	VertexAttribute(VertexAttributeType type, std::string name, uint32_t offset = 0) : m_size(VertexAttributeTypeSize(type)), m_name(name), m_type(type), m_offset(offset) {};
 	//VertexAttribute(uint32_t attribute_size, std::string name) : m_size(attribute_size), m_name(name), m_type(type) {};
 };
