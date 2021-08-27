@@ -54,7 +54,7 @@ static void generateTangents(MeshData& mesh_data)
 	
 	//Iterate through each triangle
 	auto& vertices = mesh_data.vbuffer_data;
-	auto& indeces = mesh_data.index_data;
+	auto& indices = mesh_data.index_data;
 
 	std::vector<glm::vec3> vert_tangents;
 	std::vector<glm::vec3> vert_bitangents;
@@ -66,13 +66,13 @@ static void generateTangents(MeshData& mesh_data)
 	for (int i = 0; i < mesh_data.index_count; i += 3)
 	{
 		//Calculate tangents for each triangle
-		glm::vec3 vert0 = vertices[indeces[i + 0]].position;
-		glm::vec3 vert1 = vertices[indeces[i + 1]].position;
-		glm::vec3 vert2 = vertices[indeces[i + 2]].position;
+		glm::vec3 vert0 = vertices[indices[i + 0]].position;
+		glm::vec3 vert1 = vertices[indices[i + 1]].position;
+		glm::vec3 vert2 = vertices[indices[i + 2]].position;
 
-		glm::vec2 texcoord0 = vertices[indeces[i + 0]].uv;
-		glm::vec2 texcoord1 = vertices[indeces[i + 1]].uv;
-		glm::vec2 texcoord2 = vertices[indeces[i + 2]].uv;
+		glm::vec2 texcoord0 = vertices[indices[i + 0]].uv;
+		glm::vec2 texcoord1 = vertices[indices[i + 1]].uv;
+		glm::vec2 texcoord2 = vertices[indices[i + 2]].uv;
 
 		glm::vec3 edge1 = vert1 - vert0;
 		glm::vec3 edge2 = vert2 - vert0;
@@ -86,18 +86,38 @@ static void generateTangents(MeshData& mesh_data)
 		glm::vec3 tangent = (edge1 * deltaUV2.y - edge2 * deltaUV1.y) * r;
 		glm::vec3 bitangent = (edge2 * deltaUV1.x - edge1 * deltaUV2.x) * r;
 
+		//check tangent handedness for each vertex
+		for (int k = 0; k < 3; k++) {
+
+			glm::vec3 normal = vertices[indices[i+k]].normal;
+
+			glm::vec3 tan = tangent - (normal * glm::dot(normal, tangent));
+			tan = glm::normalize(tan);
+			glm::vec3 bitan = normalize(bitangent);
+
+			glm::vec3 c = glm::cross(normal, tan);
+			if (glm::dot(bitan, c) < 0.0f) {
+				tangent = tangent * -1.0f;
+			}
+
+			vert_tangents[indices[i + k]] += tangent;
+
+		}
+
+
+		//TODO MUST HANDEDNESS FOR EACH VERTEX /tirangle
 		//Add tangent and bitangents to array at the indexed slot
-		vert_tangents[indeces[i + 0]] += tangent;
-		vert_tangents[indeces[i + 1]] += tangent;
-		vert_tangents[indeces[i + 2]] += tangent;
+		//vert_tangents[indices[i + 0]] += tangent;
+		//vert_tangents[indices[i + 1]] += tangent;
+		//vert_tangents[indices[i + 2]] += tangent;
 
-		vert_bitangents[indeces[i + 0]] += bitangent;
-		vert_bitangents[indeces[i + 1]] += bitangent;
-		vert_bitangents[indeces[i + 2]] += bitangent;
+		vert_bitangents[indices[i + 0]] += bitangent;
+		vert_bitangents[indices[i + 1]] += bitangent;
+		vert_bitangents[indices[i + 2]] += bitangent;
 
-		tangent_count[indeces[i + 0]] += 1;
-		tangent_count[indeces[i + 1]] += 1;
-		tangent_count[indeces[i + 2]] += 1;
+		tangent_count[indices[i + 0]] += 1;
+		tangent_count[indices[i + 1]] += 1;
+		tangent_count[indices[i + 2]] += 1;
 	}
 
 	//Average tangents
@@ -117,14 +137,15 @@ static void generateTangents(MeshData& mesh_data)
 		glm::vec3 t = t0 - (n * glm::dot(n,t0));
 		t = glm::normalize(t);
 
+		float handedness = 1.0;
 		//Correct handedness
 		glm::vec3 c = glm::cross(n, t);
 		if (glm::dot(b, c) < 0.0f) {
-			t = t * -1.0f;
+			handedness = -1.0f;
 		}
 
 		//Add tangent to vertex
-		vertices[i].tangent = t;
+		vertices[i].tangent = glm::vec4(t, handedness);
 	}
 }
 
@@ -187,9 +208,10 @@ std::shared_ptr<Mesh> AssetLoader::loadMeshFromGLTF(const char* gltf_filepath) {
 
 		vattrib_map.insert({ attribute_slot, attrib_info });
 	}
+
 	//Adds tangent if not in model
 	if(!has_tangent){
-		VertexAttribute tangent_attrib = { VertexAttributeType::Float3, "TANGENT"};
+		VertexAttribute tangent_attrib = { VertexAttributeType::Float4, "TANGENT"};
 		tinygltf::Accessor accessor;
 		AttributeInfo attrib_info = { accessor, tangent_attrib };
 		vattrib_map.insert({ getAttributeSlot("TANGENT"), attrib_info });

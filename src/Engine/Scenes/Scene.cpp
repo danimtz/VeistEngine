@@ -11,14 +11,17 @@ Scene::Scene() {
 	m_scene_camera->setPosition(glm::vec3{ 0.0f, 0.0f, -3.0f });
 
 	//m_scene_models.push_back({ "..\\..\\assets\\DamagedHelmet\\DamagedHelmet.gltf",  "descriptortest",  "..\\..\\src\\Shaders\\" }); //{ "..\\..\\assets\\Box\\Box With Spaces.gltf" }; //
-	m_scene_models.push_back({ "..\\..\\assets\\DamagedHelmet\\",  "mainShader", "DamagedHelmet.gltf" }); //{ "..\\..\\assets\\Box\\Box With Spaces.gltf" }; //
+	m_scene_models.push_back({ "..\\..\\assets\\Bottle\\",  "mainShader", "WaterBottle.gltf" }); //{ "..\\..\\assets\\Box\\Box With Spaces.gltf" }; //
 	m_scene_models.push_back({ "..\\..\\assets\\DamagedHelmet\\",  "mainShader", "DamagedHelmet.gltf" }); //{ "..\\..\\assets\\Box\\Box With Spaces.gltf" }; //
 
 	m_scene_models[0].modelMatrix() = glm::translate(m_scene_models[0].modelMatrix(), glm::vec3{1.0, 0.0, 0.0});
+	m_scene_models[0].modelMatrix() = glm::scale(m_scene_models[0].modelMatrix(), glm::vec3{ 8, 8, 8 });
+	m_scene_models[0].modelMatrix() = glm::rotate(m_scene_models[0].modelMatrix(), 45.0f, glm::vec3{ 0.0f, 1.0f, 1.0f });
+
 	m_scene_models[1].modelMatrix() = glm::translate(m_scene_models[1].modelMatrix(), glm::vec3{-1.0, 0.0, 0.0 });
-	//m_scene_models[1].modelMatrix() = glm::scale(m_scene_models[1].modelMatrix(), glm::vec3{ 0.9, 0.5, 0.4 });
-
-
+	m_scene_models[1].modelMatrix() = glm::scale(m_scene_models[1].modelMatrix(), glm::vec3{ 1, 1, 1 });
+	m_scene_models[1].modelMatrix() = glm::rotate(m_scene_models[1].modelMatrix(), glm::degrees(-90.0f), glm::vec3{ 1.0f, 0.0f, 0.0f });
+	
 
 
 	//Lights
@@ -33,11 +36,11 @@ Scene::Scene() {
 
 	glm::vec3 pos = glm::vec3(-3.0, 0.0, 0.0);
 	col = glm::vec3(0.7, 0.13, 0.21);
-	m_point_lights.push_back(PointLight(pos, col)); 
+	//m_point_lights.push_back(PointLight(pos, col)); 
 
 	pos = glm::vec3(3.0, 0.0, 0.0);
 	col = glm::vec3(0.1, 0.13, 0.81);
-	m_point_lights.push_back(PointLight(pos, col));
+	//m_point_lights.push_back(PointLight(pos, col));
 
 
 

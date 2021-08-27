@@ -3,7 +3,7 @@
 
 layout (location = 0) in vec3 inPosition;
 layout (location = 1) in vec3 inNormal;
-layout (location = 2) in vec3 inTangent;
+layout (location = 2) in vec4 inTangent;
 layout (location = 3) in vec2 inUV;
 
 
@@ -39,9 +39,9 @@ void main()
 	gl_Position = (camera_data.VPmat*push_constant.Mmat)*vec4(inPosition, 1.0f);
 	outPosition = vec3((camera_data.Vmat*push_constant.Mmat)*vec4(inPosition, 1.0f));
 	
-	outNormal = vec3(push_constant.Nmat * vec4(inNormal, 1.0f));
-	outTangent = vec3(push_constant.Nmat * vec4(inTangent, 1.0f));
-	outBitangent = normalize(cross(outTangent, outNormal));
+	outNormal = normalize(vec3(push_constant.Nmat * vec4(inNormal, 1.0f)));
+	outTangent = normalize(vec3(push_constant.Nmat * inTangent));
+	outBitangent = normalize(cross(outNormal, outTangent));
 
 	
 	outUV = inUV;

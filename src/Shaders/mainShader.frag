@@ -57,6 +57,8 @@ void main()
 	//outColor = vec3(0.2, 0.6, 0.1);
 	vec3 tex_normal = texture(inNormalTex, inUV).xyz;
 	vec3 normal = getNormalMappedNormal(tex_normal, inNormal, inTangent, inBitangent);
+	//normal = inNormal;
+	//normal = normalize(tex_normal * 2.0 - 1.0);
 	
 	vec3 total_light = vec3(0.0);
 

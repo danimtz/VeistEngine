@@ -62,6 +62,7 @@ void ForwardRenderer::renderScene(Scene* scene)
 	m_scene_info.point_lights_count = scene->getPointLights().size();
 	m_scene_info_buffer.get()->setData(&m_scene_info, sizeof(m_scene_info), frame_num);
 
+
 	//Directional lighting
 	if (m_scene_info.dir_lights_count > 0) {
 		GPUDirLight dir_lights[MAX_DIR_LIGHTS];
@@ -72,6 +73,7 @@ void ForwardRenderer::renderScene(Scene* scene)
 		}
 		m_dir_lights_buffer.get()->setData(&dir_lights, sizeof(GPUDirLight)* MAX_DIR_LIGHTS, frame_num);
 	}
+
 
 	//Point lights
 	if (m_scene_info.point_lights_count > 0){
@@ -96,7 +98,8 @@ void ForwardRenderer::renderScene(Scene* scene)
 
 
 
-		glm::mat4 model = glm::rotate(scene->getModels()[i].modelMatrix(), glm::radians(frame_counter * 0.03f), glm::vec3(0, 1, 0));
+		glm::mat4 model = glm::rotate(scene->getModels()[i].modelMatrix(), glm::radians(frame_counter * 0.03f), glm::vec3(0, 0, 1));
+		//glm::mat4 model = scene->getModels()[i].modelMatrix();
 		model = glm::rotate(model, glm::degrees(-90.0f), glm::vec3(1, 0, 0));
 		push_constant.model_mat = model;
 		push_constant.normal_mat = glm::inverseTranspose(glm::mat3(scene->getCamera()->viewMatrix() * model));
