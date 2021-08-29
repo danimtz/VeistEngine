@@ -96,13 +96,24 @@ void ForwardRenderer::renderScene(Scene* scene)
 		GraphicsPipeline* curr_pipeline = curr_material->materialData().pipeline().get();
 
 
+		//matrices
+		glm::mat4 model = scene->getModels()[i].modelMatrix();
 
-
-		glm::mat4 model = glm::rotate(scene->getModels()[i].modelMatrix(), glm::radians(frame_counter * 0.03f), glm::vec3(0, 0, 1));
+		
 		//glm::mat4 model = scene->getModels()[i].modelMatrix();
-		model = glm::rotate(model, glm::degrees(-90.0f), glm::vec3(1, 0, 0));
-		push_constant.model_mat = model;
-		push_constant.normal_mat = glm::inverseTranspose(glm::mat3(scene->getCamera()->viewMatrix() * model));
+		//model = glm::rotate(model, glm::degrees(-90.0f), glm::vec3(1, 0, 0));
+
+
+		glm::mat4 rot = glm::rotate(glm::mat4(1.0f), glm::radians(frame_counter * 0.1f), glm::vec3(0, 1, 0));
+		glm::vec3 trans_vec = glm::vec3{ model[3][0], model[3][1], model[3][2] };
+		glm::mat4 trans_origin = glm::translate(glm::mat4(1.0f), -trans_vec);
+		glm::mat4 trans_back = glm::translate(glm::mat4(1.0f), trans_vec);
+
+		glm::mat4 modelmat = trans_back * rot * trans_origin * model;
+		push_constant.model_mat = modelmat;
+
+
+		push_constant.normal_mat = glm::inverseTranspose(glm::mat3(scene->getCamera()->viewMatrix() * modelmat));
 		
 
 		

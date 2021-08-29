@@ -15,6 +15,8 @@ layout (location = 3) out vec3 outBitangent;
 
 layout (location = 4) out vec2 outUV;
 
+layout (location = 5) out mat3 outTBN;
+
 layout( push_constant ) uniform constants
 {
 	mat4 mM;
@@ -39,12 +41,11 @@ void main()
 	gl_Position = (camera_data.mVP*push_constant.mM)*vec4(inPosition, 1.0f);
 	outPosition = vec3((camera_data.mV*push_constant.mM)*vec4(inPosition, 1.0f));
 	
-	mat3 Nmat = mat3(push_constant.mN); //mN is already a 3x3 extended to a 4x4 matrix but this is cleaner
+	outNormal = normalize(vec3(push_constant.mN * vec4(inNormal, 1.0f)));
+	outTangent = normalize(vec3(push_constant.mN * inTangent));
+	outBitangent = normalize(cross(outTangent, outNormal));
 
-	outNormal = normalize(Nmat * inNormal);
-	outTangent = normalize(Nmat * inTangent.xyz);
-	outBitangent = normalize(cross(outNormal, outTangent) * inTangent.w);
-
+	outTBN = mat3(outTangent, outBitangent, outNormal);
+	
 	outUV = inUV;
-
 }

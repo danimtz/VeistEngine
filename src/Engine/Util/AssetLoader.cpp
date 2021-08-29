@@ -308,7 +308,16 @@ std::shared_ptr<Mesh> AssetLoader::loadMeshFromGLTF(const char* gltf_filepath) {
 		generateTangents(mesh_data);
 	}
 
-
+	/*
+	int count = 0;
+	for (int i = 0; i < mesh_data.vbuffer_data.size(); i++)
+	{
+		if (mesh_data.vbuffer_data[i].tangent.w == -1.0) {
+			count += 1;
+		}
+	}
+	std::cout<<count;
+	*/
 	return std::make_shared<Mesh>(mesh_data);
 
 };
@@ -379,7 +388,7 @@ std::shared_ptr<Material> AssetLoader::loadMaterialFromGLTF(const char* material
 	tex_src = model.textures[normal_idx].source;
 	uri = model.images[tex_src].uri;
 	folder = folder_path;
-	std::shared_ptr<Texture> normal = AssetLoader::loadTextureFromFile(folder.append(uri).c_str(), { VK_FORMAT_R8G8B8A8_SRGB });
+	std::shared_ptr<Texture> normal = AssetLoader::loadTextureFromFile(folder.append(uri).c_str(), { VK_FORMAT_R8G8B8A8_UNORM });
 
 	//Occlusion
 

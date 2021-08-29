@@ -36,6 +36,8 @@ private:
 	std::vector< std::shared_ptr<Texture> > m_textures;
 };
 
+
+
 class Material
 {
 public:

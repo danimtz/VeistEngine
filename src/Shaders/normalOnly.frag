@@ -25,6 +25,8 @@ layout (location = 3) in  vec3 inBitangent;
 
 layout (location = 4) in  vec2 inUV;
 
+layout (location = 5) in  mat3 inTBN;
+
 layout (location = 0) out vec4 outFragColor;
 
 layout(set = 0, binding = 0) uniform  sceneInfo{
@@ -45,10 +47,10 @@ layout(set = 1, binding = 1) uniform sampler2D inNormalTex;
 
 
 vec3 getNormalMappedNormal(vec3 texture_normal, vec3 normal, vec3 tangent, vec3 bitangent) {
-    vec3 tex_normal = normalize(texture_normal * 2.0 - 1.0);
+    texture_normal = normalize(texture_normal * 2.0 - 1.0);
 
-	mat3 mTBN = mat3(tangent, bitangent, normal);
-	vec3 mapped_normal = normalize(mTBN * tex_normal);
+	mat3 mTBN = (mat3(tangent, bitangent, normal));
+	vec3 mapped_normal = normalize(mTBN * texture_normal);
     return mapped_normal;
 }
 
@@ -57,7 +59,7 @@ void main()
 	//outColor = vec3(0.2, 0.6, 0.1);
 	vec3 tex_normal = texture(inNormalTex, inUV).xyz;
 	vec3 normal = getNormalMappedNormal(tex_normal, normalize(inNormal), normalize(inTangent), normalize(inBitangent));
-	//normal = inNormal;
+	normal = inNormal;
 	//normal = normalize(inTBN * tex_normal);
 	//normal = normalize(tex_normal * 2.0 - 1.0);
 	
@@ -117,7 +119,6 @@ void main()
 	vec3 final_color = clamp(corrected_color, 0.0, 1.0);
 	
 
-	//outFragColor = vec4((normal), 1.0);//
-	outFragColor = vec4(final_color, 1.0);
-
+	outFragColor = vec4((normal), 1.0);
+	//outFragColor = vec4(final_color, 1.0);
 }

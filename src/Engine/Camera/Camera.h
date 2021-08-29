@@ -10,7 +10,7 @@ class Camera
 public:
 	
 	//Camera() = default;
-	Camera(float aspect_ratio = 1280.0f/720.0f, float fov = 70.0f, float far_plane = 1000.0f, float near_plane = 0.1f, glm::vec3 pos = {0.0f, 0.0f, -2.0f} );
+	Camera(float aspect_ratio = 1280.0f/720.0f, float fov = 55.0f, float far_plane = 1000.0f, float near_plane = 0.1f, glm::vec3 pos = {0.0f, 0.0f, -2.0f} );
 
 	const glm::mat4& viewMatrix() const { return m_view; };
 	const glm::mat4& projectionMatrix() const { return m_projection; };
