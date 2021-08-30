@@ -42,25 +42,20 @@ layout(std140, set = 0, binding = 3) readonly buffer pointLights{
 
 layout(set = 1, binding = 0) uniform sampler2D inAlbedo;
 layout(set = 1, binding = 1) uniform sampler2D inNormalTex;
+layout(set = 1, binding = 2) uniform sampler2D inOccRoughMetal;
 
 
-vec3 getNormalMappedNormal(vec3 texture_normal, vec3 normal, vec3 tangent, vec3 bitangent) {
-    vec3 tex_normal = normalize(texture_normal * 2.0 - 1.0);
-
-	mat3 mTBN = mat3(tangent, bitangent, normal);
-	vec3 mapped_normal = normalize(mTBN * tex_normal);
-    return mapped_normal;
-}
 
 void main()
 {
-	//outColor = vec3(0.2, 0.6, 0.1);
-	vec3 tex_normal = texture(inNormalTex, inUV).xyz;
-	vec3 normal = getNormalMappedNormal(tex_normal, normalize(inNormal), normalize(inTangent), normalize(inBitangent));
-	//normal = inNormal;
-	//normal = normalize(inTBN * tex_normal);
-	//normal = normalize(tex_normal * 2.0 - 1.0);
+	//Normal mapping
+	mat3 mTBN = mat3(normalize(inTangent), normalize(inBitangent), normalize(inNormal));
+	vec3 tex_normal = normalize(texture(inNormalTex, inUV).xyz * 2.0 - 1.0);
+	vec3 normal = normalize(mTBN * tex_normal);
 	
+	vec3 occ = texture(inOccRoughMetal, inUV).xyz;
+
+
 	vec3 total_light = vec3(0.0);
 
 	float kd = 0.8;//should be from material
@@ -74,7 +69,7 @@ void main()
 		float diffuse = max(0.0, dot(normal, light_dir));
 
 		//specular TODO
-		vec3 h = normalize(light_dir + inFragPos);
+		vec3 h = normalize(light_dir + -normalize(inFragPos));
  		float spec = pow(max(0.0, dot(normal, h)), 128.0);//128 from material too 
 		spec = diffuse > 0.0 ? spec : 0.0;
 
@@ -97,7 +92,7 @@ void main()
 	
 		
 
-		vec3 h = normalize(light_dir + inFragPos);
+		vec3 h = normalize(light_dir + -normalize(inFragPos));
  		float spec = pow(max(0.0, dot(normal, h)), 128.0);//128 from material too 
 
 		total_light +=  light_colour * (diffuse*kd + spec*ks)  * intensity * attenuation ;

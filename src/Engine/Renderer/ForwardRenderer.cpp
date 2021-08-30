@@ -104,7 +104,7 @@ void ForwardRenderer::renderScene(Scene* scene)
 		//model = glm::rotate(model, glm::degrees(-90.0f), glm::vec3(1, 0, 0));
 
 
-		glm::mat4 rot = glm::rotate(glm::mat4(1.0f), glm::radians(frame_counter * 0.1f), glm::vec3(0, 1, 0));
+		glm::mat4 rot = glm::rotate(glm::mat4(1.0f), glm::radians(frame_counter * 0.1f), glm::vec3(0.3, 1, 0));
 		glm::vec3 trans_vec = glm::vec3{ model[3][0], model[3][1], model[3][2] };
 		glm::mat4 trans_origin = glm::translate(glm::mat4(1.0f), -trans_vec);
 		glm::mat4 trans_back = glm::translate(glm::mat4(1.0f), trans_vec);

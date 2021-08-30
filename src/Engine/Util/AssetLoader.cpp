@@ -381,7 +381,13 @@ std::shared_ptr<Material> AssetLoader::loadMaterialFromGLTF(const char* material
 	std::string folder = folder_path;
 	std::shared_ptr<Texture> albedo = AssetLoader::loadTextureFromFile(folder.append(uri).c_str(), {VK_FORMAT_R8G8B8A8_SRGB});
 	
-	//Metallic/roughness
+	//Occlusion/Metallic/roughness (ASSUMES OCCLUSION IN IN METALLIC ROUGHNESS TEXTURE. as in gltf2.0 spec)
+	int roughness_metallic_idx = gltf_material.pbrMetallicRoughness.metallicRoughnessTexture.index;
+	tex_src = model.textures[roughness_metallic_idx].source;
+	uri = model.images[tex_src].uri;
+	folder = folder_path;
+	std::shared_ptr<Texture> occlusionRoughnessMetallic = AssetLoader::loadTextureFromFile(folder.append(uri).c_str(), { VK_FORMAT_R8G8B8A8_UNORM });
+
 
 	//Normal
 	int normal_idx = gltf_material.normalTexture.index;
@@ -390,13 +396,14 @@ std::shared_ptr<Material> AssetLoader::loadMaterialFromGLTF(const char* material
 	folder = folder_path;
 	std::shared_ptr<Texture> normal = AssetLoader::loadTextureFromFile(folder.append(uri).c_str(), { VK_FORMAT_R8G8B8A8_UNORM });
 
-	//Occlusion
+	
 
 	//Emmissive
 
 	MaterialData mat_data{material_name, vertex_desc};
 	mat_data.addTexture(albedo, MaterialData::PBRTextures::Albedo);
 	mat_data.addTexture(normal, MaterialData::PBRTextures::Normal);
+	mat_data.addTexture(occlusionRoughnessMetallic, MaterialData::PBRTextures::OcclusionRoughnessMetallic);
 
 	return std::make_shared<Material>(mat_data);
 }

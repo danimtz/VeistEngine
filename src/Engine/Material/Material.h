@@ -17,10 +17,8 @@ public:
 	{
 		Albedo = 0,
 		Normal = 1,
-		Roughness = 2,
-		Metallic = 3,
-		Occlusion = 4,
-		Emmissive = 5
+		OcclusionRoughnessMetallic = 2,
+		Emmissive = 3
 	};
 	
 	MaterialData() = default;
@@ -32,8 +30,10 @@ public:
 	std::shared_ptr<GraphicsPipeline> pipeline() const { return m_pipeline; };
 
 private:
+
 	std::shared_ptr<GraphicsPipeline> m_pipeline;
 	std::vector< std::shared_ptr<Texture> > m_textures;
+
 };
 
 

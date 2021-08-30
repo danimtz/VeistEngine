@@ -20,14 +20,8 @@ Material::Material(MaterialData& data) : m_data(data)
 
 MaterialData::MaterialData(const char* material_name, const VertexDescription& vertex_desc) {
 
-
-
 	m_pipeline = std::make_shared<GraphicsPipeline>(material_name, vertex_desc); 
 	
-	//
-	//EXTREMELY TEMPORARY AS IT ALWAYS LOADS THE SAME TEXTURE. THIS SHOULD LOAD teXTURES AUTOMATICALLYvFROM A GLTF FILE OR SOMETHING
-	//m_textures.push_back(AssetLoader::loadTextureFromFile("..\\..\\assets\\DamagedHelmet\\Default_albedo.jpg"));
-
 }
 
 void MaterialData::addTexture(std::shared_ptr<Texture> texture, PBRTextures tex_type)
