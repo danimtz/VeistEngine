@@ -367,7 +367,7 @@ std::shared_ptr<Material> AssetLoader::loadMaterialFromGLTF(const char* material
 		CRITICAL_ERROR_LOG("Failed to load gltf file:" + std::string(gltf_filepath))
 	}
 	else {
-		CONSOLE_LOG("Loaded: " + std::string(gltf_filepath))
+		CONSOLE_LOG("Loaded material: " + std::string(material_name) + " for: " + std::string(gltf_filepath))
 	}
 
 
@@ -400,10 +400,18 @@ std::shared_ptr<Material> AssetLoader::loadMaterialFromGLTF(const char* material
 
 	//Emmissive
 
+	int emmissive_idx = gltf_material.emissiveTexture.index;
+	tex_src = model.textures[emmissive_idx].source;
+	uri = model.images[tex_src].uri;
+	folder = folder_path;
+	std::shared_ptr<Texture> emmissive = AssetLoader::loadTextureFromFile(folder.append(uri).c_str(), { VK_FORMAT_R8G8B8A8_SRGB });
+
+
 	MaterialData mat_data{material_name, vertex_desc};
 	mat_data.addTexture(albedo, MaterialData::PBRTextures::Albedo);
 	mat_data.addTexture(normal, MaterialData::PBRTextures::Normal);
 	mat_data.addTexture(occlusionRoughnessMetallic, MaterialData::PBRTextures::OcclusionRoughnessMetallic);
+	mat_data.addTexture(emmissive, MaterialData::PBRTextures::Emmissive);
 
 	return std::make_shared<Material>(mat_data);
 }

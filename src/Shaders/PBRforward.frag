@@ -46,6 +46,7 @@ layout(std140, set = 0, binding = 3) readonly buffer pointLights{
 layout(set = 1, binding = 0) uniform sampler2D inAlbedo;
 layout(set = 1, binding = 1) uniform sampler2D inNormalTex;
 layout(set = 1, binding = 2) uniform sampler2D inOccRoughMetal;
+layout(set = 1, binding = 3) uniform sampler2D inEmmissive;
 
 
 //BRDF functions
@@ -137,6 +138,8 @@ void main()
 	float roughness = texture(inOccRoughMetal, inUV).y;
 	float metallic = texture(inOccRoughMetal, inUV).z;
 	float occlusion = texture(inOccRoughMetal, inUV).x;
+	vec3 emmissive = texture(inEmmissive, inUV).xyz;
+
 
 	//Directional lights
 	vec3 Lo = vec3(0.0);
@@ -160,7 +163,7 @@ void main()
 	}
 
 	vec3 ambient = vec3(0.01) * albedo * occlusion;
-    vec3 color = Lo + ambient;
+    vec3 color = Lo + ambient + emmissive;
     color = color / (color + vec3(1.0));
 	vec3 gamma_corrected_color = pow(color, vec3(0.4545));
 	vec3 final_color = clamp(gamma_corrected_color, 0.0, 1.0);
