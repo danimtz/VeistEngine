@@ -47,7 +47,7 @@ static uint32_t getAttributeSlot(std::string attribute)
 	
 }
 
-//maybe move thisone elsewhere
+//maybe move this elsewhere
 static void generateTangents(MeshData& mesh_data)
 {
 	
@@ -86,8 +86,9 @@ static void generateTangents(MeshData& mesh_data)
 		glm::vec3 tangent = (edge1 * deltaUV2.y - edge2 * deltaUV1.y) * r;
 		glm::vec3 bitangent = (edge2 * deltaUV1.x - edge1 * deltaUV2.x) * r;
 
-		//check tangent handedness for each vertex
-		for (int k = 0; k < 3; k++) {
+
+		//check tangent handedness for each vertex THIS MADE HELMET TUBES FLIP INSIDE OUT
+		/*for (int k = 0; k < 3; k++) {
 
 			glm::vec3 normal = vertices[indices[i+k]].normal;
 
@@ -102,14 +103,13 @@ static void generateTangents(MeshData& mesh_data)
 
 			vert_tangents[indices[i + k]] += tangent;
 
-		}
+		}*/
 
 
-		//TODO MUST HANDEDNESS FOR EACH VERTEX /tirangle
 		//Add tangent and bitangents to array at the indexed slot
-		//vert_tangents[indices[i + 0]] += tangent;
-		//vert_tangents[indices[i + 1]] += tangent;
-		//vert_tangents[indices[i + 2]] += tangent;
+		vert_tangents[indices[i + 0]] += tangent;
+		vert_tangents[indices[i + 1]] += tangent;
+		vert_tangents[indices[i + 2]] += tangent;
 
 		vert_bitangents[indices[i + 0]] += bitangent;
 		vert_bitangents[indices[i + 1]] += bitangent;

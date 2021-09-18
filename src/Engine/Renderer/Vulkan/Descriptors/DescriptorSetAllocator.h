@@ -1,9 +1,9 @@
 #pragma once
 
 #include <vulkan/vulkan.h>
-#include <memory>
 #include "Engine/Renderer/Vulkan/Descriptors/DescriptorSet.h"
 #include "Engine/Renderer/Vulkan/Descriptors/DescriptorSetLayoutCache.h"
+#include "Engine/Logger.h"
 
 class DescriptorSetAllocator
 {

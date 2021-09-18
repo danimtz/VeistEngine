@@ -4,7 +4,7 @@
 
 #include "Renderer/RenderModule.h"
 #include "ImGUI/GUIModule.h"
-
+#include "Input/InputModule.h"
 #include "Engine/Scenes/Scene.h"
 
 
@@ -13,17 +13,19 @@ int main() {
 
 
 
-//Init window
+//Init window (should be part of window module)
 
     glfwInit();
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-
-
     GLFWwindow* window = glfwCreateWindow(1280, 720, "Vulkan", nullptr, nullptr);
+
+
+//Initialize main engine modules
 
     RenderModule::init(window);
     GUIModule::init(RenderModule::getRenderBackend().get());
+    InputModule::init(window);
 
     Scene* scene = new Scene();
 
