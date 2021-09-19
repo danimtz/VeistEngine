@@ -16,7 +16,7 @@ Scene::Scene() {
 	m_scene_models.push_back({ "..\\..\\assets\\DamagedHelmet\\",  "PBRforward", "DamagedHelmet.gltf" }); //{ "..\\..\\assets\\Box\\Box With Spaces.gltf" }; //
 
 
-	m_scene_models[0].modelMatrix() = glm::translate(m_scene_models[0].modelMatrix(), glm::vec3{ 1.0, 0.0, 0.0 });
+	m_scene_models[0].modelMatrix() = glm::translate(m_scene_models[0].modelMatrix(), glm::vec3{ 2.0, 0.0, 0.0 });
 	m_scene_models[0].modelMatrix() = glm::rotate(m_scene_models[0].modelMatrix(), glm::radians(0.0f), glm::vec3{ 1.0f, 0.0f, .0f });
 	m_scene_models[0].modelMatrix() = glm::scale(m_scene_models[0].modelMatrix(), glm::vec3{ 8, 8, 8 });
 
@@ -67,6 +67,8 @@ Scene::Scene() {
 
 void Scene::onUpdate() 
 {
+
+	m_cam_control.updateCamera(*m_scene_camera.get());
 
 	m_scene_camera->onUpdate();
 

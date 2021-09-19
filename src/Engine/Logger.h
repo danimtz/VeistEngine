@@ -1,5 +1,6 @@
 #include <iostream>
 
+
 #define CONSOLE_LOG(x)										\
 		std::cout << "CONSOLE LOG:\t" << x << std::endl;
 

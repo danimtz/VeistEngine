@@ -3,6 +3,7 @@
 
 #include <GLFW/glfw3.h>
 
+
 class InputModule
 {
 public:
@@ -13,6 +14,9 @@ public:
 	static bool isKeyPressed(int keycode);
 	static bool isMouseButtonPressed(int keycode);
 	
+	static float getMouseX();
+	static float getMouseY();
+
 private:
 	
 	static GLFWwindow* m_window;

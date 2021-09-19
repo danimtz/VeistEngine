@@ -19,7 +19,9 @@ vendor/glfw-3.3.4/src/glfw3Config.cmake
 vendor/glfw-3.3.4/src/glfw3ConfigVersion.cmake
 vendor/glfw-3.3.4/src/glfw_config.h
 vendor/Debug/
+vendor/Release/
 vendor/glfw-3.3.4/src/Debug/
+vendor/glfw-3.3.4/src/Release/
 vendor/glfw-3.3.4/src/glfw.dir/
 vendor/imgui.dir/
 x64/

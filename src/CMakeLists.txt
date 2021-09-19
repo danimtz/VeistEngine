@@ -15,4 +15,7 @@ target_link_libraries(${PROJECT_NAME} spirv-cross-glsl)
 target_link_libraries(${PROJECT_NAME} imgui)
 target_link_libraries(${PROJECT_NAME} Vulkan::Vulkan glfw)
 
+target_precompile_headers(${PROJECT_NAME} PRIVATE pch.h)
+
+
 #add_dependencies(${PROJECT_NAME} Shaders)

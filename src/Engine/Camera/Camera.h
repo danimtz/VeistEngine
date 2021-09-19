@@ -41,6 +41,7 @@ private:
 	glm::mat4 m_view;
 	glm::mat4 m_projection;
 	glm::mat4 m_view_projection;
+	glm::vec3 m_position;
 
 	Fustrum m_fustrum;
 

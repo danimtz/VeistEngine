@@ -3,6 +3,7 @@
 #define GLM_DEPTH_ZERO_TO_ONE
 #include "Engine/Scenes/Model.h"
 #include "Engine/Camera/Camera.h"
+#include "Engine/Camera/CameraController.h"
 #include "Engine/Scenes/DirectionalLight.h"
 #include "Engine/Scenes/PointLight.h"
 
@@ -26,6 +27,7 @@ public:
 
 private:
 
+	CameraController m_cam_control;
 	std::unique_ptr<Camera> m_scene_camera;
 	std::vector<Model> m_scene_models;
 	std::vector<DirectionalLight> m_directional_lights;
