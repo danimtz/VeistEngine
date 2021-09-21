@@ -33,9 +33,10 @@ int main() {
 //Mainloop
     while (!glfwWindowShouldClose(window)) 
     {
-        
+
+        InputModule::onUpdate();
         scene->onUpdate();
-      
+
 
         //Rendering
         RenderModule::beginFrame();
@@ -55,13 +56,6 @@ int main() {
         RenderModule::endFrame();
         
 
-        glfwPollEvents();
-
-        if (InputModule::isKeyPressed(GLFW_KEY_ESCAPE)) 
-        {
-            glfwSetWindowShouldClose(window, GLFW_TRUE);
-        }
-   
     }
 
 

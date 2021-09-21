@@ -40,9 +40,28 @@ void CameraController::updateCamera(Camera& camera)
 	}
 
 
-	if (InputModule::isMouseButtonPressed(GLFW_MOUSE_BUTTON_1))
+	if (InputModule::isMouseButtonPressed(GLFW_MOUSE_BUTTON_2))
 	{
 		
+		float deltaX = InputModule::getMouseDeltaX();
+		float deltaY = InputModule::getMouseDeltaY();
+		
+		camera.setPosition(camera.position() - 0.01f * deltaX * camera.right());
+		camera.setPosition(camera.position() - 0.01f * deltaY * camera.up());
+	}
 
+
+	if (InputModule::getMouseScroll() != 0) 
+	{
+		camera.setFoV(camera.fov() - InputModule::getMouseScroll());
+		
+		if (camera.fov() > 105.0f)
+		{
+			camera.setFoV(105.5);
+		}
+		if (camera.fov() < 30.0f)
+		{
+			camera.setFoV(30.0f);
+		}
 	}
 }
