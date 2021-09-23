@@ -27,6 +27,10 @@ inline constexpr ImageUsage operator|(ImageUsage left, VkImageUsageFlagBits righ
 	return ImageUsage(uint32_t(left) | uint32_t(right));
 }
 
+enum class ImageViewType : uint32_t {
+	Flat = VK_IMAGE_VIEW_TYPE_2D,
+	Cube = VK_IMAGE_VIEW_TYPE_CUBE
+};
 
 
 
@@ -40,6 +44,7 @@ struct ImageSize {
 	uint32_t n_channels;
 };
 
+
 class ImageBase
 {
 public:
@@ -49,7 +54,7 @@ public:
 
 protected:
 
-	ImageBase(void* data, ImageSize size, ImageUsage usage, ImageFormat format);
+	ImageBase(void* data, ImageSize size, ImageUsage usage, ImageFormat format, ImageViewType type);
 
 
 	uint32_t m_mip_levels = 1;
@@ -61,12 +66,14 @@ protected:
 
 };
 
-template<ImageUsage usage>
+
+template<ImageUsage usage, ImageViewType type = ImageViewType::Flat>
 class Image : public ImageBase {
 public:
 	
-	Image(void* data, ImageSize size, ImageFormat format) : ImageBase(data, size, usage, format){};
+	Image(void* data, ImageSize size, ImageFormat format) : ImageBase(data, size, usage, format, type){};
 	
 };
 
 using Texture = Image<ImageUsage::Texture>;
+using Cubemap = Image<ImageUsage::Texture, ImageViewType::Cube>;

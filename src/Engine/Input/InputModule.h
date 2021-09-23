@@ -19,7 +19,8 @@ public:
 	static float getMouseY();
 
 	static std::pair<float, float> getMousePos();
-	static float getMouseDeltaX() { return m_mouse_deltaX; };//mouse delta has moved since last frame
+
+	static float getMouseDeltaX() { return m_mouse_deltaX; };//mouse delta: movement since last frame
 	static float getMouseDeltaY() { return m_mouse_deltaY; };
 
 	static float getMouseScroll() { return m_mouse_scroll; };

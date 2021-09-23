@@ -150,7 +150,8 @@ static void generateTangents(MeshData& mesh_data)
 }
 
 
-std::shared_ptr<Mesh> AssetLoader::loadMeshFromGLTF(const char* gltf_filepath) {
+std::shared_ptr<Mesh> AssetLoader::loadMeshFromGLTF(const char* gltf_filepath)
+{
 	
 	
 	MeshData mesh_data;
@@ -190,7 +191,8 @@ std::shared_ptr<Mesh> AssetLoader::loadMeshFromGLTF(const char* gltf_filepath) {
 
 	
 	bool has_tangent = false;
-	for (auto it = primitive.attributes.begin(); it != primitive.attributes.end(); it++ ) {
+	for (auto it = primitive.attributes.begin(); it != primitive.attributes.end(); it++ )
+	{
 		
 		std::string attribute_name = it->first;
 		
@@ -210,7 +212,8 @@ std::shared_ptr<Mesh> AssetLoader::loadMeshFromGLTF(const char* gltf_filepath) {
 	}
 
 	//Adds tangent if not in model
-	if(!has_tangent){
+	if(!has_tangent)
+	{
 		VertexAttribute tangent_attrib = { VertexAttributeType::Float4, "TANGENT"};
 		tinygltf::Accessor accessor;
 		AttributeInfo attrib_info = { accessor, tangent_attrib };
@@ -222,7 +225,8 @@ std::shared_ptr<Mesh> AssetLoader::loadMeshFromGLTF(const char* gltf_filepath) {
 	//Fill in vertex description
 	std::vector<VertexAttribute> vertex_attributes;
 	vertex_attributes.resize(vattrib_map.size());
-	for (auto it = vattrib_map.begin(); it != vattrib_map.end(); it++) {
+	for (auto it = vattrib_map.begin(); it != vattrib_map.end(); it++) 
+	{
 
 		vertex_attributes[it->first] = it->second.vattribute;
 
@@ -247,14 +251,14 @@ std::shared_ptr<Mesh> AssetLoader::loadMeshFromGLTF(const char* gltf_filepath) {
 
 
 	//Iterate through each vertex
-	for (uint32_t i = 0; i < attribute_count; i++) {
+	for (uint32_t i = 0; i < attribute_count; i++)
+	{
 
 
-		//TODO: Prefer order Position->normal->(tangent)->Texcoords FOLLOW THE ORDER IN MAP. ORDER MAP ABOVE TO WHATEVER I WANT SOMEHOW
-		
 
 		uint32_t location = 0;
-		for (auto it = vattrib_map.begin(); it != vattrib_map.end(); it++) {
+		for (auto it = vattrib_map.begin(); it != vattrib_map.end(); it++) 
+		{
 				
 			//if tangent not in buffer skip
 			if(!has_tangent && location == 2) 

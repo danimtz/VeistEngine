@@ -64,7 +64,8 @@ void ForwardRenderer::renderScene(Scene* scene)
 
 
 	//Directional lighting
-	if (m_scene_info.dir_lights_count > 0) {
+	if (m_scene_info.dir_lights_count > 0) 
+	{
 		GPUDirLight dir_lights[MAX_DIR_LIGHTS];
 		memcpy(dir_lights, scene->getDirLights().data(), sizeof(DirectionalLight)* m_scene_info.dir_lights_count);
 		glm::mat4 world_to_view = glm::mat4(glm::mat3(scene->getCamera()->viewMatrix()));
@@ -76,7 +77,8 @@ void ForwardRenderer::renderScene(Scene* scene)
 
 
 	//Point lights
-	if (m_scene_info.point_lights_count > 0){
+	if (m_scene_info.point_lights_count > 0)
+	{
 		GPUPointLight point_lights[MAX_POINT_LIGHTS];
 		memcpy(point_lights, scene->getPointLights().data(), sizeof(PointLight)* m_scene_info.point_lights_count);
 		scene->getCamera()->viewMatrix();
@@ -89,7 +91,8 @@ void ForwardRenderer::renderScene(Scene* scene)
 
 
 	//Render each model
-	for (int i = 0; i < scene->getModels().size(); i++) {
+	for (int i = 0; i < scene->getModels().size(); i++) 
+	{
 		
 		Mesh* curr_mesh = scene->getModels()[i].mesh().get();
 		Material* curr_material = scene->getModels()[i].material().get();
@@ -122,7 +125,8 @@ void ForwardRenderer::renderScene(Scene* scene)
 		//Write directional lights to buffer
 		
 		//Create Global descriptor set for that frame if it doenst exists aready
-		if (m_global_descriptor[frame_num].descriptorSet() == nullptr) {
+		if (m_global_descriptor[frame_num].descriptorSet() == nullptr) 
+		{
 			m_global_descriptor[frame_num].setDescriptorSetLayout(0, curr_pipeline);
 
 			m_global_descriptor[frame_num].bindUniformBuffer(0, m_scene_info_buffer.get(), sizeof(SceneInfo));
@@ -135,7 +139,8 @@ void ForwardRenderer::renderScene(Scene* scene)
 
 
 		//Check if pipeline changed
-		if (curr_pipeline != last_pipeline) {
+		if (curr_pipeline != last_pipeline) 
+		{
 			
 
 			m_render_backend->RC_bindGraphicsPipeline(curr_material->materialData().pipeline());
@@ -150,10 +155,12 @@ void ForwardRenderer::renderScene(Scene* scene)
 			m_render_backend->RC_bindDescriptorSet(curr_material->materialData().pipeline(), m_global_descriptor[frame_num], offset_count, offset);
 
 			//Check if material changed
-			if (curr_material != last_material) {
+			if (curr_material != last_material) 
+			{
 
 				//Change material descriptors
-				if (curr_material->materialData().textures().size() > 0) {
+				if (curr_material->materialData().textures().size() > 0) 
+				{
 					//texture descriptor
 					m_render_backend->RC_bindDescriptorSet(curr_material->materialData().pipeline(), curr_material->descriptorSet(), 0, nullptr);
 				}
@@ -166,6 +173,18 @@ void ForwardRenderer::renderScene(Scene* scene)
 		m_render_backend->RC_bindIndexBuffer(curr_mesh->getIndexBuffer());
 
 		m_render_backend->RC_drawIndexed(curr_mesh->getIndexBuffer()->getSize());
+		//m_render_backend->RC_drawSumbit(curr_mesh->getVertexBuffer()->getSize());
+	}
+
+
+	//Render skybox
+	{
+		//Material* curr_material = scene->skybox().material().get();
+		//Mesh* curr_mesh = scene->skybox().mesh().get();
+		//m_render_backend->RC_bindGraphicsPipeline(curr_material->materialData().pipeline());
+		//m_render_backend->RC_bindDescriptorSet(curr_material->materialData().pipeline(), curr_material->descriptorSet(), 0, nullptr);
+		//m_render_backend->RC_bindVertexBuffer(curr_mesh->getVertexBuffer());
+		//m_render_backend->RC_bindIndexBuffer(curr_mesh->getIndexBuffer());
 	}
 
 }

@@ -11,7 +11,7 @@ static VkSamplerAddressMode getAddressMode(SamplerType type) {
 		case SamplerType::RepeatLinear:
 		case SamplerType::RepeatPoint:
 			return VK_SAMPLER_ADDRESS_MODE_REPEAT;
-
+			
 		default:
 			CRITICAL_ERROR_LOG("Invalid sampler address type");
 	}

@@ -8,11 +8,15 @@ Scene::Scene() {
 	
 	m_scene_camera = std::make_unique<Camera>();
 
-	m_scene_camera->setPosition(glm::vec3{ 0.0f, 0.0f, -3.5f });
+	m_scene_camera->setPosition(glm::vec3{ 0.0f, 0.0f, 3.5f });
 
 	//m_scene_models.push_back({ "..\\..\\assets\\DamagedHelmet\\DamagedHelmet.gltf",  "descriptortest",  "..\\..\\src\\Shaders\\" }); //{ "..\\..\\assets\\Box\\Box With Spaces.gltf" }; //
-	m_scene_models.push_back({ "..\\..\\assets\\Bottle\\",  "PBRforward", "WaterBottle.gltf" }); //{ "..\\..\\assets\\Box\\Box With Spaces.gltf" }; //
 	//m_scene_models.push_back({ "..\\..\\assets\\Bottle\\",  "normalOnly", "WaterBottle.gltf" });
+
+
+
+	m_scene_models.push_back({ "..\\..\\assets\\Bottle\\",  "PBRforward", "WaterBottle.gltf" }); //{ "..\\..\\assets\\Box\\Box With Spaces.gltf" }; //
+	
 	m_scene_models.push_back({ "..\\..\\assets\\DamagedHelmet\\",  "PBRforward", "DamagedHelmet.gltf" }); //{ "..\\..\\assets\\Box\\Box With Spaces.gltf" }; //
 
 
@@ -20,9 +24,6 @@ Scene::Scene() {
 	m_scene_models[0].modelMatrix() = glm::rotate(m_scene_models[0].modelMatrix(), glm::radians(0.0f), glm::vec3{ 1.0f, 0.0f, .0f });
 	m_scene_models[0].modelMatrix() = glm::scale(m_scene_models[0].modelMatrix(), glm::vec3{ 8, 8, 8 });
 
-	//m_scene_models[1].modelMatrix() = glm::translate(m_scene_models[1].modelMatrix(), glm::vec3{ -1.0, -1.0, 0.0 });
-	//m_scene_models[1].modelMatrix() = glm::rotate(m_scene_models[1].modelMatrix(), glm::radians(0.0f), glm::vec3{ 1.0f, 0.0f, .0f });
-	//m_scene_models[1].modelMatrix() = glm::scale(m_scene_models[1].modelMatrix(), glm::vec3{ 8, 8, 8 });
 
 
 	m_scene_models[1].modelMatrix() = glm::translate(m_scene_models[1].modelMatrix(), glm::vec3{-1.0, 0.0, 0.0 });
@@ -33,7 +34,7 @@ Scene::Scene() {
 
 
 	//Lights
-
+	
 	glm::vec3 dir = glm::normalize(glm::vec3(1.0, 0.7, -1.0));
 	glm::vec3 sky_dir = glm::vec3(0.0, 1.0, 0.0);
 	glm::vec3 col = glm::vec3(1.0, 0.83, 0.51);

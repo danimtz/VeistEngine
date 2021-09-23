@@ -11,6 +11,8 @@ public:
 
 	void updateCamera(Camera& camera);
 
-
+private:
+	float m_sensitivity{0.003f};
+	float m_cam_speed{0.003f};
 };
 

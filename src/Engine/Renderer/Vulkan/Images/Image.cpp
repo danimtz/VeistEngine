@@ -22,13 +22,13 @@ static VkImageCreateInfo& getImageCreateInfo(ImageSize size, ImageUsage usage, I
 	return img_info;
 }
 
-static VkImageViewCreateInfo& getImageViewCreateInfo(VkImage image, ImageFormat format, uint32_t mips, uint32_t layers) {
+static VkImageViewCreateInfo& getImageViewCreateInfo(VkImage image, ImageFormat format, uint32_t mips, uint32_t layers, ImageViewType view_type) {
 	
 	VkImageViewCreateInfo img_view_info = {};
 	img_view_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 	img_view_info.pNext = nullptr;
 
-	img_view_info.viewType = VK_IMAGE_VIEW_TYPE_2D;
+	img_view_info.viewType = VkImageViewType(view_type);
 	img_view_info.image = image;
 	img_view_info.format = format.format();
 	img_view_info.subresourceRange.baseMipLevel = 0;
@@ -39,9 +39,10 @@ static VkImageViewCreateInfo& getImageViewCreateInfo(VkImage image, ImageFormat 
 	return img_view_info;
 }
 
-ImageBase::ImageBase(void* data, ImageSize size, ImageUsage usage, ImageFormat format)
+ImageBase::ImageBase(void* data, ImageSize size, ImageUsage usage, ImageFormat format, ImageViewType view_type)
 {
 	usage = usage | ImageUsage::TransferDst;
+
 	//Allocate VkImage
 	VmaAllocator allocator = RenderModule::getRenderBackend()->getAllocator();
 	VkDevice device = RenderModule::getRenderBackend()->getDevice();
@@ -63,7 +64,7 @@ ImageBase::ImageBase(void* data, ImageSize size, ImageUsage usage, ImageFormat f
 	//Create staging buffer and map image data to it
 	uint32_t buffer_size = size.width * size.height * size.depth * size.n_channels; //* pixel size?
 	StagingBuffer stage_buff = {data, buffer_size};
-
+	
 
 	//Calculate regions
 	std::vector<VkBufferImageCopy> regions;
@@ -130,7 +131,7 @@ ImageBase::ImageBase(void* data, ImageSize size, ImageUsage usage, ImageFormat f
 
 
 	//Create image view
-	VkImageViewCreateInfo view_info = getImageViewCreateInfo(m_image, format, m_mip_levels, m_layers);
+	VkImageViewCreateInfo view_info = getImageViewCreateInfo(m_image, format, m_mip_levels, m_layers, view_type);
 	VkImageView image_view;
 	vkCreateImageView(device, &view_info, nullptr, &image_view);
 	m_image_view = image_view;

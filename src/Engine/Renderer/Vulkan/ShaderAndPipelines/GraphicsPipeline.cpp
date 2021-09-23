@@ -17,7 +17,7 @@ GraphicsPipeline::GraphicsPipeline(std::string shader_name, const VertexDescript
 
 
 
-GraphicsPipelineBuilder::GraphicsPipelineBuilder(std::string shader_name, const VertexDescription&vertex_desc, VkPrimitiveTopology topology,
+GraphicsPipelineBuilder::GraphicsPipelineBuilder(std::string shader_name, const VertexDescription& vertex_desc, VkPrimitiveTopology topology,
 	VkPolygonMode polygon_mode, VkCullModeFlags cull_mode, VkFrontFace front_face, DepthTest depth_test) :
 	m_topology(topology), 
 	m_polygon_mode(polygon_mode), 
@@ -104,7 +104,7 @@ void GraphicsPipelineBuilder::setVertexInputDescriptions(const VertexDescription
 void GraphicsPipelineBuilder::createPipelineStates()
 {
 	////////////////////////////////////////
-	//Vertex input state (nothing for now)//
+	//Vertex input state                  //
 	////////////////////////////////////////
 	m_vertex_input_info.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 	m_vertex_input_info.pNext = nullptr;
