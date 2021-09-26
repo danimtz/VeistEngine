@@ -9,7 +9,7 @@ public:
 
 	VkImageAspectFlags imageAspectFlags() const;
 	
-	VkFormat format() { return m_format; };
+	const VkFormat format() const { return m_format; };
 
 private:
 	VkFormat m_format;

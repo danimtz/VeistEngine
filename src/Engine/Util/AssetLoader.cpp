@@ -11,8 +11,8 @@
 #include "AssetLoader.h"
 
 #include "Engine/Material/Material.h"
-
-
+#include "Engine/Material/PBRMaterial.h"
+#include "Engine/Material/SkyboxMaterial.h"
 
 static VertexAttributeType convertTinyGLTFtype(int type) {
 
@@ -329,7 +329,7 @@ std::shared_ptr<Mesh> AssetLoader::loadMeshFromGLTF(const char* gltf_filepath)
 
 
 
-std::shared_ptr<Texture> AssetLoader::loadTextureFromFile(const char* filepath, ImageFormat format)
+std::shared_ptr<Texture> AssetLoader::loadTextureFromFile(const char* filepath, ImageFormat format)//TODO add argument to edit amount if mip levels
 {
 
 	int width, height, n_channels;
@@ -345,7 +345,8 @@ std::shared_ptr<Texture> AssetLoader::loadTextureFromFile(const char* filepath, 
 	}
 
 	void* data = pixels;
-	std::shared_ptr<Texture> resource = std::make_shared<Texture>(data, img_size, format);
+	ImageProperties properties = {img_size, format, 1, 1}; 
+	std::shared_ptr<Texture> resource = std::make_shared<Texture>(data, properties);
 	
 	stbi_image_free(pixels);
 	
@@ -353,7 +354,55 @@ std::shared_ptr<Texture> AssetLoader::loadTextureFromFile(const char* filepath, 
 }
 
 
-std::shared_ptr<Material> AssetLoader::loadMaterialFromGLTF(const char* material_name, const char* gltf_filepath, std::string folder_path, const VertexDescription& vertex_desc)
+std::shared_ptr<Cubemap> AssetLoader::loadCubemapFromFiles(const char* posx, const char* negx, const char* posy, const char* negy, const char* posz, const char* negz, ImageFormat format)
+{
+
+	int width, height, n_channels;
+
+	unsigned char* texture_data[6];
+
+	texture_data[0] = stbi_load(posx, &width, &height, &n_channels, STBI_rgb_alpha);
+	texture_data[1] = stbi_load(negx, &width, &height, &n_channels, STBI_rgb_alpha);
+	texture_data[2] = stbi_load(posy, &width, &height, &n_channels, STBI_rgb_alpha);
+	texture_data[3] = stbi_load(negy, &width, &height, &n_channels, STBI_rgb_alpha);
+	texture_data[4] = stbi_load(posz, &width, &height, &n_channels, STBI_rgb_alpha);
+	texture_data[5] = stbi_load(negz, &width, &height, &n_channels, STBI_rgb_alpha);
+
+	n_channels = 4;//rgb aplha format
+	
+
+	if (!texture_data) {//TODO: error check each file
+		std::cout << "Error loading file: " << posx << std::endl;
+		CRITICAL_ERROR_LOG("Failed to load texture file");
+	}
+
+	void* data = texture_data;
+	ImageProperties properties = {{(uint32_t)width, (uint32_t)height, (uint32_t)n_channels }, format, 1, 6 };
+
+
+	std::vector<unsigned char> sequential_data;
+	uint32_t layer_size = properties.sizeInPixels();
+	sequential_data.resize(layer_size * 6); //resize vector to fit all 6 images
+
+	//Copy memory into contiguous array
+	for (int i = 0; i < 6; i++) 
+	{
+		memcpy(&sequential_data[i*layer_size], texture_data[i], layer_size);
+	}
+
+	
+	std::shared_ptr<Cubemap> resource = std::make_shared<Cubemap>(sequential_data.data(), properties); // add layers
+
+	for (int i = 0; i < 6; i++) 
+	{
+		stbi_image_free(texture_data[i]);
+	}
+	return resource;
+}
+
+
+
+std::shared_ptr<PBRMaterial> AssetLoader::loadPBRMaterialFromGLTF(const char* material_name, const char* gltf_filepath, std::string folder_path, const VertexDescription& vertex_desc)
 {
 	//Load TinyGLTF model
 	tinygltf::TinyGLTF loader;
@@ -410,12 +459,41 @@ std::shared_ptr<Material> AssetLoader::loadMaterialFromGLTF(const char* material
 	folder = folder_path;
 	std::shared_ptr<Texture> emmissive = AssetLoader::loadTextureFromFile(folder.append(uri).c_str(), { VK_FORMAT_R8G8B8A8_SRGB });
 
-
+	/*
 	MaterialData mat_data{material_name, vertex_desc};
 	mat_data.addTexture(albedo, MaterialData::PBRTextures::Albedo);
 	mat_data.addTexture(normal, MaterialData::PBRTextures::Normal);
 	mat_data.addTexture(occlusionRoughnessMetallic, MaterialData::PBRTextures::OcclusionRoughnessMetallic);
 	mat_data.addTexture(emmissive, MaterialData::PBRTextures::Emmissive);
+	*/
 
-	return std::make_shared<Material>(mat_data);
+
+	return std::make_shared<PBRMaterial>(material_name, vertex_desc, albedo, normal, occlusionRoughnessMetallic, emmissive);
+}
+
+
+
+
+std::shared_ptr<SkyboxMaterial> AssetLoader::loadSkyboxMaterialFromFilepath(const char* material_name, std::string filepath, const VertexDescription& vertex_desc)
+{
+
+	std::string posx = filepath;
+	posx.append("_posx.jpg");
+	std::string negx = filepath;
+	negx.append("_negx.jpg");
+
+	std::string posy = filepath;
+	posy.append("_posy.jpg");
+	std::string negy = filepath;
+	negy.append("_negy.jpg");
+
+	std::string posz = filepath;
+	posz.append("_posz.jpg");
+	std::string negz = filepath;
+	negz.append("_negz.jpg");
+
+
+	std::shared_ptr<Cubemap> cubemap = AssetLoader::loadCubemapFromFiles(posx.c_str(), negx.c_str(), posy.c_str(), negy.c_str(), posz.c_str(), negz.c_str(), { VK_FORMAT_R8G8B8A8_SRGB });
+
+	return std::make_shared<SkyboxMaterial>(material_name, vertex_desc, cubemap);
 }

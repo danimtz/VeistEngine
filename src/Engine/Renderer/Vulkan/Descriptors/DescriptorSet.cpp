@@ -7,10 +7,10 @@
 #include "Engine/Renderer/RenderModule.h"
 
 
-//Note: if for example descriptor set 3 is used, the pipeline MUST have descriptors 1 and 2 declared in the shaders.
+//IMPORTANT NOTE: if for example descriptor set 3 is used, the pipeline MUST have descriptors 1 and 2 declared in the shaders.
 void DescriptorSet::setDescriptorSetLayout(uint32_t set, const GraphicsPipeline* pipeline)
 {
-	if (set > pipeline->shaderProgram()->descriptorLayouts().size())
+	if (set >= pipeline->shaderProgram()->descriptorLayouts().size())
 	{
 		CRITICAL_ERROR_LOG("Pipeline does not contain descriptor set number used");
 	}
@@ -19,16 +19,15 @@ void DescriptorSet::setDescriptorSetLayout(uint32_t set, const GraphicsPipeline*
 }
 
 
-void DescriptorSet::bindSampledTexture(uint32_t binding, const Texture* image, VkDescriptorType type, VkSampler sampler/*sampler view etc?*/)
+void DescriptorSet::bindSampledImage(uint32_t binding, VkImageView image_view, VkDescriptorType type, VkSampler sampler/*sampler view etc?*/)
 {
 	DescriptorInfo desc_info;
 	desc_info.image_info.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	desc_info.image_info.imageView = image->imageView();
+	desc_info.image_info.imageView = image_view;
 	desc_info.image_info.sampler = sampler;
 
 
 	m_write_data.push_back({ desc_info });
-	//m_buffer_infos.push_back({desc_info});
 
 	VkWriteDescriptorSet set_write = {};
 	set_write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -40,6 +39,7 @@ void DescriptorSet::bindSampledTexture(uint32_t binding, const Texture* image, V
 
 	m_writes.push_back(set_write);
 }
+
 
 
 void DescriptorSet::bindBuffer(uint32_t binding, const ShaderBuffer* buffer, uint32_t range, VkDescriptorType type)
@@ -75,11 +75,20 @@ void DescriptorSet::bindStorageBuffer(uint32_t binding, const ShaderBuffer* buff
 
 void DescriptorSet::bindCombinedSamplerTexture(uint32_t binding, const Texture* texture/*sampler view etc?*/)
 {
-	//Create sampler here TODO
+	
 	Sampler sampler = Sampler{ SamplerType::RepeatLinear };
 
-	bindSampledTexture(binding, texture, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, sampler.sampler() /*sampler view etc?*/);
+	bindSampledImage(binding, texture->imageView(), VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, sampler.sampler());
 }
+
+void DescriptorSet::bindCombinedSamplerCubemap(uint32_t binding, const Cubemap* cubemap/*sampler view etc?*/)
+{
+	
+	Sampler sampler = Sampler{ SamplerType::RepeatLinear };
+
+	bindSampledImage(binding, cubemap->imageView(), VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, sampler.sampler());
+}
+
 
 void DescriptorSet::updateDescriptorSet()
 {

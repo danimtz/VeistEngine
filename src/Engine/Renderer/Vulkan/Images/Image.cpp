@@ -4,25 +4,28 @@
 
 #include "Engine/Renderer/Vulkan/Buffers/StagingBuffer.h"
 
-static VkImageCreateInfo& getImageCreateInfo(ImageSize size, ImageUsage usage, ImageFormat format, uint32_t mips, uint32_t layers) {
+static VkImageCreateInfo& getImageCreateInfo( ImageProperties properties, ImageUsage usage, ImageViewType view_type) {
 	
 	VkImageCreateInfo img_info = {};
 	img_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 
-	img_info.extent = { size.width, size.height, size.depth };
-	img_info.format = VkFormat(format.format());
-	img_info.arrayLayers = layers;
-	img_info.mipLevels = mips;
+	img_info.extent = { properties.imageSize().width, properties.imageSize().height, properties.imageSize().depth };
+	img_info.format = VkFormat(properties.format().format());
+	img_info.arrayLayers = properties.layerCount();
+	img_info.mipLevels = properties.mipLevels();
 	img_info.imageType = VK_IMAGE_TYPE_2D;
 	img_info.tiling = VK_IMAGE_TILING_OPTIMAL;
 	img_info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 	img_info.usage = VkImageUsageFlags(usage);
 	img_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 	img_info.samples = VK_SAMPLE_COUNT_1_BIT;
+
+	img_info.flags = (view_type == ImageViewType::Cube) ? VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT : 0;
+
 	return img_info;
 }
 
-static VkImageViewCreateInfo& getImageViewCreateInfo(VkImage image, ImageFormat format, uint32_t mips, uint32_t layers, ImageViewType view_type) {
+static VkImageViewCreateInfo& getImageViewCreateInfo(VkImage image, ImageProperties properties, ImageViewType view_type) {
 	
 	VkImageViewCreateInfo img_view_info = {};
 	img_view_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -30,24 +33,28 @@ static VkImageViewCreateInfo& getImageViewCreateInfo(VkImage image, ImageFormat 
 
 	img_view_info.viewType = VkImageViewType(view_type);
 	img_view_info.image = image;
-	img_view_info.format = format.format();
+	img_view_info.format = VkFormat(properties.format().format());
 	img_view_info.subresourceRange.baseMipLevel = 0;
-	img_view_info.subresourceRange.levelCount = mips;
+	img_view_info.subresourceRange.levelCount = properties.mipLevels();
 	img_view_info.subresourceRange.baseArrayLayer = 0;
-	img_view_info.subresourceRange.layerCount = layers;
-	img_view_info.subresourceRange.aspectMask = format.imageAspectFlags();
+	img_view_info.subresourceRange.layerCount = properties.layerCount();
+	img_view_info.subresourceRange.aspectMask = properties.format().imageAspectFlags();
 	return img_view_info;
 }
 
-ImageBase::ImageBase(void* data, ImageSize size, ImageUsage usage, ImageFormat format, ImageViewType view_type)
+ImageBase::ImageBase(void* data, ImageProperties properties, ImageUsage usage, ImageViewType view_type) : m_properties(properties)
 {
+	
+
+
 	usage = usage | ImageUsage::TransferDst;
+	
 
 	//Allocate VkImage
 	VmaAllocator allocator = RenderModule::getRenderBackend()->getAllocator();
 	VkDevice device = RenderModule::getRenderBackend()->getDevice();
 
-	VkImageCreateInfo img_info = getImageCreateInfo(size, usage, format, m_mip_levels, m_layers);
+	VkImageCreateInfo img_info = getImageCreateInfo(m_properties, usage, view_type);
 
 	VmaAllocationCreateInfo img_alloc_info = {};
 	img_alloc_info.usage = VMA_MEMORY_USAGE_GPU_ONLY;
@@ -62,21 +69,21 @@ ImageBase::ImageBase(void* data, ImageSize size, ImageUsage usage, ImageFormat f
 
 
 	//Create staging buffer and map image data to it
-	uint32_t buffer_size = size.width * size.height * size.depth * size.n_channels; //* pixel size?
+	uint32_t buffer_size = m_properties.sizeInPixels() * m_properties.layerCount(); //* pixel size?
 	StagingBuffer stage_buff = {data, buffer_size};
 	
 
 	//Calculate regions
 	std::vector<VkBufferImageCopy> regions;
-	regions.reserve(m_layers * m_mip_levels);
-	for (uint32_t layer = 0; layer < m_layers; layer++)
+	regions.reserve(m_properties.layerCount() * m_properties.mipLevels());
+	for (uint32_t layer = 0; layer < m_properties.layerCount(); layer++)
 	{
-		for (uint32_t mip = 0; mip < m_mip_levels; mip++) {
+		for (uint32_t mip = 0; mip < m_properties.mipLevels(); mip++) {
 			VkBufferImageCopy copy = {};
 			{
-				copy.bufferOffset = 0;//data_offset(layer, mip); TODO: fix offset for when mipmaps and layers are implemented
-				copy.imageExtent = { size.width, size.height, size.depth };
-				copy.imageSubresource.aspectMask = format.imageAspectFlags();//data.format().vk_aspect();
+				copy.bufferOffset = m_properties.bufferOffset();//data_offset(layer, mip); TODO: fix offset for when mipmaps and layers are implemented
+				copy.imageExtent = { m_properties.imageSize().width, m_properties.imageSize().height, m_properties.imageSize().depth };
+				copy.imageSubresource.aspectMask = m_properties.format().imageAspectFlags();
 				copy.imageSubresource.mipLevel = mip;
 				copy.imageSubresource.baseArrayLayer = layer;
 				copy.imageSubresource.layerCount = 1;
@@ -91,11 +98,11 @@ ImageBase::ImageBase(void* data, ImageSize size, ImageUsage usage, ImageFormat f
 
 		//prepare pipeline barrier //TODO: Generalize image barrier to other type of images. i think only works with normal textures atm
 		VkImageSubresourceRange range;
-		range.aspectMask = format.imageAspectFlags();
+		range.aspectMask = m_properties.format().imageAspectFlags();
 		range.baseMipLevel = 0;
-		range.levelCount = m_mip_levels;
+		range.levelCount = m_properties.mipLevels();
 		range.baseArrayLayer = 0;
-		range.layerCount = m_layers;
+		range.layerCount = m_properties.layerCount();
 
 		VkImageMemoryBarrier barrier_toTransfer = {};
 		barrier_toTransfer.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -131,7 +138,7 @@ ImageBase::ImageBase(void* data, ImageSize size, ImageUsage usage, ImageFormat f
 
 
 	//Create image view
-	VkImageViewCreateInfo view_info = getImageViewCreateInfo(m_image, format, m_mip_levels, m_layers, view_type);
+	VkImageViewCreateInfo view_info = getImageViewCreateInfo(m_image, m_properties, view_type);
 	VkImageView image_view;
 	vkCreateImageView(device, &view_info, nullptr, &image_view);
 	m_image_view = image_view;

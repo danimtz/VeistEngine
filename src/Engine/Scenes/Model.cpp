@@ -10,6 +10,6 @@ Model::Model(std::string folder_filepath, std::string material_name, std::string
 
 	m_mesh = AssetLoader::loadMeshFromGLTF(gltf_filepath);
 
-	m_material = AssetLoader::loadMaterialFromGLTF(material_name.c_str(), gltf_filepath, folder_filepath, m_mesh->getVertexBuffer()->getInputDescription());
+	m_material = AssetLoader::loadPBRMaterialFromGLTF(material_name.c_str(), gltf_filepath, folder_filepath, m_mesh->getVertexBuffer()->getInputDescription());
 }
 

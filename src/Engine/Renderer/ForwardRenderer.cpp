@@ -96,7 +96,7 @@ void ForwardRenderer::renderScene(Scene* scene)
 		
 		Mesh* curr_mesh = scene->getModels()[i].mesh().get();
 		Material* curr_material = scene->getModels()[i].material().get();
-		GraphicsPipeline* curr_pipeline = curr_material->materialData().pipeline().get();
+		GraphicsPipeline* curr_pipeline = curr_material->pipeline().get();
 
 
 		//matrices
@@ -143,8 +143,8 @@ void ForwardRenderer::renderScene(Scene* scene)
 		{
 			
 
-			m_render_backend->RC_bindGraphicsPipeline(curr_material->materialData().pipeline());
-			m_render_backend->RC_pushConstants(curr_material->materialData().pipeline(), push_constant);
+			m_render_backend->RC_bindGraphicsPipeline(curr_material->pipeline());
+			m_render_backend->RC_pushConstants(curr_material->pipeline(), push_constant);
 
 			constexpr int offset_count = 4;
 			uint32_t offset[offset_count];
@@ -152,18 +152,17 @@ void ForwardRenderer::renderScene(Scene* scene)
 			offset[1] = m_camera_buffer.get()->offset() * frame_num;
 			offset[2] = m_dir_lights_buffer.get()->offset() * frame_num;
 			offset[3] = m_point_lights_buffer.get()->offset() * frame_num;
-			m_render_backend->RC_bindDescriptorSet(curr_material->materialData().pipeline(), m_global_descriptor[frame_num], offset_count, offset);
+			m_render_backend->RC_bindDescriptorSet(curr_material->pipeline(), m_global_descriptor[frame_num], offset_count, offset);
 
 			//Check if material changed
 			if (curr_material != last_material) 
 			{
 
 				//Change material descriptors
-				if (curr_material->materialData().textures().size() > 0) 
-				{
-					//texture descriptor
-					m_render_backend->RC_bindDescriptorSet(curr_material->materialData().pipeline(), curr_material->descriptorSet(), 0, nullptr);
-				}
+				
+				//texture descriptor
+				m_render_backend->RC_bindDescriptorSet(curr_material->pipeline(), curr_material->descriptorSet(), 0, nullptr);
+				
 
 			}
 		}
@@ -179,12 +178,20 @@ void ForwardRenderer::renderScene(Scene* scene)
 
 	//Render skybox
 	{
-		//Material* curr_material = scene->skybox().material().get();
-		//Mesh* curr_mesh = scene->skybox().mesh().get();
-		//m_render_backend->RC_bindGraphicsPipeline(curr_material->materialData().pipeline());
-		//m_render_backend->RC_bindDescriptorSet(curr_material->materialData().pipeline(), curr_material->descriptorSet(), 0, nullptr);
-		//m_render_backend->RC_bindVertexBuffer(curr_mesh->getVertexBuffer());
-		//m_render_backend->RC_bindIndexBuffer(curr_mesh->getIndexBuffer());
+		Material* curr_material = scene->skybox()->material().get();
+		Mesh* curr_mesh = scene->skybox()->mesh().get();
+		m_render_backend->RC_bindGraphicsPipeline(curr_material->pipeline());
+
+		MatrixPushConstant push_constant;
+		push_constant.model_mat = glm::mat3(scene->getCamera()->viewProjectionMatrix()); //model_mat is actually viewprojeciton here
+		m_render_backend->RC_pushConstants(curr_material->pipeline(), push_constant);
+		m_render_backend->RC_bindDescriptorSet(curr_material->pipeline(), curr_material->descriptorSet(), 0, nullptr);
+
+
+		m_render_backend->RC_bindVertexBuffer(curr_mesh->getVertexBuffer());
+		m_render_backend->RC_bindIndexBuffer(curr_mesh->getIndexBuffer());
+		m_render_backend->RC_drawIndexed(curr_mesh->getIndexBuffer()->getSize());
+
 	}
 
 }

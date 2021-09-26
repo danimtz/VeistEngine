@@ -17,6 +17,7 @@ public:
 	void bindUniformBuffer(uint32_t binding, const ShaderBuffer* buffer, uint32_t range);
 	void bindStorageBuffer(uint32_t binding, const ShaderBuffer* buffer, uint32_t range);
 	void bindCombinedSamplerTexture(uint32_t binding, const Texture* texture/*sampler view etc?*/);
+	void bindCombinedSamplerCubemap(uint32_t binding, const Cubemap* cubemap/*sampler view etc?*/);
 
 	void buildDescriptorSet();
 	void updateDescriptorSet();
@@ -31,7 +32,7 @@ public:
 
 private:
 	void bindBuffer(uint32_t binding, const ShaderBuffer* buffer, uint32_t range, VkDescriptorType type);
-	void bindSampledTexture(uint32_t binding, const Texture* image, VkDescriptorType type, VkSampler sampler);
+	void bindSampledImage(uint32_t binding, VkImageView image_view, VkDescriptorType type, VkSampler sampler);
 
 	uint32_t m_set_number;
 

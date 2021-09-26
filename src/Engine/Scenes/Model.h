@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Engine/Mesh/Mesh.h"
-#include "Engine/Material/Material.h"
+#include "Engine/Material/PBRMaterial.h"
 #include "Engine/Util/AssetLoader.h"
 
 //TODO: Refactor this entire class. only temporary.
@@ -16,7 +16,7 @@ public:
 
 
 	std::shared_ptr<Mesh>	mesh() const { return m_mesh; };
-	std::shared_ptr<Material> material() const { return m_material; };
+	std::shared_ptr<PBRMaterial> material() const { return m_material; };
 
 
 	//temp
@@ -25,7 +25,7 @@ public:
 private:
 
 	std::shared_ptr<Mesh>	m_mesh;
-	std::shared_ptr<Material> m_material;
+	std::shared_ptr<PBRMaterial> m_material;
 
 	//temp until ECS
 	mutable glm::mat4 m_model_mat{1.0f};

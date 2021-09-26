@@ -259,9 +259,11 @@ void GraphicsPipelineBuilder::createPipelineLayout()
 	push_constant.size = sizeof(MatrixPushConstant);
 	push_constant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 	*/
-	create_info.pushConstantRangeCount = 1;
-	create_info.pPushConstantRanges = &m_shader_program->pushConstantRanges().at(0);
-
+	create_info.pushConstantRangeCount = m_shader_program->pushConstantRanges().size();
+	if (create_info.pushConstantRangeCount != 0)
+	{
+		create_info.pPushConstantRanges = &m_shader_program->pushConstantRanges().at(0);
+	}
 	create_info.flags = 0;
 	create_info.setLayoutCount = m_shader_program->descriptorLayouts().size();
 	create_info.pSetLayouts = m_shader_program->descriptorLayouts().data();

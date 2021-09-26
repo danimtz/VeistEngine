@@ -4,9 +4,9 @@
 #include "Engine/Logger.h"
 
 #include "ImageFormat.h"
+#include "Engine/Renderer/Vulkan/Images/ImageProperties.h"
 
 #include <glm/glm.hpp>
-
 
 enum class ImageUsage : uint32_t
 {
@@ -33,37 +33,23 @@ enum class ImageViewType : uint32_t {
 };
 
 
-
-
-struct ImageSize {
-	ImageSize(uint32_t w, uint32_t h, uint32_t n_c) : width(w), height(h), depth(1), n_channels(n_c){};
-	ImageSize(uint32_t w, uint32_t h, uint32_t d, uint32_t n_c) : width(w), height(h), depth(d), n_channels(n_c) {};
-	uint32_t width;
-	uint32_t height;
-	uint32_t depth;
-	uint32_t n_channels;
-};
-
-
 class ImageBase
 {
 public:
 
 	VkImage image() const { return m_image; };
 	VkImageView imageView() const { return m_image_view; };
+	const ImageProperties& properties() const {return m_properties;};
 
 protected:
 
-	ImageBase(void* data, ImageSize size, ImageUsage usage, ImageFormat format, ImageViewType type);
+	ImageBase(void* data, ImageProperties properties, ImageUsage usage,  ImageViewType type);
 
-
-	uint32_t m_mip_levels = 1;
-	uint32_t m_layers = 1;
 
 	VkImage m_image;
 	VkImageView m_image_view;
 	VmaAllocation m_allocation;
-
+	ImageProperties m_properties;
 };
 
 
@@ -71,7 +57,7 @@ template<ImageUsage usage, ImageViewType type = ImageViewType::Flat>
 class Image : public ImageBase {
 public:
 	
-	Image(void* data, ImageSize size, ImageFormat format) : ImageBase(data, size, usage, format, type){};
+	Image(void* data, ImageProperties properties) : ImageBase(data, properties, usage, type){};
 	
 };
 

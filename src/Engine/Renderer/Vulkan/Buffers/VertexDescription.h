@@ -58,7 +58,7 @@ struct VertexAttribute
 	VertexAttributeType m_type;
 
 	VertexAttribute() = default;
-	VertexAttribute(VertexAttributeType type, std::string name, uint32_t offset = 0) : m_size(VertexAttributeTypeSize(type)), m_name(name), m_type(type), m_offset(offset) {};
+	VertexAttribute(VertexAttributeType type, std::string name) : m_size(VertexAttributeTypeSize(type)), m_name(name), m_type(type) {};
 	//VertexAttribute(uint32_t attribute_size, std::string name) : m_size(attribute_size), m_name(name), m_type(type) {};
 };
 

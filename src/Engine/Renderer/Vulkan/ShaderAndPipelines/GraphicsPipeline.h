@@ -13,8 +13,8 @@
 //This definately needs to go somewhere else in the future.(shader class? material class?)
 struct MatrixPushConstant//Very specific and temporary name, so that i know to change it later on
 {
-	glm::mat4 model_mat;
-	glm::mat4 normal_mat;
+	glm::mat4 model_mat;//matrix1
+	glm::mat4 normal_mat;//matrix2
 };
 
 
