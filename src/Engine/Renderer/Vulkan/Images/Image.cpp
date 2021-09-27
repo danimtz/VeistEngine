@@ -69,7 +69,7 @@ ImageBase::ImageBase(void* data, ImageProperties properties, ImageUsage usage, I
 
 
 	//Create staging buffer and map image data to it
-	uint32_t buffer_size = m_properties.sizeInPixels() * m_properties.layerCount(); //* pixel size?
+	uint32_t buffer_size = m_properties.layerSizeBytes()*m_properties.layerCount(); //* pixel size?
 	StagingBuffer stage_buff = {data, buffer_size};
 	
 
@@ -81,7 +81,7 @@ ImageBase::ImageBase(void* data, ImageProperties properties, ImageUsage usage, I
 		for (uint32_t mip = 0; mip < m_properties.mipLevels(); mip++) {
 			VkBufferImageCopy copy = {};
 			{
-				copy.bufferOffset = m_properties.bufferOffset();//data_offset(layer, mip); TODO: fix offset for when mipmaps and layers are implemented
+				copy.bufferOffset = m_properties.bufferOffset(layer, mip);//data_offset(layer, mip); TODO: fix offset for when mipmaps and layers are implemented
 				copy.imageExtent = { m_properties.imageSize().width, m_properties.imageSize().height, m_properties.imageSize().depth };
 				copy.imageSubresource.aspectMask = m_properties.format().imageAspectFlags();
 				copy.imageSubresource.mipLevel = mip;

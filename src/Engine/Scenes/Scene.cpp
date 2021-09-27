@@ -35,13 +35,14 @@ Scene::Scene() {
 
 	//Lights
 	
-	glm::vec3 dir = glm::normalize(glm::vec3(1.0, 0.7, -1.0));
+	glm::vec3 sun_dir = glm::normalize(glm::vec3(0.0, 1.0, -1.0));
+	
+	m_directional_lights.push_back(DirectionalLight(sun_dir, glm::vec3(1.0), 1.0));//sun
+
 	glm::vec3 sky_dir = glm::vec3(0.0, 1.0, 0.0);
 	glm::vec3 col = glm::vec3(1.0, 0.83, 0.51);
-	m_directional_lights.push_back(DirectionalLight(sky_dir, glm::vec3(1.0), 1.0));//sun
-
 	//m_directional_lights.push_back(DirectionalLight());
-	//m_directional_lights.push_back(DirectionalLight(dir, glm::vec3(0.5, 0.8, 0.6)));//sky
+	//m_directional_lights.push_back(DirectionalLight(sky_dir, glm::vec3(0.5, 0.8, 0.6)));//sky
 
 	glm::vec3 pos = glm::vec3(-3.0, 1.0, 0.0);
 	col = glm::vec3(0.7, 0.13, 0.21);

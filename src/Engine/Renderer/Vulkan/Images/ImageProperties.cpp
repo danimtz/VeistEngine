@@ -12,6 +12,15 @@ glm::u32vec3 ImageProperties::mipSize(uint32_t mip_level)
 	return {width, height, depth};
 }
 
+uint32_t ImageProperties::mipLevelBytes(uint32_t mip_level)
+{
+	uint32_t mip_bytes = 0;
+	auto mip_size = ImageProperties::mipSize(mip_level);
+
+	mip_bytes = mip_size.x * mip_size.y * mip_size.z * 4/*TODO: *bytes_per_pixel*/;
+
+	return mip_bytes;
+}
 
 size_t ImageProperties::bufferOffset(uint32_t layer, uint32_t mip_level) 
 {
@@ -19,18 +28,26 @@ size_t ImageProperties::bufferOffset(uint32_t layer, uint32_t mip_level)
 	 
 	if (layer > 0)
 	{
-		//offset = layer * layerSizeBytes();TODO
+		offset = layer * layerSizeBytes();
 	}
 
 	for (uint32_t i = 0; i < mip_level; i++)
 	{
-		//offset += mipLevelBytes(i);TODO
+		offset += mipLevelBytes(i);
 	}
 	
 	return offset;
 
 }
 
+uint32_t ImageProperties::layerSizeBytes()
+{
+	uint32_t layer_size = 0;
+	for (uint32_t i = 0; i < m_mip_levels; i++) {
+		layer_size += mipLevelBytes(i);
+	}
+	return layer_size;
+}
 
 uint32_t ImageProperties::sizeInPixels()
 {

@@ -38,6 +38,7 @@ public:
 	size_t bufferOffset(uint32_t layer = 0, uint32_t mip_level = 0);
 
 	uint32_t sizeInPixels();
+	uint32_t layerSizeBytes();
 
 private:
 
@@ -47,6 +48,7 @@ private:
 	uint32_t m_layers;
 
 
+	uint32_t mipLevelBytes(uint32_t mip_level);
 	glm::u32vec3 mipSize(uint32_t mip_level);
 
 };

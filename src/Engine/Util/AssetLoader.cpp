@@ -390,7 +390,6 @@ std::shared_ptr<Cubemap> AssetLoader::loadCubemapFromFiles(const char* posx, con
 		memcpy(&sequential_data[i*layer_size], texture_data[i], layer_size);
 	}
 
-	
 	std::shared_ptr<Cubemap> resource = std::make_shared<Cubemap>(sequential_data.data(), properties); // add layers
 
 	for (int i = 0; i < 6; i++) 
