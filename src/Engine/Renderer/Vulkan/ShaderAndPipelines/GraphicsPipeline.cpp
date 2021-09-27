@@ -4,10 +4,10 @@
 #include "Engine/Renderer/RenderModule.h"
 
 
-GraphicsPipeline::GraphicsPipeline(std::string shader_name, const VertexDescription& vertex_desc,  VkPrimitiveTopology topology,
-	VkPolygonMode polygon_mode, VkCullModeFlags cull_mode, VkFrontFace front_face, DepthTest depth_test) 
+GraphicsPipeline::GraphicsPipeline(std::string shader_name, const VertexDescription& vertex_desc, DepthTest depth_test, VkPrimitiveTopology topology,
+	VkPolygonMode polygon_mode, VkCullModeFlags cull_mode, VkFrontFace front_face) 
 {
-	GraphicsPipelineBuilder pipeline_builder = {shader_name, vertex_desc, topology, polygon_mode, cull_mode, front_face, depth_test };
+	GraphicsPipelineBuilder pipeline_builder = {shader_name, vertex_desc, depth_test, topology, polygon_mode, cull_mode, front_face };
 
 	m_pipeline = pipeline_builder.m_pipeline;
 	m_pipeline_layout = pipeline_builder.m_pipeline_layout;
@@ -17,13 +17,13 @@ GraphicsPipeline::GraphicsPipeline(std::string shader_name, const VertexDescript
 
 
 
-GraphicsPipelineBuilder::GraphicsPipelineBuilder(std::string shader_name, const VertexDescription& vertex_desc, VkPrimitiveTopology topology,
-	VkPolygonMode polygon_mode, VkCullModeFlags cull_mode, VkFrontFace front_face, DepthTest depth_test) :
+GraphicsPipelineBuilder::GraphicsPipelineBuilder(std::string shader_name, const VertexDescription& vertex_desc, DepthTest depth_test, VkPrimitiveTopology topology,
+	VkPolygonMode polygon_mode, VkCullModeFlags cull_mode, VkFrontFace front_face) :
+	m_depth_test(depth_test),
 	m_topology(topology), 
 	m_polygon_mode(polygon_mode), 
 	m_cull_mode(cull_mode), 
-	m_front_face(front_face),
-	m_depth_test(depth_test)
+	m_front_face(front_face)
 {
 	
 	
@@ -194,7 +194,7 @@ void GraphicsPipelineBuilder::createPipelineStates()
 	m_depth_stencil_state_info.pNext = nullptr;
 
 
-	m_depth_stencil_state_info.depthCompareOp = VK_COMPARE_OP_LESS; //VK_COMPARE_OP_LESS
+	m_depth_stencil_state_info.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL; 
 	m_depth_stencil_state_info.depthBoundsTestEnable = VK_FALSE;
 	//m_depth_stencil_state_info.minDepthBounds = 0.0f; //Optional
 	//m_depth_stencil_state_info.maxDepthBounds = 1.0f; //Optional

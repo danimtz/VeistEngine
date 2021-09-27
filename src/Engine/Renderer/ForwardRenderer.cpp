@@ -113,10 +113,10 @@ void ForwardRenderer::renderScene(Scene* scene)
 		glm::mat4 trans_back = glm::translate(glm::mat4(1.0f), trans_vec);
 
 		glm::mat4 modelmat = trans_back * rot * trans_origin * model;
-		push_constant.model_mat = modelmat;
+		push_constant.mat1 = modelmat;
 
 
-		push_constant.normal_mat = glm::inverseTranspose(glm::mat3(scene->getCamera()->viewMatrix() * modelmat));
+		push_constant.mat2 = glm::inverseTranspose(glm::mat3(scene->getCamera()->viewMatrix() * modelmat));
 		
 
 		
@@ -176,6 +176,8 @@ void ForwardRenderer::renderScene(Scene* scene)
 	}
 
 
+
+	
 	//Render skybox
 	{
 		Material* curr_material = scene->skybox()->material().get();
@@ -183,7 +185,8 @@ void ForwardRenderer::renderScene(Scene* scene)
 		m_render_backend->RC_bindGraphicsPipeline(curr_material->pipeline());
 
 		MatrixPushConstant push_constant;
-		push_constant.model_mat = glm::mat3(scene->getCamera()->viewProjectionMatrix()); //model_mat is actually viewprojeciton here
+		push_constant.mat1 = glm::mat3(scene->getCamera()->viewMatrix()); //view without tranlation
+		push_constant.mat2 = scene->getCamera()->projectionMatrix();	//projection
 		m_render_backend->RC_pushConstants(curr_material->pipeline(), push_constant);
 		m_render_backend->RC_bindDescriptorSet(curr_material->pipeline(), curr_material->descriptorSet(), 0, nullptr);
 
@@ -193,5 +196,8 @@ void ForwardRenderer::renderScene(Scene* scene)
 		m_render_backend->RC_drawIndexed(curr_mesh->getIndexBuffer()->getSize());
 
 	}
+
+
+
 
 }

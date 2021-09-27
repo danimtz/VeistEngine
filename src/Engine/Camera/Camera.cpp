@@ -26,8 +26,8 @@ void Camera::setFoV(float new_fov)
 
 	float new_F = cos(half_fov)/sin(half_fov);
 
-	m_projection[0][0] = oneOverAR * new_F;
-	m_projection[1][1] = new_F;
+	m_projection[0][0] = oneOverAR * -new_F;
+	m_projection[1][1] = -new_F;
 
 	m_dirty_flag = true;
 	m_fov = new_fov;

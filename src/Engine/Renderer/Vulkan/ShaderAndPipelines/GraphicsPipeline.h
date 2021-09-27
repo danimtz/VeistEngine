@@ -13,8 +13,8 @@
 //This definately needs to go somewhere else in the future.(shader class? material class?)
 struct MatrixPushConstant//Very specific and temporary name, so that i know to change it later on
 {
-	glm::mat4 model_mat;//matrix1
-	glm::mat4 normal_mat;//matrix2
+	glm::mat4 mat1;//matrix1
+	glm::mat4 mat2;//matrix2
 };
 
 
@@ -29,9 +29,9 @@ enum class DepthTest {
 class GraphicsPipeline {
 public:
 
-	GraphicsPipeline(std::string shader_name,  const VertexDescription& vertex_desc, VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
-		VkPolygonMode polygon_mode = VK_POLYGON_MODE_FILL, VkCullModeFlags cull_mode = VK_CULL_MODE_BACK_BIT/*VK_CULL_MODE_BACK_BIT*//*VK_CULL_MODE_NONE*/,
-		VkFrontFace front_face = VK_FRONT_FACE_COUNTER_CLOCKWISE, DepthTest depth_test = DepthTest::ReadWrite);
+	GraphicsPipeline(std::string shader_name,  const VertexDescription& vertex_desc, DepthTest depth_test = DepthTest::ReadWrite, VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
+		VkPolygonMode polygon_mode = VK_POLYGON_MODE_FILL, VkCullModeFlags cull_mode = VK_CULL_MODE_BACK_BIT,/*VK_CULL_MODE_BACK_BIT*//*VK_CULL_MODE_NONE*/
+		VkFrontFace front_face = VK_FRONT_FACE_COUNTER_CLOCKWISE);
 
 	~GraphicsPipeline(){};
 
@@ -51,9 +51,8 @@ private:
 class GraphicsPipelineBuilder {
 public:
 
-	GraphicsPipelineBuilder(std::string shader_name, const VertexDescription&vertex_desc,  VkPrimitiveTopology topology,
-		VkPolygonMode polygon_mode, VkCullModeFlags cull_mode,
-		VkFrontFace front_face, DepthTest depth_test);
+	GraphicsPipelineBuilder(std::string shader_name, const VertexDescription&vertex_desc, DepthTest depth_test, VkPrimitiveTopology topology,
+		VkPolygonMode polygon_mode, VkCullModeFlags cull_mode, VkFrontFace front_face);
 	
 
 private:
