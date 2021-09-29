@@ -37,6 +37,6 @@ Currently a work in progress, but the objective is to be able to set up forward 
 
 
 ## Models and Textures:
-- Water bottle
-- Damaged Helmet
-- Reyjfallet skybox
+- [Water Bottle](https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0/WaterBottle) from Khronos group sample GTLF2.0. models.
+- [Damaged Helmet](https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0/DamagedHelmet) from Khronos group sample GTLF2.0. models.
+- [Ryfjället skybox](https://www.humus.name/index.php?page=Textures&ID=37) from HUMUS textures
