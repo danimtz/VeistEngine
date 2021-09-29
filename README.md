@@ -18,9 +18,8 @@ Currently a work in progress, but the objective is to be able to set up forward 
 - Cubemapped skybox
 
 ## Example images:
-https://github.com/danimtz/VulkanEngine/blob/ccc90f26c751028bbfa4bd328db5cb6cfd52a04f/assets/RenderImages/SkyBox_PBRtest2.PNG
 **Simple PBR shading with directional light(sun) and two point lights**     
-<img src="https://raw.githubusercontent.com/danimtz/VulkanEngine/master/assets/RenderImages/SkyBox_PBRtest2.PNG" alt="Skybox sample" width="450" height=100%>     
+<img src="https://raw.githubusercontent.com/danimtz/VulkanEngine/master/assets/RenderImages/SkyBox_PBRtest2.PNG" alt="Skybox sample" width="950" height=100%>     
 
 ## Resources:
  Main resources being used are:
