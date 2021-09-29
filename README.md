@@ -13,6 +13,7 @@ Currently a work in progress, but the objective is to be able to set up forward 
 ### Renderer:
 - Forward renderer
 - Double buffering
+- Directional and Point lights
 - Physically Based Shading (Cook Torrance BRDF, no IBL for now)
 - Cubemapped skybox
 
