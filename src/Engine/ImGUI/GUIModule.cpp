@@ -35,8 +35,11 @@ void GUIModule::init(RenderBackend* render_backend)
 
 void GUIModule::beginFrame()
 {
+	//A bit too vulkan specific. This should change depending on platform
 
-    //A bit too vulkan specific. This should change depending on platform
+	//End previous renderpass
+
+
     ImGui_ImplVulkan_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
@@ -52,6 +55,7 @@ void GUIModule::endFrame()
     
 	//I dont like this either. Vulkan stuff outside of platform folder bad
     RenderBackend* backend = RenderModule::getRenderBackend().get();
+	
     ImGui::Render();
     ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), backend->getCurrentCmdBuffer());
 

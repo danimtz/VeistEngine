@@ -26,7 +26,7 @@
 #include "Engine/Renderer/Vulkan/Buffers/IndexBuffer.h" //HAVING THESE TWO BUFFER HEADERS HERE THAT LEAD TO vk mem alloc gives redefinition errors
 #include "Engine/Renderer/Vulkan/Buffers/VertexBuffer.h"
 #include "Engine/Renderer/Vulkan/Descriptors/DescriptorSetAllocator.h"
-
+#include "Engine/Renderer/Vulkan/Framebuffers/RenderPass.h"
 
 
 
@@ -97,9 +97,9 @@ public:
     GLFWwindow* getWindow() const { return m_glfw_window;};
     VkDevice getDevice() const { return m_device; }; 
     VkExtent2D* getSwapchainExtent() { return &m_swapchain_extent; };
-    VkRenderPass getRenderPass() const { return m_render_pass; };
+    VkRenderPass getRenderPass() const { return m_render_pass.renderpass(); };
     VmaAllocator getAllocator() const { return m_allocator; }; //CONSIDER MOVING ALLOCATOR TO SEPARATE CLASS
-    const GPUinfo_t& getGPUinfo() const { return m_gpu_info; }
+    const GPUinfo_t& getGPUinfo() const { return m_gpu_info; };
 
     DescriptorSetAllocator* getDescriptorAllocator() const { return m_descriptor_allocator.get(); };
     
@@ -109,7 +109,6 @@ public:
     void pushToDeletionQueue(std::function<void()> function);
 
 
-
     void immediateSubmit(std::function<void(VkCommandBuffer cmd)> function);
     VkCommandBuffer getCurrentCmdBuffer() { return getCurrentFrame().m_command_buffer; };
     
@@ -117,6 +116,7 @@ public:
     //render commands/functions that use vulkan commands
     void RC_beginFrame();
     void RC_endFrame();
+
 
     //NOTE TO FUTURE ME should renderbackend have these funcitons? or should GraphicsPipeline and VertexBUffer etc have a  Bind() function that does them
     void RC_bindGraphicsPipeline(const std::shared_ptr<GraphicsPipeline>); 
@@ -167,8 +167,10 @@ private:
     VmaAllocator                    m_allocator;
 
 //renderpass
-    VkRenderPass                    m_render_pass;
+    RenderPass                      m_render_pass;
     std::vector<VkFramebuffer>      m_framebuffers;
+
+
 
 //swapchain
     VkSwapchainKHR                  m_swapchain;
@@ -178,6 +180,7 @@ private:
     std::vector<VkImage>            m_swapchain_images;
     std::vector<VkImageView>        m_swapchain_views;
     uint32_t                        m_swapchain_img_idx;
+    
 
 //depth buffer
     VmaImage                        m_depth_image;

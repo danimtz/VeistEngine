@@ -691,6 +691,9 @@ void RenderBackend::createSwapchainAndImages()
 	m_deletion_queue.pushFunction([=]() {
 		vkDestroyImageView(m_device, m_depth_image_view, nullptr);
 		});
+
+
+
 }
 
 
@@ -729,9 +732,9 @@ void RenderBackend::createCommandPoolAndBuffers() {
 
 
 
-void RenderBackend::createDefaultRenderPass() 
+void RenderBackend::createDefaultRenderPass() //TODO replace this type of renderpass with the class version same for framebuffer
 {
-
+/*
 	//Setup colour attachment
 	VkAttachmentDescription color_attachment = {};
 	color_attachment.format = m_swapchain_format;
@@ -744,7 +747,7 @@ void RenderBackend::createDefaultRenderPass()
 	color_attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 
 	color_attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	color_attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+	color_attachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;//VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 	
 
 	//Ref to color attchment
@@ -784,20 +787,53 @@ void RenderBackend::createDefaultRenderPass()
 	subpass.pColorAttachments = &color_attachment_ref;
 	subpass.pDepthStencilAttachment = &depth_attachment_ref;
 
+
+	//Dependency
+	VkAccessFlags access_flags = 0;
+	VkPipelineStageFlags stages = 0;
+	stages |= VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	access_flags |= VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+	VkSubpassDependency dep = {};
+	dep.dstSubpass = VK_SUBPASS_EXTERNAL;
+	dep.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+	dep.srcStageMask = stages;
+	dep.srcAccessMask = access_flags;
+	dep.dstStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+	dep.dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
+	
+
+
+
 	//Create renderpass
 	VkRenderPassCreateInfo create_info = {};
 	create_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
 
 	VkAttachmentDescription attachments[2] = { color_attachment, depth_attachment };
+
 	create_info.attachmentCount = 2; //connect attachment
 	create_info.pAttachments = &attachments[0];
 
 	create_info.subpassCount = 1; //connect subpass
 	create_info.pSubpasses = &subpass;
+	create_info.pDependencies = &dep;
+	create_info.dependencyCount = 1;
 
 	VK_CHECK(vkCreateRenderPass(m_device, &create_info, nullptr, &m_render_pass));
 
 	m_deletion_queue.pushFunction([=]() { vkDestroyRenderPass(m_device, m_render_pass, nullptr); } );
+
+
+*/
+	//Initialize swapchain UI renderpass TODO move elsewhere maybe
+	ImageProperties color_props = { ImageSize{m_swapchain_extent.width,m_swapchain_extent.height}, ImageFormat{m_swapchain_format} };
+	ImageProperties depth_props = { ImageSize{m_swapchain_extent.width,m_swapchain_extent.height}, ImageFormat{VK_FORMAT_D32_SFLOAT} };
+
+
+	std::vector<RenderPass::AttachmentProperties> main_color_attachments;
+	main_color_attachments.push_back({ color_props, RenderPass::LoadOp::Clear, ImageUsage::SwapchainImage | ImageUsage::ColorAttachment });
+
+	RenderPass::AttachmentProperties main_depth_attachment{ depth_props, RenderPass::LoadOp::Clear, ImageUsage::SwapchainImage | ImageUsage::DepthAttachment };
+	m_render_pass = RenderPass{ main_color_attachments, main_depth_attachment };
 }
 
 
@@ -810,7 +846,7 @@ void RenderBackend::createFramebuffers()
 	framebuffer_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
 	framebuffer_info.pNext = nullptr;
 
-	framebuffer_info.renderPass = m_render_pass;
+	framebuffer_info.renderPass = m_render_pass.renderpass();
 	framebuffer_info.width = m_swapchain_extent.width;
 	framebuffer_info.height = m_swapchain_extent.height;
 	framebuffer_info.layers = 1;
@@ -830,6 +866,8 @@ void RenderBackend::createFramebuffers()
 		m_deletion_queue.pushFunction([=]() { vkDestroyFramebuffer(m_device, m_framebuffers[i], nullptr);} );
 	}
 
+
+	
 }
 
 
@@ -976,7 +1014,10 @@ void RenderBackend::initImGUI()
 	init_info.ImageCount = 2; //CHECK THIS LATER DEFAULT VALUE FROM TUTORIAL
 	init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
 
-	ImGui_ImplVulkan_Init(&init_info, m_render_pass);
+	
+
+
+	ImGui_ImplVulkan_Init(&init_info, m_render_pass.renderpass());
 
 	//execute a gpu command to upload imgui font textures
 	immediateSubmit([&](VkCommandBuffer cmd) {
@@ -1063,6 +1104,8 @@ RenderBackend Render commands
 =====================================
 */
 
+
+
 void RenderBackend::RC_beginFrame()
 {
 
@@ -1091,12 +1134,12 @@ void RenderBackend::RC_beginFrame()
 
 
 	//begin main renderpass
-	
+
 	VkRenderPassBeginInfo render_pass_begin_info = {};
 	render_pass_begin_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 	render_pass_begin_info.pNext = nullptr;
 
-	render_pass_begin_info.renderPass = m_render_pass;
+	render_pass_begin_info.renderPass = m_render_pass.renderpass();
 	render_pass_begin_info.renderArea.offset.x = 0;
 	render_pass_begin_info.renderArea.offset.y = 0;
 	render_pass_begin_info.renderArea.extent = m_swapchain_extent;
@@ -1114,7 +1157,6 @@ void RenderBackend::RC_beginFrame()
 
 
 	vkCmdBeginRenderPass(cmd_buffer, &render_pass_begin_info, VK_SUBPASS_CONTENTS_INLINE);
-	
 }
 
 

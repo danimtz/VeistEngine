@@ -10,7 +10,7 @@ static VkImageCreateInfo& getImageCreateInfo( ImageProperties properties, ImageU
 	img_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 
 	img_info.extent = { properties.imageSize().width, properties.imageSize().height, properties.imageSize().depth };
-	img_info.format = VkFormat(properties.format().format());
+	img_info.format = VkFormat(properties.imageFormat().format());
 	img_info.arrayLayers = properties.layerCount();
 	img_info.mipLevels = properties.mipLevels();
 	img_info.imageType = VK_IMAGE_TYPE_2D;
@@ -33,45 +33,23 @@ static VkImageViewCreateInfo& getImageViewCreateInfo(VkImage image, ImagePropert
 
 	img_view_info.viewType = VkImageViewType(view_type);
 	img_view_info.image = image;
-	img_view_info.format = VkFormat(properties.format().format());
+	img_view_info.format = VkFormat(properties.imageFormat().format());
 	img_view_info.subresourceRange.baseMipLevel = 0;
 	img_view_info.subresourceRange.levelCount = properties.mipLevels();
 	img_view_info.subresourceRange.baseArrayLayer = 0;
 	img_view_info.subresourceRange.layerCount = properties.layerCount();
-	img_view_info.subresourceRange.aspectMask = properties.format().imageAspectFlags();
+	img_view_info.subresourceRange.aspectMask = properties.imageFormat().imageAspectFlags();
 	return img_view_info;
 }
 
-ImageBase::ImageBase(void* data, ImageProperties properties, ImageUsage usage, ImageViewType view_type) : m_properties(properties)
+
+ImageBase::ImageBase(void* data, ImageProperties properties, ImageUsage usage, ImageViewType view_type) : ImageBase(properties, usage, view_type)
 {
-	
-
-
-	usage = usage | ImageUsage::TransferDst;
-	
-
-	//Allocate VkImage
-	VmaAllocator allocator = RenderModule::getRenderBackend()->getAllocator();
-	VkDevice device = RenderModule::getRenderBackend()->getDevice();
-
-	VkImageCreateInfo img_info = getImageCreateInfo(m_properties, usage, view_type);
-
-	VmaAllocationCreateInfo img_alloc_info = {};
-	img_alloc_info.usage = VMA_MEMORY_USAGE_GPU_ONLY;
-
-	VkImage image;
-	VmaAllocation allocation;
-	vmaCreateImage(allocator, &img_info, &img_alloc_info, &image, &allocation, nullptr);
-	m_image = image;
-	m_allocation = allocation;
-
-	RenderModule::getRenderBackend()->pushToDeletionQueue([allocator, image, allocation]() { vmaDestroyImage(allocator, image, allocation); });
-
 
 	//Create staging buffer and map image data to it
-	uint32_t buffer_size = m_properties.layerSizeBytes()*m_properties.layerCount(); //* pixel size?
-	StagingBuffer stage_buff = {data, buffer_size};
-	
+	uint32_t buffer_size = m_properties.layerSizeBytes() * m_properties.layerCount(); //* pixel size?
+	StagingBuffer stage_buff = { data, buffer_size };
+
 
 	//Calculate regions
 	std::vector<VkBufferImageCopy> regions;
@@ -83,7 +61,7 @@ ImageBase::ImageBase(void* data, ImageProperties properties, ImageUsage usage, I
 			{
 				copy.bufferOffset = m_properties.bufferOffset(layer, mip);//data_offset(layer, mip); TODO: fix offset for when mipmaps and layers are implemented
 				copy.imageExtent = { m_properties.imageSize().width, m_properties.imageSize().height, m_properties.imageSize().depth };
-				copy.imageSubresource.aspectMask = m_properties.format().imageAspectFlags();
+				copy.imageSubresource.aspectMask = m_properties.imageFormat().imageAspectFlags();
 				copy.imageSubresource.mipLevel = mip;
 				copy.imageSubresource.baseArrayLayer = layer;
 				copy.imageSubresource.layerCount = 1;
@@ -98,7 +76,7 @@ ImageBase::ImageBase(void* data, ImageProperties properties, ImageUsage usage, I
 
 		//prepare pipeline barrier //TODO: Generalize image barrier to other type of images. i think only works with normal textures atm
 		VkImageSubresourceRange range;
-		range.aspectMask = m_properties.format().imageAspectFlags();
+		range.aspectMask = m_properties.imageFormat().imageAspectFlags();
 		range.baseMipLevel = 0;
 		range.levelCount = m_properties.mipLevels();
 		range.baseArrayLayer = 0;
@@ -134,7 +112,37 @@ ImageBase::ImageBase(void* data, ImageProperties properties, ImageUsage usage, I
 		//barrier the image into the shader readable layout
 		vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier_toReadable);
 
-	});
+		});
+
+
+	
+}
+
+ImageBase::ImageBase(ImageProperties properties, ImageUsage usage, ImageViewType view_type) : m_properties(properties), m_usage(usage)
+{
+	
+
+
+	usage = usage | ImageUsage::TransferDst;
+	
+
+	//Allocate VkImage
+	VmaAllocator allocator = RenderModule::getRenderBackend()->getAllocator();
+	VkDevice device = RenderModule::getRenderBackend()->getDevice();
+
+	VkImageCreateInfo img_info = getImageCreateInfo(m_properties, usage, view_type);
+
+	VmaAllocationCreateInfo img_alloc_info = {};
+	img_alloc_info.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+
+	VkImage image;
+	VmaAllocation allocation;
+	vmaCreateImage(allocator, &img_info, &img_alloc_info, &image, &allocation, nullptr);
+	m_image = image;
+	m_allocation = allocation;
+
+	RenderModule::getRenderBackend()->pushToDeletionQueue([allocator, image, allocation]() { vmaDestroyImage(allocator, image, allocation); });
+
 
 
 	//Create image view
@@ -143,5 +151,7 @@ ImageBase::ImageBase(void* data, ImageProperties properties, ImageUsage usage, I
 	vkCreateImageView(device, &view_info, nullptr, &image_view);
 	m_image_view = image_view;
 
-	RenderModule::getRenderBackend()->pushToDeletionQueue([=](){ vkDestroyImageView(device, image_view, nullptr);});
+	RenderModule::getRenderBackend()->pushToDeletionQueue([=]() { vkDestroyImageView(device, image_view, nullptr); });
+
+
 }
