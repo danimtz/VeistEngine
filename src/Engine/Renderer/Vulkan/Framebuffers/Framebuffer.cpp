@@ -1,59 +1,89 @@
-/*
+
 #include "Framebuffer.h"
 #include "RenderPass.h"
 
 #include "Engine/Renderer/RenderModule.h"
 
 
-static std::shared_ptr<RenderPass> createRenderPass()
+static std::unique_ptr<RenderPass> createRenderPass(std::vector<ColorAttachment>& colors, DepthAttachment& depth, RenderPass::LoadOp load_op)
 {
+	
+	std::vector<RenderPass::AttachmentProperties> color_properties;
 
+	for (uint32_t i = 0; i < colors.size(); i++)
+	{
+		color_properties.push_back({colors[i], load_op});
+	}
 
-	return std::make_shared<RenderPass>();
+	RenderPass::AttachmentProperties depth_properties = {depth, load_op};
+
+	return std::make_unique<RenderPass>(color_properties, depth_properties);
 }
 
 
-static glm::u32vec2 calculateFramebufferSize() 
+//Creates a RenderPass that links ot an existing VkRenderPass (used for swapchain framebuffer)
+static std::unique_ptr<RenderPass> setExistingRenderPass(VkRenderPass renderpass)
 {
-	uint32_t width = 0;
-	uint32_t height = 0;
+	return std::make_unique<RenderPass>(renderpass);
+}
 
 
-
-
-
+static glm::u32vec2 calculateFramebufferSize(ColorAttachment& image) 
+{
+	uint32_t width = image.properties().imageSize().width;
+	uint32_t height = image.properties().imageSize().height;
 
 	return glm::u32vec2{width, height};
 }
 
 
-Framebuffer::Framebuffer() : m_render_pass(createRenderPass())
+static void createFramebuffer(std::vector<ColorAttachment>& colors, DepthAttachment& depth, VkFramebuffer framebuffer, RenderPass* renderpass)
 {
+	//TODO:check that all color attachments and depth are the same width and height
+	
+	auto fb_size = calculateFramebufferSize(colors[0]);
 
-	
-	auto fb_size = calculateFramebufferSize();
-	
 	VkFramebufferCreateInfo framebuffer_info = {};
 	framebuffer_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
 	framebuffer_info.pNext = nullptr;
 
-	framebuffer_info.renderPass = m_render_pass.get()->renderpass();
+	framebuffer_info.renderPass = renderpass->renderpass();
 
 	framebuffer_info.width = fb_size.x;
 	framebuffer_info.height = fb_size.y;
 	framebuffer_info.layers = 1;
 
-	
+	uint32_t attachment_count = colors.size() + 1;
 
-	VkImageView attachments[2] = { m_swapchain_views[i], m_depth_image_view };
-	framebuffer_info.attachmentCount = 2;
-	framebuffer_info.pAttachments = &attachments[0];
+	std::vector<VkImageView> attachments;
+	//add color attachment imageview to vector
+	for (uint32_t i = 0; i < colors.size(); i++)
+	{
+		attachments.push_back(colors[i].imageView());
+	}
+	//add depth attachment imageview to vector
+	attachments.push_back(depth.imageView());
+
+	framebuffer_info.attachmentCount = attachment_count;
+	framebuffer_info.pAttachments = attachments.data();
 
 
 	VkDevice device = RenderModule::getRenderBackend()->getDevice();
-	VK_CHECK(vkCreateFramebuffer(device, &framebuffer_info, nullptr, &m_framebuffer));
+	VK_CHECK(vkCreateFramebuffer(device, &framebuffer_info, nullptr, &framebuffer));
 
-	RenderModule::getRenderBackend()->pushToDeletionQueue(	[=]() { vkDestroyFramebuffer(device, m_framebuffer, nullptr);	}
+	RenderModule::getRenderBackend()->pushToDeletionQueue([=]() { vkDestroyFramebuffer(device, framebuffer, nullptr);	}
 	);
+	
+}
 
-}*/
+
+Framebuffer::Framebuffer(std::vector<ColorAttachment>& colors, DepthAttachment& depth, LoadOp load_op) : m_render_pass(createRenderPass(colors, depth, load_op))
+{
+	createFramebuffer(colors, depth, m_framebuffer, m_render_pass.get());
+}
+
+
+Framebuffer::Framebuffer(std::vector<ColorAttachment>& colors, DepthAttachment& depth, RenderPass* renderpass) : m_render_pass(std::make_unique<RenderPass>(renderpass->renderpass()))
+{
+	createFramebuffer(colors, depth, m_framebuffer, m_render_pass.get());
+}

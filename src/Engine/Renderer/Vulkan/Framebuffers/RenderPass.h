@@ -25,9 +25,12 @@ public:
 		LoadOp load_op = LoadOp::Clear;
 	};
 
+
+	
 	
 	RenderPass(std::vector<AttachmentProperties>& color_properties); //Renderpass without depth attachment
 	RenderPass(std::vector<AttachmentProperties>& color_properties, AttachmentProperties& depth_properties);
+	RenderPass(VkRenderPass renderpass) : m_render_pass(renderpass) {};
 	RenderPass() = default;
 
 	VkRenderPass renderpass() const { return m_render_pass; };

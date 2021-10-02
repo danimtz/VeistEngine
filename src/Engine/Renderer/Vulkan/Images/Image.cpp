@@ -39,6 +39,7 @@ static VkImageViewCreateInfo& getImageViewCreateInfo(VkImage image, ImagePropert
 	img_view_info.subresourceRange.baseArrayLayer = 0;
 	img_view_info.subresourceRange.layerCount = properties.layerCount();
 	img_view_info.subresourceRange.aspectMask = properties.imageFormat().imageAspectFlags();
+	
 	return img_view_info;
 }
 
@@ -153,5 +154,21 @@ ImageBase::ImageBase(ImageProperties properties, ImageUsage usage, ImageViewType
 
 	RenderModule::getRenderBackend()->pushToDeletionQueue([=]() { vkDestroyImageView(device, image_view, nullptr); });
 
+
+}
+
+
+ImageBase::ImageBase(VkImage vk_image, ImageProperties properties, ImageUsage usage, ImageViewType view_type) : m_image(vk_image), m_properties(properties), m_usage(usage)
+{
+
+	//Create image view
+	VkDevice device = RenderModule::getRenderBackend()->getDevice();
+
+	VkImageViewCreateInfo view_info = getImageViewCreateInfo(m_image, m_properties, view_type);
+	VkImageView image_view;
+	vkCreateImageView(device, &view_info, nullptr, &image_view);
+	m_image_view = image_view;
+
+	RenderModule::getRenderBackend()->pushToDeletionQueue([=]() { vkDestroyImageView(device, image_view, nullptr); });
 
 }

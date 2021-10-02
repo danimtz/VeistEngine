@@ -1,5 +1,5 @@
 #pragma once
-/*
+
 
 #include "RenderPass.h"
 #include <vulkan/vulkan.h>
@@ -8,20 +8,22 @@
 class Framebuffer
 {
 public:
+	
+	using LoadOp = RenderPass::LoadOp;
 
-	Framebuffer();
-
+	Framebuffer() = default;
+	Framebuffer(std::vector<ColorAttachment>& colors, DepthAttachment& depth, RenderPass* renderpass);
+	Framebuffer(std::vector<ColorAttachment>& colors, DepthAttachment& depth, LoadOp load_op);
+	
+	//TODO: add support for framebuffer without depth attachment
 
 	VkFramebuffer framebuffer() {return m_framebuffer;};
-
 
 
 private:
 
 	VkFramebuffer m_framebuffer;
-
-	std::shared_ptr<RenderPass> m_render_pass;
+	std::unique_ptr<RenderPass> m_render_pass;
 
 };
 
-*/

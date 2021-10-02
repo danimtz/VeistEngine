@@ -61,7 +61,10 @@ public:
 
 protected:
 
-	ImageBase(void* data, ImageProperties properties, ImageUsage usage,  ImageViewType type);
+	//swapchain
+	ImageBase(VkImage vk_image, ImageProperties properties, ImageUsage usage, ImageViewType view_type);
+
+	ImageBase(void* data, ImageProperties properties, ImageUsage usage,  ImageViewType view_type);
 	ImageBase(ImageProperties properties, ImageUsage usage, ImageViewType type);
 	ImageBase() = default;
 
@@ -77,9 +80,14 @@ template<ImageUsage usage, ImageViewType type = ImageViewType::Flat>
 class Image : public ImageBase {
 public:
 	
+	//swapchain
+	Image(VkImage vk_image, ImageProperties properties) : ImageBase(vk_image, properties, usage, type) {};
+
 	Image(ImageProperties properties) : ImageBase(properties, usage, type) {};
 	Image(void* data, ImageProperties properties) : ImageBase(data, properties, usage, type){};
+	
 	Image() = default;
+
 };
 
 using Texture = Image<ImageUsage::Texture>;
