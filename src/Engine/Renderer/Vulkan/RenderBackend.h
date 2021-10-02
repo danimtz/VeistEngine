@@ -27,7 +27,7 @@
 #include "Engine/Renderer/Vulkan/Buffers/VertexBuffer.h"
 #include "Engine/Renderer/Vulkan/Descriptors/DescriptorSetAllocator.h"
 #include "Engine/Renderer/Vulkan/Framebuffers/RenderPass.h"
-
+#include "Engine/Renderer/Vulkan/Framebuffers/Framebuffer.h"
 
 
 constexpr int FRAME_OVERLAP_COUNT = 2;
@@ -168,7 +168,7 @@ private:
 
 //renderpass
     RenderPass                      m_render_pass;
-    std::vector<VkFramebuffer>      m_framebuffers;
+    std::vector<Framebuffer>        m_framebuffers;
 
 
 
@@ -177,15 +177,25 @@ private:
     VkFormat                        m_swapchain_format;
     VkExtent2D                      m_swapchain_extent;
     VkPresentModeKHR                m_swapchain_present_mode;
-    std::vector<VkImage>            m_swapchain_images;
+    
+    /*
+    std::vector<VkImage>            m_swapchain_images;//TODO change to IMAGE class
     std::vector<VkImageView>        m_swapchain_views;
+    */
+    std::vector<SwapchainImage>     m_swapchain_images;
+
     uint32_t                        m_swapchain_img_idx;
     
 
 //depth buffer
-    VmaImage                        m_depth_image;
+    
+    SwapchainDepthAttachment        m_swapchain_depth_image;
+    /*
+    VmaImage                        m_depth_image; // TODO change to IMAGE class
     VkImageView                     m_depth_image_view;
     VkFormat                        m_depth_format;
+    */
+
 
 //Per frame data(command buffers, pool and sync structures)
     VulkanFrameData                 m_frame_data[FRAME_OVERLAP_COUNT];

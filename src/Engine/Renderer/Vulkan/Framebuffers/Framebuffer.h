@@ -12,8 +12,8 @@ public:
 	using LoadOp = RenderPass::LoadOp;
 
 	Framebuffer() = default;
-	Framebuffer(std::vector<ColorAttachment>& colors, DepthAttachment& depth, RenderPass* renderpass);
-	Framebuffer(std::vector<ColorAttachment>& colors, DepthAttachment& depth, LoadOp load_op);
+	Framebuffer(std::vector<ImageBase>& colors, ImageBase& depth, RenderPass* renderpass);
+	Framebuffer(std::vector<ImageBase>& colors, ImageBase& depth, LoadOp load_op);
 	
 	//TODO: add support for framebuffer without depth attachment
 

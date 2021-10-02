@@ -609,7 +609,7 @@ void RenderBackend::createSwapchainAndImages()
 	VK_CHECK(vkCreateSwapchainKHR(m_device, &create_info, nullptr, &m_swapchain));
 	m_deletion_queue.pushFunction([=]() {vkDestroySwapchainKHR(m_device, m_swapchain, nullptr);} );
 
-
+	/*
 	//Get swapchain images
 	vkGetSwapchainImagesKHR(m_device, m_swapchain, &image_count, nullptr);
 	m_swapchain_images.resize(image_count);
@@ -692,7 +692,30 @@ void RenderBackend::createSwapchainAndImages()
 		vkDestroyImageView(m_device, m_depth_image_view, nullptr);
 		});
 
+		*/
 
+	//Get swapchain images
+	std::vector<VkImage> swapchain_vkimages;
+	vkGetSwapchainImagesKHR(m_device, m_swapchain, &image_count, nullptr);
+	swapchain_vkimages.resize(image_count);
+	vkGetSwapchainImagesKHR(m_device, m_swapchain, &image_count, swapchain_vkimages.data());
+
+
+	m_swapchain_extent = extent;
+	m_swapchain_format = surface_format.format;
+	m_swapchain_present_mode = present_mode;
+
+	ImageProperties swapchain_img_properties{ {extent.width, extent.height}, {surface_format.format} };
+
+	//Create image views
+	for (size_t i = 0; i < image_count; i++) {
+		m_swapchain_images.push_back({swapchain_vkimages[i], swapchain_img_properties });
+	}
+
+	ImageProperties depth_img_properties{ {extent.width, extent.height}, {VK_FORMAT_D32_SFLOAT} };
+	m_swapchain_depth_image = {depth_img_properties};
+
+	
 
 }
 
@@ -751,7 +774,7 @@ void RenderBackend::createDefaultRenderPass() //TODO replace this type of render
 void RenderBackend::createFramebuffers() 
 {
 	//framebuffers link renderpass to imageviews ->images from swapchain
-
+	/*
 	VkFramebufferCreateInfo framebuffer_info = {};
 	framebuffer_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
 	framebuffer_info.pNext = nullptr;
@@ -775,8 +798,16 @@ void RenderBackend::createFramebuffers()
 
 		m_deletion_queue.pushFunction([=]() { vkDestroyFramebuffer(m_device, m_framebuffers[i], nullptr);} );
 	}
+	*/
 
-
+	//create a framebuffer for each swapchain image
+	const uint32_t swapchain_image_count = m_swapchain_images.size();
+	for (int i = 0; i < swapchain_image_count; i++) 
+	{
+		std::vector<ImageBase> color_images;
+		color_images.push_back(m_swapchain_images[i]);
+		m_framebuffers.push_back({color_images, m_swapchain_depth_image, &m_render_pass});
+	}
 	
 }
 
@@ -1053,7 +1084,7 @@ void RenderBackend::RC_beginFrame()
 	render_pass_begin_info.renderArea.offset.x = 0;
 	render_pass_begin_info.renderArea.offset.y = 0;
 	render_pass_begin_info.renderArea.extent = m_swapchain_extent;
-	render_pass_begin_info.framebuffer = m_framebuffers[m_swapchain_img_idx];
+	render_pass_begin_info.framebuffer = m_framebuffers[m_swapchain_img_idx].framebuffer();
 
 	VkClearValue color_clear;
 	//color_clear.color = { {0.1f, 0.2f, 0.4f, 1.0f} };//sky blue

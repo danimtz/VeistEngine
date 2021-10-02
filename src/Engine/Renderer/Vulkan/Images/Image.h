@@ -94,4 +94,5 @@ using Texture = Image<ImageUsage::Texture>;
 using Cubemap = Image<ImageUsage::Texture, ImageViewType::Cube>;
 using ColorAttachment = Image<ImageUsage::ColorAttachment>;
 using DepthAttachment = Image<ImageUsage::DepthAttachment>;
-
+using SwapchainImage = Image<ImageUsage::ColorAttachment | ImageUsage::SwapchainImage>;
+using SwapchainDepthAttachment = Image<ImageUsage::DepthAttachment | ImageUsage::SwapchainImage>;

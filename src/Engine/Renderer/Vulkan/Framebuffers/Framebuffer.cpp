@@ -5,7 +5,7 @@
 #include "Engine/Renderer/RenderModule.h"
 
 
-static std::unique_ptr<RenderPass> createRenderPass(std::vector<ColorAttachment>& colors, DepthAttachment& depth, RenderPass::LoadOp load_op)
+static std::unique_ptr<RenderPass> createRenderPass(std::vector<ImageBase>& colors, ImageBase& depth, RenderPass::LoadOp load_op)
 {
 	
 	std::vector<RenderPass::AttachmentProperties> color_properties;
@@ -28,7 +28,7 @@ static std::unique_ptr<RenderPass> setExistingRenderPass(VkRenderPass renderpass
 }
 
 
-static glm::u32vec2 calculateFramebufferSize(ColorAttachment& image) 
+static glm::u32vec2 calculateFramebufferSize(ImageBase& image)
 {
 	uint32_t width = image.properties().imageSize().width;
 	uint32_t height = image.properties().imageSize().height;
@@ -37,7 +37,7 @@ static glm::u32vec2 calculateFramebufferSize(ColorAttachment& image)
 }
 
 
-static void createFramebuffer(std::vector<ColorAttachment>& colors, DepthAttachment& depth, VkFramebuffer framebuffer, RenderPass* renderpass)
+static void createFramebuffer(std::vector<ImageBase>& colors, ImageBase& depth, VkFramebuffer& framebuffer, RenderPass* renderpass)
 {
 	//TODO:check that all color attachments and depth are the same width and height
 	
@@ -77,13 +77,13 @@ static void createFramebuffer(std::vector<ColorAttachment>& colors, DepthAttachm
 }
 
 
-Framebuffer::Framebuffer(std::vector<ColorAttachment>& colors, DepthAttachment& depth, LoadOp load_op) : m_render_pass(createRenderPass(colors, depth, load_op))
+Framebuffer::Framebuffer(std::vector<ImageBase>& colors, ImageBase& depth, LoadOp load_op) : m_render_pass(createRenderPass(colors, depth, load_op))
 {
 	createFramebuffer(colors, depth, m_framebuffer, m_render_pass.get());
 }
 
 
-Framebuffer::Framebuffer(std::vector<ColorAttachment>& colors, DepthAttachment& depth, RenderPass* renderpass) : m_render_pass(std::make_unique<RenderPass>(renderpass->renderpass()))
+Framebuffer::Framebuffer(std::vector<ImageBase>& colors, ImageBase& depth, RenderPass* renderpass) : m_render_pass(std::make_unique<RenderPass>(renderpass->renderpass()))
 {
 	createFramebuffer(colors, depth, m_framebuffer, m_render_pass.get());
 }
