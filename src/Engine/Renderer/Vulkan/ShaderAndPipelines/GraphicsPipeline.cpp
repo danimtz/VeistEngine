@@ -224,17 +224,17 @@ void GraphicsPipelineBuilder::createPipelineStates()
 	//Viewport state	   //
 	/////////////////////////
 
-	VkExtent2D* swapchain_extent = RenderModule::getRenderBackend()->getSwapchainExtent();
+	VkExtent2D swapchain_extent = RenderModule::getRenderBackend()->getSwapchainExtent();
 
 	m_viewport.x = 0.0f;
 	m_viewport.y = 0.0f;
-	m_viewport.width = (float)swapchain_extent->width;
-	m_viewport.height = (float)swapchain_extent->height;
+	m_viewport.width = (float)swapchain_extent.width;
+	m_viewport.height = (float)swapchain_extent.height;
 	m_viewport.minDepth = 0.0f;
 	m_viewport.maxDepth = 1.0f;
 
 	m_scissor.offset = { 0, 0 };
-	m_scissor.extent = *swapchain_extent;
+	m_scissor.extent = swapchain_extent;
 
 	m_viewport_state_info.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
 	m_viewport_state_info.pNext = nullptr;

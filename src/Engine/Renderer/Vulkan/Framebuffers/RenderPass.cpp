@@ -214,8 +214,17 @@ RenderPass::RenderPass(std::vector<AttachmentProperties>& color_properties, Atta
 	VK_CHECK(vkCreateRenderPass(device, &create_info, nullptr, &m_render_pass));
 	
 	VkRenderPass renderpass = m_render_pass;
-	RenderModule::getRenderBackend()->pushToDeletionQueue([device, renderpass]() { vkDestroyRenderPass(device, renderpass, nullptr);	});
 
+	if ((color_properties[0].usage & ImageUsage::SwapchainImage) != ImageUsage::None)
+	{
+		RenderModule::getRenderBackend()->pushToSwapchainDeletionQueue([device, renderpass]() { vkDestroyRenderPass(device, renderpass, nullptr);	});
+	}
+	else 
+	{
+		RenderModule::getRenderBackend()->pushToDeletionQueue([device, renderpass]() { vkDestroyRenderPass(device, renderpass, nullptr);	});
+
+	}
+	
 
 }
 

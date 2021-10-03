@@ -28,9 +28,9 @@
 #include "Engine/Renderer/Vulkan/Descriptors/DescriptorSetAllocator.h"
 #include "Engine/Renderer/Vulkan/Framebuffers/RenderPass.h"
 #include "Engine/Renderer/Vulkan/Framebuffers/Framebuffer.h"
+#include "Engine/Renderer/Vulkan/Framebuffers/Swapchain.h"
 
-
-constexpr int FRAME_OVERLAP_COUNT = 2;
+constexpr int FRAME_OVERLAP_COUNT = 3;
 
 
 struct GPUinfo_t {
@@ -73,8 +73,6 @@ struct VulkanFrameData
 {
     VkCommandPool           m_command_pool;
     VkCommandBuffer         m_command_buffer;
-    VkSemaphore             m_present_semaphore, m_render_semaphore;
-    VkFence                 m_render_fence;
 };
 
 
@@ -96,8 +94,9 @@ public:
     
     GLFWwindow* getWindow() const { return m_glfw_window;};
     VkDevice getDevice() const { return m_device; }; 
-    VkExtent2D* getSwapchainExtent() { return &m_swapchain_extent; };
+    const VkExtent2D& getSwapchainExtent() const { return m_swapchain.get()->extent(); };
     VkRenderPass getRenderPass() const { return m_render_pass.renderpass(); };
+    VkSurfaceKHR getSurface() const { return m_surface; };
     VmaAllocator getAllocator() const { return m_allocator; }; //CONSIDER MOVING ALLOCATOR TO SEPARATE CLASS
     const GPUinfo_t& getGPUinfo() const { return m_gpu_info; };
 
@@ -107,7 +106,7 @@ public:
     uint32_t getFrameNumber() const { return m_frame_count; };
     uint32_t getSwapchainImageNumber() const { return (m_frame_count % FRAME_OVERLAP_COUNT); };
     void pushToDeletionQueue(std::function<void()> function);
-
+    void pushToSwapchainDeletionQueue(std::function<void()> function);
 
     void immediateSubmit(std::function<void(VkCommandBuffer cmd)> function);
     VkCommandBuffer getCurrentCmdBuffer() { return getCurrentFrame().m_command_buffer; };
@@ -166,35 +165,26 @@ private:
 
     VmaAllocator                    m_allocator;
 
-//renderpass
+//renderpass THESE MUST BE RECONSTRUCTED WHEN SWAPCHAIN CHANGES
     RenderPass                      m_render_pass;
     std::vector<Framebuffer>        m_framebuffers;
 
 
 
 //swapchain
-    VkSwapchainKHR                  m_swapchain;
+   /* VkSwapchainKHR                  m_swapchain;
     VkFormat                        m_swapchain_format;
     VkExtent2D                      m_swapchain_extent;
     VkPresentModeKHR                m_swapchain_present_mode;
-    
-    /*
-    std::vector<VkImage>            m_swapchain_images;//TODO change to IMAGE class
-    std::vector<VkImageView>        m_swapchain_views;
-    */
     std::vector<SwapchainImage>     m_swapchain_images;
-
     uint32_t                        m_swapchain_img_idx;
-    
+    */
+    std::unique_ptr<Swapchain>      m_swapchain;
 
 //depth buffer
     
     SwapchainDepthAttachment        m_swapchain_depth_image;
-    /*
-    VmaImage                        m_depth_image; // TODO change to IMAGE class
-    VkImageView                     m_depth_image_view;
-    VkFormat                        m_depth_format;
-    */
+  
 
 
 //Per frame data(command buffers, pool and sync structures)
@@ -211,6 +201,8 @@ private:
     bool                        m_isInitialized{false};
 
     DeletionQueue               m_deletion_queue;
+
+    DeletionQueue               m_swapchain_deletion_queue;
 
 //Descriptors
     

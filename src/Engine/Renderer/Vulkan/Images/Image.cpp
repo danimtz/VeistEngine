@@ -152,8 +152,17 @@ ImageBase::ImageBase(ImageProperties properties, ImageUsage usage, ImageViewType
 	vkCreateImageView(device, &view_info, nullptr, &image_view);
 	m_image_view = image_view;
 
-	RenderModule::getRenderBackend()->pushToDeletionQueue([=]() { vkDestroyImageView(device, image_view, nullptr); });
 
+	//If image view is being used in swapchain use swapchain deletion queue
+	if ((usage & ImageUsage::SwapchainImage) != ImageUsage::None)
+	{
+		RenderModule::getRenderBackend()->pushToSwapchainDeletionQueue([=]() { vkDestroyImageView(device, image_view, nullptr);	});
+	}
+	else 
+	{
+		RenderModule::getRenderBackend()->pushToDeletionQueue([=]() { vkDestroyImageView(device, image_view, nullptr); });
+	}
+	
 
 }
 

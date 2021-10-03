@@ -150,6 +150,7 @@ Swapchain creation utility functions
 =======================================
 */
 
+/*
 VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& formats) {
 
 	for (const auto& format : formats) {
@@ -175,7 +176,7 @@ VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& pres
 
 	return VK_PRESENT_MODE_FIFO_KHR;
 }
-
+*/
 
 
 VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, GLFWwindow *window) {
@@ -566,12 +567,16 @@ void RenderBackend::createVmaAllocator()
 
 void RenderBackend::createSwapchainAndImages()
 {
-
+/*
 	GPUinfo_t &gpu = m_gpu_info;
 
 	VkSurfaceFormatKHR surface_format = chooseSwapSurfaceFormat(gpu.surface_formats);
 	VkPresentModeKHR present_mode = chooseSwapPresentMode(gpu.present_modes);
 	VkExtent2D extent = chooseSwapExtent(gpu.surface_capabilities, m_glfw_window);
+
+	m_swapchain_extent = extent;
+	m_swapchain_format = surface_format.format;
+	m_swapchain_present_mode = present_mode;
 
 	uint32_t image_count = std::max<uint32_t>(gpu.surface_capabilities.minImageCount + 1, FRAME_OVERLAP_COUNT);
 	if (gpu.surface_capabilities.maxImageCount > 0 && image_count > gpu.surface_capabilities.maxImageCount) {
@@ -608,91 +613,8 @@ void RenderBackend::createSwapchainAndImages()
 
 	VK_CHECK(vkCreateSwapchainKHR(m_device, &create_info, nullptr, &m_swapchain));
 	m_deletion_queue.pushFunction([=]() {vkDestroySwapchainKHR(m_device, m_swapchain, nullptr);} );
-
-	/*
-	//Get swapchain images
-	vkGetSwapchainImagesKHR(m_device, m_swapchain, &image_count, nullptr);
-	m_swapchain_images.resize(image_count);
-	vkGetSwapchainImagesKHR(m_device, m_swapchain, &image_count, m_swapchain_images.data());
-
-	m_swapchain_extent = extent;
-	m_swapchain_format = surface_format.format;
-	m_swapchain_present_mode = present_mode;
-
-	//Create image views
-	m_swapchain_views.resize(m_swapchain_images.size());
-
-	for (size_t i = 0; i < m_swapchain_images.size(); i++) {
-		VkImageViewCreateInfo view_create_info = {};
-		view_create_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-		view_create_info.image = m_swapchain_images[i];
-		view_create_info.viewType = VK_IMAGE_VIEW_TYPE_2D;
-		view_create_info.format = m_swapchain_format;
-		view_create_info.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
-		view_create_info.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
-		view_create_info.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
-		view_create_info.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
-		view_create_info.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		view_create_info.subresourceRange.baseMipLevel = 0;
-		view_create_info.subresourceRange.levelCount = 1;
-		view_create_info.subresourceRange.baseArrayLayer = 0;
-		view_create_info.subresourceRange.layerCount = 1;
-		VK_CHECK(vkCreateImageView(m_device, &view_create_info, nullptr, &m_swapchain_views[i]));
-		m_deletion_queue.pushFunction([=]() { vkDestroyImageView(m_device, m_swapchain_views[i], nullptr); });
-	}
-
-
-	//Create depth image and image view
-	m_depth_format = VK_FORMAT_D32_SFLOAT;
-
-	VkImageCreateInfo depth_image_info = { };
-	depth_image_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-	depth_image_info.pNext = nullptr;
-	depth_image_info.imageType = VK_IMAGE_TYPE_2D;
-	depth_image_info.format = m_depth_format;
 	
-	VkExtent3D depth_image_extent = {extent.width, extent.height, 1};
-	depth_image_info.extent = depth_image_extent;
 
-	depth_image_info.mipLevels = 1;
-	depth_image_info.arrayLayers = 1;
-	depth_image_info.samples = VK_SAMPLE_COUNT_1_BIT;
-	depth_image_info.tiling = VK_IMAGE_TILING_OPTIMAL;
-	depth_image_info.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
-
-	//set allocation for GPU memory
-	VmaAllocationCreateInfo depth_image_allocation_info = {};
-	depth_image_allocation_info.usage = VMA_MEMORY_USAGE_GPU_ONLY;
-	depth_image_allocation_info.requiredFlags = VkMemoryPropertyFlags(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);//ensures that memory is allcoated on GPU
-
-	//create image
-	vmaCreateImage(m_allocator, &depth_image_info, &depth_image_allocation_info, &m_depth_image.m_image, &m_depth_image.m_allocation, nullptr);
-
-	m_deletion_queue.pushFunction([=]() { 
-		vmaDestroyImage(m_allocator, m_depth_image.m_image, m_depth_image.m_allocation); 
-		});
-
-
-	VkImageViewCreateInfo d_image_view_info = {};
-	d_image_view_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-	d_image_view_info.pNext = nullptr;
-
-	d_image_view_info.viewType = VK_IMAGE_VIEW_TYPE_2D;
-	d_image_view_info.image = m_depth_image.m_image;
-	d_image_view_info.format = m_depth_format;
-	d_image_view_info.subresourceRange.baseMipLevel = 0;
-	d_image_view_info.subresourceRange.levelCount = 1;
-	d_image_view_info.subresourceRange.baseArrayLayer = 0;
-	d_image_view_info.subresourceRange.layerCount = 1;
-	d_image_view_info.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
-
-	VK_CHECK(vkCreateImageView(m_device, &d_image_view_info, nullptr, &m_depth_image_view));
-
-	m_deletion_queue.pushFunction([=]() {
-		vkDestroyImageView(m_device, m_depth_image_view, nullptr);
-		});
-
-		*/
 
 	//Get swapchain images
 	std::vector<VkImage> swapchain_vkimages;
@@ -700,10 +622,7 @@ void RenderBackend::createSwapchainAndImages()
 	swapchain_vkimages.resize(image_count);
 	vkGetSwapchainImagesKHR(m_device, m_swapchain, &image_count, swapchain_vkimages.data());
 
-
-	m_swapchain_extent = extent;
-	m_swapchain_format = surface_format.format;
-	m_swapchain_present_mode = present_mode;
+	
 
 	ImageProperties swapchain_img_properties{ {extent.width, extent.height}, {surface_format.format} };
 
@@ -711,6 +630,10 @@ void RenderBackend::createSwapchainAndImages()
 	for (size_t i = 0; i < image_count; i++) {
 		m_swapchain_images.push_back({swapchain_vkimages[i], swapchain_img_properties });
 	}
+	*/
+	VkExtent2D extent = chooseSwapExtent(m_gpu_info.surface_capabilities, m_glfw_window);
+
+	m_swapchain = std::make_unique<Swapchain>(extent);
 
 	ImageProperties depth_img_properties{ {extent.width, extent.height}, {VK_FORMAT_D32_SFLOAT} };
 	m_swapchain_depth_image = {depth_img_properties};
@@ -755,11 +678,11 @@ void RenderBackend::createCommandPoolAndBuffers() {
 
 
 
-void RenderBackend::createDefaultRenderPass() //TODO replace this type of renderpass with the class version same for framebuffer
+void RenderBackend::createDefaultRenderPass()
 {
 
-	ImageProperties color_props = { ImageSize{m_swapchain_extent.width,m_swapchain_extent.height}, ImageFormat{m_swapchain_format} };
-	ImageProperties depth_props = { ImageSize{m_swapchain_extent.width,m_swapchain_extent.height}, ImageFormat{VK_FORMAT_D32_SFLOAT} };
+	ImageProperties color_props = m_swapchain.get()->images()[0].properties();//{ ImageSize{m_swapchain_extent.width,m_swapchain_extent.height}, ImageFormat{m_swapchain_format} };
+	ImageProperties depth_props = m_swapchain_depth_image.properties();//{ ImageSize{m_swapchain_extent.width,m_swapchain_extent.height}, ImageFormat{VK_FORMAT_D32_SFLOAT} };
 
 
 	std::vector<RenderPass::AttachmentProperties> main_color_attachments;
@@ -773,47 +696,22 @@ void RenderBackend::createDefaultRenderPass() //TODO replace this type of render
 
 void RenderBackend::createFramebuffers() 
 {
-	//framebuffers link renderpass to imageviews ->images from swapchain
-	/*
-	VkFramebufferCreateInfo framebuffer_info = {};
-	framebuffer_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-	framebuffer_info.pNext = nullptr;
-
-	framebuffer_info.renderPass = m_render_pass.renderpass();
-	framebuffer_info.width = m_swapchain_extent.width;
-	framebuffer_info.height = m_swapchain_extent.height;
-	framebuffer_info.layers = 1;
 
 	//create a framebuffer for each swapchain image
-	const uint32_t swapchain_image_count = m_swapchain_images.size();
-	m_framebuffers.resize(swapchain_image_count);
-
-	for (int i = 0; i < swapchain_image_count; i++) {
-
-		VkImageView attachments[2] = { m_swapchain_views[i], m_depth_image_view };
-		framebuffer_info.attachmentCount = 2;
-		framebuffer_info.pAttachments = &attachments[0];
-
-		VK_CHECK(vkCreateFramebuffer(m_device, &framebuffer_info, nullptr, &m_framebuffers[i]));
-
-		m_deletion_queue.pushFunction([=]() { vkDestroyFramebuffer(m_device, m_framebuffers[i], nullptr);} );
-	}
-	*/
-
-	//create a framebuffer for each swapchain image
-	const uint32_t swapchain_image_count = m_swapchain_images.size();
+	const uint32_t swapchain_image_count = m_swapchain.get()->imageCount();
 	for (int i = 0; i < swapchain_image_count; i++) 
 	{
-		std::vector<ImageBase> color_images;
-		color_images.push_back(m_swapchain_images[i]);
+		std::vector<ImageBase> color_images = { m_swapchain.get()->images()[i] };
 		m_framebuffers.push_back({color_images, m_swapchain_depth_image, &m_render_pass});
 	}
-	
+
 }
 
 
 void RenderBackend::createSemaphoresAndFences() 
 {
+	
+	/*
 	//create fence
 	VkFenceCreateInfo fence_create_info = {};
 	fence_create_info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
@@ -836,7 +734,7 @@ void RenderBackend::createSemaphoresAndFences()
 		m_deletion_queue.pushFunction([=]() { vkDestroySemaphore(m_device, m_frame_data[i].m_present_semaphore, nullptr); });
 		m_deletion_queue.pushFunction([=]() { vkDestroySemaphore(m_device, m_frame_data[i].m_render_semaphore, nullptr); });
 	}
-	
+	*/
 	//create fence for upload context (staging buffers etc)
 	VkFenceCreateInfo upload_fence_create_info = {};
 	upload_fence_create_info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
@@ -865,16 +763,24 @@ void RenderBackend::pushToDeletionQueue(std::function<void()> function) {
 
 }
 
+void RenderBackend::pushToSwapchainDeletionQueue(std::function<void()> function) {
+
+	m_swapchain_deletion_queue.pushFunction(function);
+
+}
+
 
 void RenderBackend::shutdown() {
 	
 	if(m_isInitialized){
 		
 		--m_frame_count;
-		vkWaitForFences(m_device, 1, &getCurrentFrame().m_render_fence, true, 1000000000);
+		vkWaitForFences(m_device, 1, &m_swapchain.get()->currentSyncStructures(m_frame_count).m_render_fence, true, 1000000000);
 		++m_frame_count;
 
 		m_descriptor_allocator->cleanup();
+
+		m_swapchain_deletion_queue.executeDeletionQueue(); //maybe add the rest to the deletion queue
 
 		m_deletion_queue.executeDeletionQueue(); //maybe add the rest to the deletion queue
 
@@ -1051,12 +957,12 @@ void RenderBackend::RC_beginFrame()
 {
 
 	//Wait for GPU to finish last frame
-	VK_CHECK(vkWaitForFences(m_device, 1, &getCurrentFrame().m_render_fence, true, 1000000000)); //1 second timeout 1000000000ns
-	VK_CHECK(vkResetFences(m_device, 1, &getCurrentFrame().m_render_fence));
+	VK_CHECK(vkWaitForFences(m_device, 1, &m_swapchain.get()->currentSyncStructures(m_frame_count).m_render_fence, true, 1000000000)); //1 second timeout 1000000000ns
+	VK_CHECK(vkResetFences(m_device, 1, &m_swapchain.get()->currentSyncStructures(m_frame_count).m_render_fence));
 
 	//request next image from swapchain, 1 second timeout
 	
-	VK_CHECK(vkAcquireNextImageKHR(m_device, m_swapchain, 1000000000, getCurrentFrame().m_present_semaphore, nullptr, &m_swapchain_img_idx));
+	VK_CHECK(vkAcquireNextImageKHR(m_device, m_swapchain.get()->swapchainKHR(), 1000000000, m_swapchain.get()->currentSyncStructures(m_frame_count).m_present_semaphore, nullptr, &m_swapchain.get()->currentImageIndex()));
 
 	//Reset command buffer (past fence so we know commands finished executing)
 	VK_CHECK(vkResetCommandBuffer(getCurrentFrame().m_command_buffer, 0));
@@ -1074,7 +980,7 @@ void RenderBackend::RC_beginFrame()
 
 
 
-	//begin main renderpass
+	//begin main renderpass //TODO: Rework BeginRenderPass and the whole beginFrame function in general to be more modular
 
 	VkRenderPassBeginInfo render_pass_begin_info = {};
 	render_pass_begin_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -1083,8 +989,8 @@ void RenderBackend::RC_beginFrame()
 	render_pass_begin_info.renderPass = m_render_pass.renderpass();
 	render_pass_begin_info.renderArea.offset.x = 0;
 	render_pass_begin_info.renderArea.offset.y = 0;
-	render_pass_begin_info.renderArea.extent = m_swapchain_extent;
-	render_pass_begin_info.framebuffer = m_framebuffers[m_swapchain_img_idx].framebuffer();
+	render_pass_begin_info.renderArea.extent = m_swapchain.get()->extent();
+	render_pass_begin_info.framebuffer = m_framebuffers[m_swapchain.get()->currentImageIndex()].framebuffer();
 
 	VkClearValue color_clear;
 	//color_clear.color = { {0.1f, 0.2f, 0.4f, 1.0f} };//sky blue
@@ -1124,17 +1030,17 @@ void RenderBackend::RC_endFrame()
 
 	//Wait on the m_present_semaphore, that semaphore is sgnallled when swapchain ready
 	submit_info.waitSemaphoreCount = 1;
-	submit_info.pWaitSemaphores = &getCurrentFrame().m_present_semaphore;
+	submit_info.pWaitSemaphores = &m_swapchain.get()->currentSyncStructures(m_frame_count).m_present_semaphore;
 
 	//Signal the m_render_semaphore, to signal that rendering has finished
 	submit_info.signalSemaphoreCount = 1;
-	submit_info.pSignalSemaphores = &getCurrentFrame().m_render_semaphore;
+	submit_info.pSignalSemaphores = &m_swapchain.get()->currentSyncStructures(m_frame_count).m_render_semaphore;
 
 	submit_info.commandBufferCount = 1;
 	submit_info.pCommandBuffers = &cmd_buffer;
 
 	//Sumbit command buffer to queue and execute. m_render_fence will block until commands finish
-	VK_CHECK(vkQueueSubmit(m_graphics_queue, 1, &submit_info, getCurrentFrame().m_render_fence));
+	VK_CHECK(vkQueueSubmit(m_graphics_queue, 1, &submit_info, m_swapchain.get()->currentSyncStructures(m_frame_count).m_render_fence));
 
 
 	//Put image on visible window. Must wait on m_render_semaphore to ensure that drawing commands have finished
@@ -1142,13 +1048,14 @@ void RenderBackend::RC_endFrame()
 	present_info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 	present_info.pNext = nullptr;
 
-	present_info.pSwapchains = &m_swapchain;
+	VkSwapchainKHR swapchain = m_swapchain.get()->swapchainKHR();
+	present_info.pSwapchains = &swapchain;
 	present_info.swapchainCount = 1;
 
-	present_info.pWaitSemaphores = &getCurrentFrame().m_render_semaphore;
+	present_info.pWaitSemaphores = &m_swapchain.get()->currentSyncStructures(m_frame_count).m_render_semaphore;
 	present_info.waitSemaphoreCount = 1;
 
-	present_info.pImageIndices = &m_swapchain_img_idx;
+	present_info.pImageIndices = &m_swapchain.get()->currentImageIndex();
 
 	VK_CHECK(vkQueuePresentKHR(m_graphics_queue, &present_info));
 

@@ -17,7 +17,7 @@
 		VkResult err = x;												\
 		if (err)														\
 		{																\
-			std::cout <<"Detected Vulkan error: " << err << std::endl;	\
+			std::cout <<"Detected Vulkan error: " << err << ": " << VkResult(err)<<std::endl;	\
 			abort();													\
 		}																\
 	} while (0)
