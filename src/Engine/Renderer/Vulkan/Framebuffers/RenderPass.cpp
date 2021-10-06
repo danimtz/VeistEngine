@@ -115,7 +115,7 @@ static VkAttachmentReference createAttachmentReference(uint32_t index, ImageUsag
 }
 
 
-static VkSubpassDependency createSubpassDependency(bool has_depth)
+static VkSubpassDependency createSubpassDependency(bool has_depth) //TODO: depencencies dont really work well atm
 {
 	VkAccessFlags access_mask = 0;
 	VkPipelineStageFlags stage_mask = 0;

@@ -61,13 +61,6 @@ struct DeletionQueue
     }
 };
 
-//Move this to a separate class eventually  -> image or vulkanimage. 
-//Its only used for depth stencil image
-struct VmaImage {
-    VkImage m_image;
-    VmaAllocation m_allocation;
-};
-
 
 struct VulkanFrameData
 {
@@ -142,7 +135,7 @@ private://main vulkan setup
     void createCommandPoolAndBuffers();
     void createDefaultRenderPass();
     void createFramebuffers();
-    void createSemaphoresAndFences();
+    void createUploadSemaphoresAndFences();
     void createDescriptorAllocator();
     
     VulkanFrameData& getCurrentFrame() { return m_frame_data[m_frame_count % FRAME_OVERLAP_COUNT]; };
@@ -151,7 +144,7 @@ private://main vulkan setup
  
  
 private:
-//context
+// context
     GLFWwindow*                     m_glfw_window; //could be abstracted to use different library other than glfw, hard coded for now
     VkInstance                      m_instance;
     VkDebugUtilsMessengerEXT        m_debug_messenger;
@@ -165,35 +158,21 @@ private:
 
     VmaAllocator                    m_allocator;
 
-//renderpass THESE MUST BE RECONSTRUCTED WHEN SWAPCHAIN CHANGES
+// Swapchain/renderpass/framebuffer
+    std::unique_ptr<Swapchain>      m_swapchain;
     RenderPass                      m_render_pass;
     std::vector<Framebuffer>        m_framebuffers;
-
-
-
-//swapchain
-   /* VkSwapchainKHR                  m_swapchain;
-    VkFormat                        m_swapchain_format;
-    VkExtent2D                      m_swapchain_extent;
-    VkPresentModeKHR                m_swapchain_present_mode;
-    std::vector<SwapchainImage>     m_swapchain_images;
-    uint32_t                        m_swapchain_img_idx;
-    */
-    std::unique_ptr<Swapchain>      m_swapchain;
-
-//depth buffer
-    
     SwapchainDepthAttachment        m_swapchain_depth_image;
   
 
 
-//Per frame data(command buffers, pool and sync structures)
+// Per frame data(command buffers (sync structures inside swapchain)) TODO: move cmd buffers out of here
     VulkanFrameData                 m_frame_data[FRAME_OVERLAP_COUNT];
 
+// Other
     GPUUploadContext                m_upload_context;
 
     uint32_t                    m_frame_count{0};
-
 
     std::vector<const char*>    m_device_extensions;
     std::vector<const char*>    m_validation_layers;
@@ -205,7 +184,7 @@ private:
     DeletionQueue               m_swapchain_deletion_queue;
 
 //Descriptors
-    
+
     std::unique_ptr<DescriptorSetAllocator> m_descriptor_allocator;
     
 };

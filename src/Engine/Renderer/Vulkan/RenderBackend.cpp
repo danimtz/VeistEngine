@@ -254,7 +254,7 @@ void RenderBackend::initContext_VK()
 	createFramebuffers();
 
 	//Create synchronisation structures
-	createSemaphoresAndFences();
+	createUploadSemaphoresAndFences();
 
 	//Create descriptor set pool allocator
 	createDescriptorAllocator();
@@ -567,78 +567,13 @@ void RenderBackend::createVmaAllocator()
 
 void RenderBackend::createSwapchainAndImages()
 {
-/*
-	GPUinfo_t &gpu = m_gpu_info;
 
-	VkSurfaceFormatKHR surface_format = chooseSwapSurfaceFormat(gpu.surface_formats);
-	VkPresentModeKHR present_mode = chooseSwapPresentMode(gpu.present_modes);
-	VkExtent2D extent = chooseSwapExtent(gpu.surface_capabilities, m_glfw_window);
-
-	m_swapchain_extent = extent;
-	m_swapchain_format = surface_format.format;
-	m_swapchain_present_mode = present_mode;
-
-	uint32_t image_count = std::max<uint32_t>(gpu.surface_capabilities.minImageCount + 1, FRAME_OVERLAP_COUNT);
-	if (gpu.surface_capabilities.maxImageCount > 0 && image_count > gpu.surface_capabilities.maxImageCount) {
-		image_count = gpu.surface_capabilities.maxImageCount;
-	}
-
-	VkSwapchainCreateInfoKHR create_info = {};
-	create_info.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-	create_info.surface = m_surface;
-	create_info.minImageCount = image_count;
-	create_info.imageFormat = surface_format.format;
-	create_info.imageColorSpace = surface_format.colorSpace;
-	create_info.imageExtent = extent;
-	create_info.imageArrayLayers = 1;
-	create_info.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
-
-
-	if (m_graphics_family_idx != m_present_family_idx) {
-		
-		uint32_t queue_family_indeces[] =  {m_graphics_family_idx, m_present_family_idx};
-		create_info.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
-		create_info.queueFamilyIndexCount = 2;
-		create_info.pQueueFamilyIndices = queue_family_indeces;
-
-	} else {
-		create_info.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-	}
-
-	create_info.preTransform = gpu.surface_capabilities.currentTransform;
-	create_info.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-	create_info.presentMode = present_mode;
-	create_info.clipped = VK_TRUE;
-	create_info.oldSwapchain = VK_NULL_HANDLE; //Unused for now. needed to recreate swapchain
-
-	VK_CHECK(vkCreateSwapchainKHR(m_device, &create_info, nullptr, &m_swapchain));
-	m_deletion_queue.pushFunction([=]() {vkDestroySwapchainKHR(m_device, m_swapchain, nullptr);} );
-	
-
-
-	//Get swapchain images
-	std::vector<VkImage> swapchain_vkimages;
-	vkGetSwapchainImagesKHR(m_device, m_swapchain, &image_count, nullptr);
-	swapchain_vkimages.resize(image_count);
-	vkGetSwapchainImagesKHR(m_device, m_swapchain, &image_count, swapchain_vkimages.data());
-
-	
-
-	ImageProperties swapchain_img_properties{ {extent.width, extent.height}, {surface_format.format} };
-
-	//Create image views
-	for (size_t i = 0; i < image_count; i++) {
-		m_swapchain_images.push_back({swapchain_vkimages[i], swapchain_img_properties });
-	}
-	*/
 	VkExtent2D extent = chooseSwapExtent(m_gpu_info.surface_capabilities, m_glfw_window);
 
 	m_swapchain = std::make_unique<Swapchain>(extent);
 
 	ImageProperties depth_img_properties{ {extent.width, extent.height}, {VK_FORMAT_D32_SFLOAT} };
 	m_swapchain_depth_image = {depth_img_properties};
-
-	
 
 }
 
@@ -708,33 +643,9 @@ void RenderBackend::createFramebuffers()
 }
 
 
-void RenderBackend::createSemaphoresAndFences() 
+void RenderBackend::createUploadSemaphoresAndFences() 
 {
 	
-	/*
-	//create fence
-	VkFenceCreateInfo fence_create_info = {};
-	fence_create_info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-	fence_create_info.pNext = nullptr;
-	fence_create_info.flags = VK_FENCE_CREATE_SIGNALED_BIT;
-
-	//create semaphore
-	VkSemaphoreCreateInfo semaphore_create_info = {};
-	semaphore_create_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-	semaphore_create_info.pNext = nullptr;
-	semaphore_create_info.flags = 0;
-
-	for (int i = 0; i < FRAME_OVERLAP_COUNT; i++) {
-
-		VK_CHECK(vkCreateFence(m_device, &fence_create_info, nullptr, &m_frame_data[i].m_render_fence));
-		m_deletion_queue.pushFunction([=]() { vkDestroyFence(m_device, m_frame_data[i].m_render_fence, nullptr); });
-
-		VK_CHECK(vkCreateSemaphore(m_device, &semaphore_create_info, nullptr, &m_frame_data[i].m_present_semaphore));
-		VK_CHECK(vkCreateSemaphore(m_device, &semaphore_create_info, nullptr, &m_frame_data[i].m_render_semaphore));
-		m_deletion_queue.pushFunction([=]() { vkDestroySemaphore(m_device, m_frame_data[i].m_present_semaphore, nullptr); });
-		m_deletion_queue.pushFunction([=]() { vkDestroySemaphore(m_device, m_frame_data[i].m_render_semaphore, nullptr); });
-	}
-	*/
 	//create fence for upload context (staging buffers etc)
 	VkFenceCreateInfo upload_fence_create_info = {};
 	upload_fence_create_info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;

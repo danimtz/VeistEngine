@@ -15,20 +15,19 @@ public:
 	void present(/*CmdBuffer cmd, Queue VkQueue*/){};//TODO
 	
 
+
+
 	struct SyncStructures{
 		VkSemaphore  m_present_semaphore;
 		VkSemaphore  m_render_semaphore;
 		VkFence      m_render_fence;
 	};
 
-	
 	VkSwapchainKHR swapchainKHR() const { return m_swapchain; };
 	uint32_t& currentImageIndex() {return m_img_idx; };
 	const VkExtent2D& extent() const { return m_extent; }
 	uint32_t imageCount() const {return m_images.size();};
-
 	const std::vector<SwapchainImage>& images() const {return m_images;};
-	
 	SyncStructures& currentSyncStructures(uint32_t frame_count) { return m_sync_structs[frame_count % m_image_count]; };
 
 private:
