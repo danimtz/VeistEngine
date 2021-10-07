@@ -580,34 +580,28 @@ void RenderBackend::createSwapchainAndImages()
 
 void RenderBackend::createCommandPoolAndBuffers() {
 
-	VkCommandPoolCreateInfo pool_create_info = {};
-	pool_create_info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-	pool_create_info.queueFamilyIndex = m_graphics_family_idx;
-	pool_create_info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-	pool_create_info.pNext = nullptr;
+	
+	VkCommandPool command_pool = m_command_pools.emplace(0, std::make_shared<CommandPool>()).first->second.get()->commandPool();
+
+
 
 	for (int i = 0; i < FRAME_OVERLAP_COUNT; i++) {
 
-		
-		VK_CHECK(vkCreateCommandPool(m_device, &pool_create_info, nullptr, &m_frame_data[i].m_command_pool));
-
-		
 		VkCommandBufferAllocateInfo buffer_create_info = {};
 		buffer_create_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 		buffer_create_info.pNext = nullptr;
-		buffer_create_info.commandPool = m_frame_data[i].m_command_pool;
+		buffer_create_info.commandPool = command_pool;
 		buffer_create_info.commandBufferCount = 1;
 		buffer_create_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 
 		VK_CHECK(vkAllocateCommandBuffers(m_device, &buffer_create_info, &m_frame_data[i].m_command_buffer));
 
-		m_deletion_queue.pushFunction([=]() { vkDestroyCommandPool(m_device, m_frame_data[i].m_command_pool, nullptr); });
+		//m_deletion_queue.pushFunction([=]() { vkDestroyCommandPool(m_device, m_frame_data[i].m_command_pool, nullptr); });
 	}
 	
 
 	//Create command pool for upload context (staging buffers etc)
-	VK_CHECK(vkCreateCommandPool(m_device, &pool_create_info, nullptr, &m_upload_context.m_command_pool));
-	m_deletion_queue.pushFunction([=]() { vkDestroyCommandPool(m_device, m_upload_context.m_command_pool, nullptr); });
+	m_upload_context.m_command_pool = std::make_shared<CommandPool>();
 
 }
 
@@ -794,6 +788,24 @@ void RenderBackend::initImGUI()
 		
 }
 
+/*
+=====================================
+RenderBackend get command pools
+=====================================
+*/
+std::shared_ptr<CommandPool> RenderBackend::getCommandPool(uint32_t thread_id)
+{
+	auto it = m_command_pools.find(thread_id);
+	if (it != m_command_pools.end())
+	{
+		return it->second;
+	}
+
+	//create command pool if not found
+	//return m_command_pools.emplace(thread_id, std::make_shared<CommandPool>(thread_id)).first->second;
+}
+
+
 
 /*
 =====================================
@@ -807,7 +819,7 @@ void RenderBackend::immediateSubmit(std::function<void(VkCommandBuffer cmd)> fun
 	VkCommandBufferAllocateInfo cmd_allocate_info = {};
 	cmd_allocate_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 	cmd_allocate_info.commandBufferCount = 1;
-	cmd_allocate_info.commandPool = m_upload_context.m_command_pool;
+	cmd_allocate_info.commandPool = m_upload_context.m_command_pool.get()->commandPool();
 	cmd_allocate_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 	cmd_allocate_info.pNext = nullptr;
 		
@@ -850,7 +862,7 @@ void RenderBackend::immediateSubmit(std::function<void(VkCommandBuffer cmd)> fun
 	vkResetFences(m_device, 1, &m_upload_context.m_fence);
 
 	//clear the command pool
-	vkResetCommandPool(m_device, m_upload_context.m_command_pool, 0);
+	m_upload_context.m_command_pool.get()->resetPool();
 
 }
 
@@ -872,7 +884,6 @@ void RenderBackend::RC_beginFrame()
 	VK_CHECK(vkResetFences(m_device, 1, &m_swapchain.get()->currentSyncStructures(m_frame_count).m_render_fence));
 
 	//request next image from swapchain, 1 second timeout
-	
 	VK_CHECK(vkAcquireNextImageKHR(m_device, m_swapchain.get()->swapchainKHR(), 1000000000, m_swapchain.get()->currentSyncStructures(m_frame_count).m_present_semaphore, nullptr, &m_swapchain.get()->currentImageIndex()));
 
 	//Reset command buffer (past fence so we know commands finished executing)

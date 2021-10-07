@@ -29,6 +29,7 @@
 #include "Engine/Renderer/Vulkan/Framebuffers/RenderPass.h"
 #include "Engine/Renderer/Vulkan/Framebuffers/Framebuffer.h"
 #include "Engine/Renderer/Vulkan/Framebuffers/Swapchain.h"
+#include "Engine/Renderer/Vulkan/Commands/CommandPool.h"
 
 constexpr int FRAME_OVERLAP_COUNT = 3;
 
@@ -64,15 +65,15 @@ struct DeletionQueue
 
 struct VulkanFrameData
 {
-    VkCommandPool           m_command_pool;
-    VkCommandBuffer         m_command_buffer;
+    //VkCommandPool  m_command_pool;
+    VkCommandBuffer m_command_buffer;
 };
 
 
 struct GPUUploadContext
 {
     VkFence m_fence;
-    VkCommandPool m_command_pool;
+    std::shared_ptr<CommandPool> m_command_pool;
 };
 
 
@@ -93,6 +94,8 @@ public:
     VmaAllocator getAllocator() const { return m_allocator; }; //CONSIDER MOVING ALLOCATOR TO SEPARATE CLASS
     const GPUinfo_t& getGPUinfo() const { return m_gpu_info; };
 
+    uint32_t getGraphicsFamily() const {return m_graphics_family_idx;};
+
     DescriptorSetAllocator* getDescriptorAllocator() const { return m_descriptor_allocator.get(); };
     
     const uint32_t getSwapchainBufferCount() const {return FRAME_OVERLAP_COUNT; };
@@ -103,6 +106,8 @@ public:
 
     void immediateSubmit(std::function<void(VkCommandBuffer cmd)> function);
     VkCommandBuffer getCurrentCmdBuffer() { return getCurrentFrame().m_command_buffer; };
+
+    std::shared_ptr<CommandPool> getCommandPool(uint32_t thread_id = 0);
     
 public:
     //render commands/functions that use vulkan commands
@@ -167,11 +172,16 @@ private:
 
 
 // Per frame data(command buffers (sync structures inside swapchain)) TODO: move cmd buffers out of here
+//Command buffers
+    std::map<uint32_t, std::shared_ptr<CommandPool>> m_command_pools;
+
     VulkanFrameData                 m_frame_data[FRAME_OVERLAP_COUNT];
 
-// Other
+//Immediate sumbit 
     GPUUploadContext                m_upload_context;
 
+
+// Other
     uint32_t                    m_frame_count{0};
 
     std::vector<const char*>    m_device_extensions;
