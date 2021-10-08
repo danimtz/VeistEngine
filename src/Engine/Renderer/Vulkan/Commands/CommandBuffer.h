@@ -9,6 +9,7 @@
 #include "Engine/Renderer/Vulkan/Buffers/VertexBuffer.h"
 #include "Engine/Renderer/Vulkan/Buffers/IndexBuffer.h"
 #include "Engine/Renderer/Vulkan/ShaderAndPipelines/GraphicsPipeline.h"
+#include "Engine/Renderer/Vulkan/Images/Image.h"
 #include "Engine/Material/Material.h"
 
 class CommandPool;
@@ -34,6 +35,8 @@ public:
 	void end();
 	void immediateSubmit();
 	void copyBuffer(const Buffer& src, const Buffer& dst);
+	void copyBufferToImage(const Buffer stage_buff, const VkImage image, const std::vector<VkBufferImageCopy>& regions,  const ImageProperties& properties );
+	//void pipelineBarrier(); TODO: Pipeline barriers inside copyBufferToImage, extract them into functions
 
 //Renderpass recording functions
 	void beginRenderPass(const Framebuffer& framebuffer);

@@ -95,6 +95,49 @@ void CommandBuffer::copyBuffer(const Buffer& src, const Buffer& dst)
 }
 
 
+void CommandBuffer::copyBufferToImage(const Buffer stage_buff, const VkImage image, const std::vector<VkBufferImageCopy>& regions, const ImageProperties& properties)
+{
+	//prepare pipeline barrier //TODO: Generalize image barrier to other type of images. i think only works with normal textures atm
+	VkImageSubresourceRange range;
+	range.aspectMask = properties.imageFormat().imageAspectFlags();
+	range.baseMipLevel = 0;
+	range.levelCount = properties.mipLevels();
+	range.baseArrayLayer = 0;
+	range.layerCount = properties.layerCount();
+
+	VkImageMemoryBarrier barrier_toTransfer = {};
+	barrier_toTransfer.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+
+	barrier_toTransfer.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	barrier_toTransfer.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+	barrier_toTransfer.image = image;
+	barrier_toTransfer.subresourceRange = range;
+
+	barrier_toTransfer.srcAccessMask = 0;
+	barrier_toTransfer.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+
+	//barrier the image into the transfer-receive layout
+	vkCmdPipelineBarrier(m_cmd_buffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier_toTransfer);
+
+	//copy buffer to image
+	vkCmdCopyBufferToImage(m_cmd_buffer, stage_buff.getBuffer(), image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, regions.size(), regions.data());
+
+
+	//barrier to shader readable format
+	VkImageMemoryBarrier barrier_toReadable = barrier_toTransfer;
+
+	barrier_toReadable.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+	barrier_toReadable.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+	barrier_toReadable.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+	barrier_toReadable.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+	//barrier the image into the shader readable layout
+	vkCmdPipelineBarrier(m_cmd_buffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier_toReadable);
+
+}
+
+
 //=================== RenderPass functions =================================
 
 void CommandBuffer::beginRenderPass(const Framebuffer& framebuffer)

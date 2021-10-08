@@ -73,6 +73,10 @@ ImageBase::ImageBase(void* data, ImageProperties properties, ImageUsage usage, I
 
 
 	//Sumbit staging buffer copy TODO: change to use cmd buffer
+	auto cmd_buffer = RenderModule::getRenderBackend()->createDisposableCmdBuffer();
+	cmd_buffer.copyBufferToImage(stage_buff, m_image, regions, m_properties);
+	cmd_buffer.immediateSubmit();
+	/*
 	RenderModule::getRenderBackend()->immediateSubmit([&](VkCommandBuffer cmd) {
 
 		//prepare pipeline barrier //TODO: Generalize image barrier to other type of images. i think only works with normal textures atm
@@ -114,7 +118,7 @@ ImageBase::ImageBase(void* data, ImageProperties properties, ImageUsage usage, I
 		vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier_toReadable);
 
 		});
-
+		*/
 
 	
 }
