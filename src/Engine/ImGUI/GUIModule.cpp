@@ -57,7 +57,7 @@ void GUIModule::endFrame()
     RenderBackend* backend = RenderModule::getRenderBackend().get();
 	
     ImGui::Render();
-    ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), backend->getCurrentCmdBuffer());
+    ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), backend->getCurrentCmdBuffer().vk_commandBuffer());
 
 }
 

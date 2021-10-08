@@ -1,5 +1,214 @@
 
 #include "CommandBuffer.h"
+#include "CommandPool.h"
+
+#include "Engine/Renderer/RenderModule.h"
+
+CommandBuffer::CommandBuffer(CommandPool* pool, VkFence fence, bool begin_on_creation) : m_command_pool(pool), m_fence(fence)
+{
+	VkCommandBufferAllocateInfo buffer_create_info = {};
+	buffer_create_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+	buffer_create_info.pNext = nullptr;
+	buffer_create_info.commandPool = m_command_pool->commandPool();
+	buffer_create_info.commandBufferCount = 1;
+	buffer_create_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+
+	VkDevice device = RenderModule::getRenderBackend()->getDevice();
+	VK_CHECK(vkAllocateCommandBuffers(device, &buffer_create_info, &m_cmd_buffer));
+
+	if (begin_on_creation)
+	{
+		begin();
+	}
+
+}
 
 
 
+//=================== Command Buffers functions ============================
+
+void CommandBuffer::begin()
+{
+	VK_CHECK(vkResetCommandBuffer(m_cmd_buffer, 0));
+	VkCommandBufferBeginInfo cmd_buffer_begin_info = {};
+	cmd_buffer_begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	cmd_buffer_begin_info.pNext = nullptr;
+	cmd_buffer_begin_info.pInheritanceInfo = nullptr;
+	cmd_buffer_begin_info.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+	VK_CHECK(vkBeginCommandBuffer(m_cmd_buffer, &cmd_buffer_begin_info));
+}
+
+void CommandBuffer::end()
+{
+	//TODO: add check that end renderpass was called
+
+	VK_CHECK(vkEndCommandBuffer(m_cmd_buffer));
+}
+
+
+void CommandBuffer::immediateSubmit()
+{
+	VK_CHECK(vkEndCommandBuffer(m_cmd_buffer));
+	VkSubmitInfo submit_info = {};
+	submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	submit_info.pNext = nullptr;
+	submit_info.waitSemaphoreCount = 0;
+	submit_info.pWaitSemaphores = nullptr;
+	submit_info.pWaitDstStageMask = nullptr;
+	submit_info.commandBufferCount = 1;
+	submit_info.pCommandBuffers = &m_cmd_buffer;
+	submit_info.signalSemaphoreCount = 0;
+	submit_info.pSignalSemaphores = nullptr;
+
+	//submit command buffer to queue and execute it.
+	//fence will block until the commands finish
+	VkDevice device = RenderModule::getRenderBackend()->getDevice();
+	VkQueue graphics_queue = RenderModule::getRenderBackend()->getGraphicsQueue();
+
+	vkResetFences(device, 1, &m_fence);//fence has create signalled flag
+	VK_CHECK(vkQueueSubmit(graphics_queue, 1, &submit_info, m_fence));
+
+
+	vkWaitForFences(device, 1, &m_fence, true, 9999999999);
+	vkResetFences(device, 1, &m_fence);
+
+	//clear the command pool
+	m_command_pool->resetPool();
+
+	CONSOLE_LOG("cmd IMMEDIATE SUBMIT: Data sumbitted to GPU");
+}
+
+
+
+void CommandBuffer::copyBuffer(const Buffer& src, const Buffer& dst)
+{
+	VkBufferCopy copy;
+	copy.dstOffset = 0;
+	copy.srcOffset = 0;
+
+	assert(src.getSize() == dst.getSize());
+
+	copy.size = src.getSize();
+
+	vkCmdCopyBuffer(m_cmd_buffer, src.getBuffer(), dst.getBuffer(), 1, &copy);
+}
+
+
+//=================== RenderPass functions =================================
+
+void CommandBuffer::beginRenderPass(const Framebuffer& framebuffer)
+{
+	VkRenderPassBeginInfo render_pass_begin_info = {};
+	render_pass_begin_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+	render_pass_begin_info.pNext = nullptr;
+
+	render_pass_begin_info.renderPass = framebuffer.renderpass()->vk_renderpass();
+	render_pass_begin_info.renderArea.offset.x = 0;
+	render_pass_begin_info.renderArea.offset.y = 0;
+	render_pass_begin_info.renderArea.extent = {framebuffer.size().x, framebuffer.size().y};
+	render_pass_begin_info.framebuffer = framebuffer.framebuffer();
+
+	std::vector<VkClearValue> clear_values(framebuffer.colorAttachmentCount()); //color + depth buffer
+	for (int i = 0; i < framebuffer.colorAttachmentCount(); i++)
+	{
+		VkClearValue color_clear = {};
+		color_clear.color = { {0.005f, 0.005f, 0.005f, 1.0f} };
+		clear_values[i] = color_clear;
+	}
+
+	{
+		VkClearValue depth_clear = {};
+		depth_clear.depthStencil.depth = 1.0f; //max depth
+		clear_values.push_back(depth_clear);
+	}
+	
+	render_pass_begin_info.clearValueCount = clear_values.size();
+	render_pass_begin_info.pClearValues = clear_values.data();
+
+
+	vkCmdBeginRenderPass(m_cmd_buffer, &render_pass_begin_info, VK_SUBPASS_CONTENTS_INLINE);
+	
+}
+
+void CommandBuffer::endRenderPass()
+{
+	//TODO: add check so that end renderpass cant be called without begin having been called first
+	vkCmdEndRenderPass(m_cmd_buffer);
+}
+
+
+void CommandBuffer::bindVertexBuffer(const VertexBuffer& vertex_buffer)
+{
+	VkBuffer buffer = vertex_buffer.getBuffer();
+	VkDeviceSize offset = 0;
+	vkCmdBindVertexBuffers(m_cmd_buffer, 0, 1, &buffer, &offset);
+}
+
+
+void CommandBuffer::bindIndexBuffer(const IndexBuffer& index_buffer)
+{
+	VkBuffer buffer = index_buffer.getBuffer();
+	VkDeviceSize offset = 0;
+	vkCmdBindIndexBuffer(m_cmd_buffer, buffer, 0, VK_INDEX_TYPE_UINT16);
+}
+
+
+void CommandBuffer::drawVertices(uint32_t size)
+{
+	vkCmdDraw(m_cmd_buffer, size, 1, 0, 0);
+}
+
+
+void CommandBuffer::drawIndexed(uint32_t size)
+{
+	vkCmdDrawIndexed(m_cmd_buffer, size, 1, 0, 0, 0);
+}
+
+
+void CommandBuffer::bindMaterial(const Material& material)
+{
+	GraphicsPipeline* pipeline = material.pipeline().get();
+
+	if (pipeline != m_bound_pipeline)
+	{
+		bindPipeline(*pipeline);
+		m_bound_pipeline = pipeline;
+	}
+
+	bindDescriptorSet(*pipeline, material.descriptorSet(), 0, nullptr);
+
+}
+
+
+void CommandBuffer::bindPipeline(const GraphicsPipeline& pipeline)
+{
+
+	VkPipeline vulkan_pipeline = pipeline.pipeline();
+	vkCmdBindPipeline(m_cmd_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkan_pipeline);
+	m_bound_pipeline = &pipeline;
+}
+
+
+void CommandBuffer::bindDescriptorSet(const GraphicsPipeline& pipeline, const DescriptorSet& descriptor_set, uint32_t offset_count, uint32_t* p_dynamic_offset)
+{
+
+	VkPipelineLayout vulkan_pipeline_layout = pipeline.pipelineLayout();
+
+	vkCmdBindDescriptorSets(
+		m_cmd_buffer,
+		VK_PIPELINE_BIND_POINT_GRAPHICS,
+		vulkan_pipeline_layout,
+		descriptor_set.setNumber(),
+		1,
+		&descriptor_set.descriptorSet(),
+		offset_count,
+		p_dynamic_offset);
+}
+
+
+void CommandBuffer::setPushConstants(const MatrixPushConstant& push_constant)
+{
+	VkPipelineLayout vulkan_pipeline_layout = m_bound_pipeline->pipelineLayout();
+	vkCmdPushConstants(m_cmd_buffer, vulkan_pipeline_layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(MatrixPushConstant), &push_constant);
+}

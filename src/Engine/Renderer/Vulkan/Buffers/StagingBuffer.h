@@ -7,20 +7,11 @@
 
 
 
-class StagingBuffer 
+class StagingBuffer : public Buffer
 {
 public:
 
 	StagingBuffer(void* data, uint32_t size);
 	~StagingBuffer();
-
-	VkBuffer getBuffer() const  { return m_staging_buffer.buffer(); };
-	virtual uint32_t getSize() const  { return m_size; };
-
-	
-private:
-
-	VulkanBuffer		m_staging_buffer;
-	uint32_t			m_size;
 
 };

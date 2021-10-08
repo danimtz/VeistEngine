@@ -5,7 +5,7 @@
 #include "Engine/Scenes/Scene.h"
 #include "Engine/Renderer/RenderModule.h"
 
-
+#include "Engine/ImGUI/GUIModule.h"//TEMPORARY
 
 
 
@@ -38,7 +38,43 @@ ForwardRenderer::~ForwardRenderer()
 }
 
 
-void ForwardRenderer::renderScene(Scene* scene)
+void ForwardRenderer::setScene(Scene* scene)  
+{
+	m_scene = scene;
+}
+
+
+void ForwardRenderer::onUpdate()
+{
+	auto swapchain = m_render_backend->getSwapchain();
+	swapchain->beginNextFrame();
+
+	CommandBuffer& cmd_buffer = m_render_backend->getCurrentCmdBuffer();
+
+	cmd_buffer.begin();
+	cmd_buffer.beginRenderPass(m_render_backend->getCurrentFramebuffer());
+
+	renderScene(cmd_buffer);
+	
+
+
+	GUIModule::beginFrame();
+	{
+		//module or whatever->onUpdateImGUI()
+		ImGui::ShowDemoWindow();
+	}
+	GUIModule::endFrame();
+
+
+	cmd_buffer.endRenderPass();
+	cmd_buffer.end();
+
+	swapchain->present(cmd_buffer);
+
+}
+
+
+void ForwardRenderer::renderScene(CommandBuffer& cmd_buffer)
 {
 	//THIS WILL BE REFACTORED INTO MANY THINGS-> graphics context instead of backend, renderpass and cmd class maybe instead of RC_begin frame
 	
@@ -53,13 +89,13 @@ void ForwardRenderer::renderScene(Scene* scene)
 
 
 	//Write per-frame buffers (camera, lights)
-	m_camera_data.projection = scene->getCamera()->projectionMatrix();
-	m_camera_data.view = scene->getCamera()->viewMatrix();
-	m_camera_data.view_projection = scene->getCamera()->viewProjectionMatrix();
+	m_camera_data.projection = m_scene->getCamera()->projectionMatrix();
+	m_camera_data.view = m_scene->getCamera()->viewMatrix();
+	m_camera_data.view_projection = m_scene->getCamera()->viewProjectionMatrix();
 	m_camera_buffer.get()->setData(&m_camera_data, sizeof(m_camera_data), frame_num);
 
-	m_scene_info.dir_lights_count = scene->getDirLights().size();
-	m_scene_info.point_lights_count = scene->getPointLights().size();
+	m_scene_info.dir_lights_count = m_scene->getDirLights().size();
+	m_scene_info.point_lights_count = m_scene->getPointLights().size();
 	m_scene_info_buffer.get()->setData(&m_scene_info, sizeof(m_scene_info), frame_num);
 
 
@@ -67,10 +103,10 @@ void ForwardRenderer::renderScene(Scene* scene)
 	if (m_scene_info.dir_lights_count > 0) 
 	{
 		GPUDirLight dir_lights[MAX_DIR_LIGHTS];
-		memcpy(dir_lights, scene->getDirLights().data(), sizeof(DirectionalLight)* m_scene_info.dir_lights_count);
-		glm::mat4 world_to_view = glm::mat4(glm::mat3(scene->getCamera()->viewMatrix()));
+		memcpy(dir_lights, m_scene->getDirLights().data(), sizeof(DirectionalLight)* m_scene_info.dir_lights_count);
+		glm::mat4 world_to_view = glm::mat4(glm::mat3(m_scene->getCamera()->viewMatrix()));
 		for (int i = 0; i < m_scene_info.dir_lights_count; i++) {
-			dir_lights[i].direction = world_to_view * glm::vec4(scene->getDirLights()[i].direction(), 1.0);
+			dir_lights[i].direction = world_to_view * glm::vec4(m_scene->getDirLights()[i].direction(), 1.0);
 		}
 		m_dir_lights_buffer.get()->setData(&dir_lights, sizeof(GPUDirLight)* MAX_DIR_LIGHTS, frame_num);
 	}
@@ -80,10 +116,10 @@ void ForwardRenderer::renderScene(Scene* scene)
 	if (m_scene_info.point_lights_count > 0)
 	{
 		GPUPointLight point_lights[MAX_POINT_LIGHTS];
-		memcpy(point_lights, scene->getPointLights().data(), sizeof(PointLight)* m_scene_info.point_lights_count);
-		scene->getCamera()->viewMatrix();
+		memcpy(point_lights, m_scene->getPointLights().data(), sizeof(PointLight)* m_scene_info.point_lights_count);
+		m_scene->getCamera()->viewMatrix();
 		for (int i = 0; i < m_scene_info.point_lights_count; i++) {
-			point_lights[i].position = scene->getCamera()->viewMatrix() * glm::vec4(scene->getPointLights()[i].position(), 1.0);
+			point_lights[i].position = m_scene->getCamera()->viewMatrix() * glm::vec4(m_scene->getPointLights()[i].position(), 1.0);
 		}
 		m_point_lights_buffer.get()->setData(&point_lights, sizeof(GPUDirLight) * MAX_POINT_LIGHTS, frame_num);
 	}
@@ -91,16 +127,16 @@ void ForwardRenderer::renderScene(Scene* scene)
 
 
 	//Render each model
-	for (int i = 0; i < scene->getModels().size(); i++) 
+	for (int i = 0; i < m_scene->getModels().size(); i++) 
 	{
 		
-		Mesh* curr_mesh = scene->getModels()[i].mesh().get();
-		Material* curr_material = scene->getModels()[i].material().get();
+		Mesh* curr_mesh = m_scene->getModels()[i].mesh().get();
+		Material* curr_material = m_scene->getModels()[i].material().get();
 		GraphicsPipeline* curr_pipeline = curr_material->pipeline().get();
 
 
 		//matrices
-		glm::mat4 model = scene->getModels()[i].modelMatrix();
+		glm::mat4 model = m_scene->getModels()[i].modelMatrix();
 
 		
 		//glm::mat4 model = scene->getModels()[i].modelMatrix();
@@ -116,7 +152,7 @@ void ForwardRenderer::renderScene(Scene* scene)
 		push_constant.mat1 = modelmat;
 
 
-		push_constant.mat2 = glm::inverseTranspose(glm::mat3(scene->getCamera()->viewMatrix() * modelmat));
+		push_constant.mat2 = glm::inverseTranspose(glm::mat3(m_scene->getCamera()->viewMatrix() * modelmat));
 		
 
 		
@@ -143,8 +179,11 @@ void ForwardRenderer::renderScene(Scene* scene)
 		{
 			
 
-			m_render_backend->RC_bindGraphicsPipeline(curr_material->pipeline());
-			m_render_backend->RC_pushConstants(curr_material->pipeline(), push_constant);
+			//m_render_backend->RC_bindGraphicsPipeline(curr_material->pipeline());
+			cmd_buffer.bindPipeline(*curr_material->pipeline());
+			//m_render_backend->RC_pushConstants(curr_material->pipeline(), push_constant);
+			cmd_buffer.setPushConstants(push_constant);
+
 
 			constexpr int offset_count = 4;
 			uint32_t offset[offset_count];
@@ -152,27 +191,34 @@ void ForwardRenderer::renderScene(Scene* scene)
 			offset[1] = m_camera_buffer.get()->offset() * frame_num;
 			offset[2] = m_dir_lights_buffer.get()->offset() * frame_num;
 			offset[3] = m_point_lights_buffer.get()->offset() * frame_num;
-			m_render_backend->RC_bindDescriptorSet(curr_material->pipeline(), m_global_descriptor[frame_num], offset_count, offset);
+			
+			//m_render_backend->RC_bindDescriptorSet(curr_material->pipeline(), m_global_descriptor[frame_num], offset_count, offset);
+			cmd_buffer.bindDescriptorSet(*curr_material->pipeline(), m_global_descriptor[frame_num], offset_count, offset);
 
-			//Check if material changed
+			//Check if material changed  
 			if (curr_material != last_material) 
 			{
 
 				//Change material descriptors
 				
 				//texture descriptor
-				m_render_backend->RC_bindDescriptorSet(curr_material->pipeline(), curr_material->descriptorSet(), 0, nullptr);
-				
+				//m_render_backend->RC_bindDescriptorSet(curr_material->pipeline(), curr_material->descriptorSet(), 0, nullptr);
+				cmd_buffer.bindMaterial(*curr_material);
 
 			}
 		}
 		
 
-		m_render_backend->RC_bindVertexBuffer(curr_mesh->getVertexBuffer());
-		m_render_backend->RC_bindIndexBuffer(curr_mesh->getIndexBuffer());
+		//m_render_backend->RC_bindVertexBuffer(curr_mesh->getVertexBuffer());
+		//m_render_backend->RC_bindIndexBuffer(curr_mesh->getIndexBuffer());
 
-		m_render_backend->RC_drawIndexed(curr_mesh->getIndexBuffer()->getSize());
-		//m_render_backend->RC_drawSumbit(curr_mesh->getVertexBuffer()->getSize());
+		//m_render_backend->RC_drawIndexed(curr_mesh->getIndexBuffer()->getSize());
+
+
+		cmd_buffer.bindVertexBuffer(*curr_mesh->getVertexBuffer());
+		cmd_buffer.bindIndexBuffer(*curr_mesh->getIndexBuffer());
+
+		cmd_buffer.drawIndexed(curr_mesh->getIndexBuffer()->getIndexCount());
 	}
 
 
@@ -180,21 +226,28 @@ void ForwardRenderer::renderScene(Scene* scene)
 	
 	//Render skybox
 	{
-		Material* curr_material = scene->skybox()->material().get();
-		Mesh* curr_mesh = scene->skybox()->mesh().get();
-		m_render_backend->RC_bindGraphicsPipeline(curr_material->pipeline());
+		Material* curr_material = m_scene->skybox()->material().get();
+		Mesh* curr_mesh = m_scene->skybox()->mesh().get();
+		//m_render_backend->RC_bindGraphicsPipeline(curr_material->pipeline());
+		
+		cmd_buffer.bindMaterial(*curr_material);
 
 		MatrixPushConstant push_constant;
-		push_constant.mat1 = glm::mat3(scene->getCamera()->viewMatrix()); //view without tranlation
-		push_constant.mat2 = scene->getCamera()->projectionMatrix();	//projection
-		m_render_backend->RC_pushConstants(curr_material->pipeline(), push_constant);
-		m_render_backend->RC_bindDescriptorSet(curr_material->pipeline(), curr_material->descriptorSet(), 0, nullptr);
+		push_constant.mat1 = glm::mat3(m_scene->getCamera()->viewMatrix()); //view without tranlation
+		push_constant.mat2 = m_scene->getCamera()->projectionMatrix();	//projection
+		//m_render_backend->RC_pushConstants(curr_material->pipeline(), push_constant);
+		//m_render_backend->RC_bindDescriptorSet(curr_material->pipeline(), curr_material->descriptorSet(), 0, nullptr);
 
+		cmd_buffer.setPushConstants(push_constant);
+		
 
-		m_render_backend->RC_bindVertexBuffer(curr_mesh->getVertexBuffer());
-		m_render_backend->RC_bindIndexBuffer(curr_mesh->getIndexBuffer());
-		m_render_backend->RC_drawIndexed(curr_mesh->getIndexBuffer()->getSize());
+		//m_render_backend->RC_bindVertexBuffer(curr_mesh->getVertexBuffer());
+		//m_render_backend->RC_bindIndexBuffer(curr_mesh->getIndexBuffer());
+		//m_render_backend->RC_drawIndexed(curr_mesh->getIndexBuffer()->getSize());
+		cmd_buffer.bindVertexBuffer(*curr_mesh->getVertexBuffer());
+		cmd_buffer.bindIndexBuffer(*curr_mesh->getIndexBuffer());
 
+		cmd_buffer.drawIndexed(curr_mesh->getIndexBuffer()->getIndexCount());
 	}
 
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Engine/Renderer/Vulkan/Images/Image.h"
+#include "Engine/Renderer/Vulkan/Commands/CommandBuffer.h"
 #include <vulkan/vulkan.h>
 
 struct GPUinfo_t;
@@ -12,15 +13,15 @@ public:
 
 	Swapchain(const VkExtent2D& extent);
 
-	void present(/*CmdBuffer cmd, Queue VkQueue*/){};//TODO
-	
+	void present(const CommandBuffer& cmd_buffer);//TODO
+	void beginNextFrame();
 
 
 
 	struct SyncStructures{
 		VkSemaphore  m_present_semaphore;
 		VkSemaphore  m_render_semaphore;
-		VkFence      m_render_fence;
+		VkFence      m_render_fence; //will be used for when swapchain needs rebuilding
 	};
 
 	VkSwapchainKHR swapchainKHR() const { return m_swapchain; };

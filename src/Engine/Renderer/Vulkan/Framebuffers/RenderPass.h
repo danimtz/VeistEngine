@@ -33,7 +33,7 @@ public:
 	RenderPass(VkRenderPass renderpass) : m_render_pass(renderpass) {};
 	RenderPass() = default;
 
-	VkRenderPass renderpass() const { return m_render_pass; };
+	VkRenderPass vk_renderpass() const { return m_render_pass; };
 	
 private:
 

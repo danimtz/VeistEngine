@@ -13,8 +13,10 @@ public:
 
 	virtual void init(std::shared_ptr<RenderBackend> backend){};
 	
-	virtual void renderScene(Scene* scene){};
-	
+	virtual void onUpdate() {};
+
+	virtual void setScene(Scene* scene){};
+
 protected:
 
 	virtual void setRenderBackend(std::shared_ptr<RenderBackend> backend) { m_render_backend = backend; };

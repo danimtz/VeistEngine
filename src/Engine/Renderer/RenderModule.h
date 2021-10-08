@@ -19,8 +19,18 @@ public:
 	static std::shared_ptr<RenderBackend> getRenderBackend(){return s_render_backend;};
 	static void selectRenderArchitecture(RendererType renderer_type = RendererType::Forward); //default to forward renderer
 
+	static inline void onUpdate()
+	{
+		s_renderer->onUpdate();
+	}
+	
+	static inline void setScene(Scene* scene)
+	{
+		s_renderer->setScene(scene);
+	}
 
-	static inline void beginFrame()
+
+	/*static inline void beginFrame()
 	{
 		s_render_backend->RC_beginFrame();
 	};
@@ -34,7 +44,7 @@ public:
 	{
 		s_renderer->renderScene(scene);
 	};
-
+	*/
 private:
 
 	static std::unique_ptr<Renderer> s_renderer; //THESES NED TO SOMEHOW BE PREINITIALIZED. FIGURE IT OUT TOMMORROW

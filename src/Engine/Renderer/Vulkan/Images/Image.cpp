@@ -72,7 +72,7 @@ ImageBase::ImageBase(void* data, ImageProperties properties, ImageUsage usage, I
 	}
 
 
-	//Sumbit staging buffer copy
+	//Sumbit staging buffer copy TODO: change to use cmd buffer
 	RenderModule::getRenderBackend()->immediateSubmit([&](VkCommandBuffer cmd) {
 
 		//prepare pipeline barrier //TODO: Generalize image barrier to other type of images. i think only works with normal textures atm

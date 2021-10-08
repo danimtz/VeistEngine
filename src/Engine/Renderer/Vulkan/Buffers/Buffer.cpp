@@ -3,6 +3,10 @@
 #include "Engine/Renderer/RenderModule.h"
 
 
+Buffer::Buffer(uint32_t size, VkBufferUsageFlagBits buffer_usage, VmaMemoryUsage memory_usage) : m_size(size), m_buffer({size, buffer_usage, memory_usage}) 
+{
+}
+
 
 
 VulkanBuffer::VulkanBuffer(uint32_t size, VkBufferUsageFlagBits buffer_usage, VmaMemoryUsage memory_usage)

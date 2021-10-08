@@ -30,6 +30,7 @@ int main() {
 
     Scene* scene = new Scene();
 
+    RenderModule::setScene(scene);
 //Mainloop
     while (!glfwWindowShouldClose(window)) 
     {
@@ -39,8 +40,12 @@ int main() {
         scene->onUpdate();
 
 
+        
+        RenderModule::onUpdate();
+
+
         //Rendering (rework this at some point RenderModule::onUpdate() should be called here only but then GUI module depends on render module etc etc) 
-        RenderModule::beginFrame();
+        /*RenderModule::beginFrame();
         {
 
             //Render scene
@@ -56,7 +61,7 @@ int main() {
             GUIModule::endFrame();
         }
         RenderModule::endFrame();
-        
+        */
 
     }
 

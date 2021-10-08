@@ -3,6 +3,8 @@
 
 #include <vulkan/vulkan.h>
 
+class CommandBuffer;
+
 class CommandPool
 {
 
@@ -14,12 +16,15 @@ public:
 
 	VkCommandPool commandPool() const { return m_pool; };
 
+	CommandBuffer allocateCommandBuffer(bool begin_cmd_buffer = false);
 
 private:
 
 	VkCommandPool m_pool;
-
+	
+	std::vector<VkFence> m_fences;//command buffer fences
 
 	uint32_t m_thread_id; //Command pools must be exclusive to each thread NO MULTITHREADING FOR NOW BUT FOR LATER
+
 };
 

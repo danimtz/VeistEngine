@@ -37,17 +37,17 @@ static glm::u32vec2 calculateFramebufferSize(ImageBase& image)
 }
 
 
-static void createFramebuffer(std::vector<ImageBase>& colors, ImageBase& depth, VkFramebuffer& framebuffer, RenderPass* renderpass)
+static void createFramebuffer(std::vector<ImageBase>& colors, ImageBase& depth, VkFramebuffer& framebuffer, RenderPass* renderpass, glm::u32vec2& fb_size)
 {
 	//TODO:check that all color attachments and depth are the same width and height
 	
-	auto fb_size = calculateFramebufferSize(colors[0]);
+	fb_size = calculateFramebufferSize(colors[0]);
 
 	VkFramebufferCreateInfo framebuffer_info = {};
 	framebuffer_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
 	framebuffer_info.pNext = nullptr;
 
-	framebuffer_info.renderPass = renderpass->renderpass();
+	framebuffer_info.renderPass = renderpass->vk_renderpass();
 
 	framebuffer_info.width = fb_size.x;
 	framebuffer_info.height = fb_size.y;
@@ -86,13 +86,15 @@ static void createFramebuffer(std::vector<ImageBase>& colors, ImageBase& depth, 
 }
 
 
-Framebuffer::Framebuffer(std::vector<ImageBase>& colors, ImageBase& depth, LoadOp load_op) : m_render_pass(createRenderPass(colors, depth, load_op))
+Framebuffer::Framebuffer(std::vector<ImageBase>& colors, ImageBase& depth, LoadOp load_op) : 
+	m_render_pass(createRenderPass(colors, depth, load_op)), m_color_attachment_count(colors.size())
 {
-	createFramebuffer(colors, depth, m_framebuffer, m_render_pass.get());
+	createFramebuffer(colors, depth, m_framebuffer, m_render_pass.get(), m_size);
 }
 
 
-Framebuffer::Framebuffer(std::vector<ImageBase>& colors, ImageBase& depth, RenderPass* renderpass) : m_render_pass(std::make_unique<RenderPass>(renderpass->renderpass()))
+Framebuffer::Framebuffer(std::vector<ImageBase>& colors, ImageBase& depth, RenderPass* renderpass) : 
+	m_render_pass(std::make_unique<RenderPass>(renderpass->vk_renderpass())), m_color_attachment_count(colors.size())
 {
-	createFramebuffer(colors, depth, m_framebuffer, m_render_pass.get());
+	createFramebuffer(colors, depth, m_framebuffer, m_render_pass.get(), m_size);
 }

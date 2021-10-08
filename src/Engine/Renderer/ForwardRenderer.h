@@ -1,8 +1,10 @@
 #pragma once
+
 #include "Engine/Renderer/Renderer.h"
 #include "Engine/Renderer/Vulkan/ShaderAndPipelines/GraphicsPipeline.h"
 #include "Engine/Renderer/Vulkan/Buffers/ShaderBuffer.h"
 #include "Engine/Renderer/Vulkan/Descriptors/DescriptorSet.h"
+#include "Engine/Renderer/Vulkan/Commands/CommandBuffer.h"
 
 #define GLM_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
@@ -19,12 +21,15 @@ public:
 	~ForwardRenderer();
 
 	virtual void init(std::shared_ptr<RenderBackend> backend) override;
-	virtual void renderScene(Scene *scene) override;
+	virtual void setScene(Scene* scene) override;
+	virtual void onUpdate() override;
+	
+	void renderScene(CommandBuffer& cmd_buffer);
 
 private:
 
-
-
+	Scene* m_scene {nullptr};
+	
 	//Maybe put all this in a RendererData struct or something
 	static constexpr int MAX_DIR_LIGHTS = 4;
 	static constexpr int MAX_POINT_LIGHTS = 100;

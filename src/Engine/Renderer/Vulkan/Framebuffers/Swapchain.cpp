@@ -144,3 +144,73 @@ Swapchain::Swapchain(const VkExtent2D& extent) : m_extent(extent)
 	createSyncStructures();
 
 }
+
+
+void Swapchain::beginNextFrame()
+{
+	//FROM RC_beginFrame
+	VkDevice device = RenderModule::getRenderBackend()->getDevice();
+	uint32_t frame_count = RenderModule::getRenderBackend()->getFrameNumber();
+
+	VK_CHECK(vkWaitForFences(device, 1, &RenderModule::getRenderBackend()->getCurrentCmdBuffer().fence(), true, 1000000000)); //1 second timeout 1000000000ns
+	VK_CHECK(vkResetFences(device, 1, &RenderModule::getRenderBackend()->getCurrentCmdBuffer().fence()));
+
+	//request next image from swapchain, 1 second timeout
+	VK_CHECK(vkAcquireNextImageKHR(device, swapchainKHR(), 1000000000, currentSyncStructures(frame_count).m_present_semaphore, nullptr, &m_img_idx));
+
+}
+
+void Swapchain::present(const CommandBuffer& cmd_buffer)
+{
+	uint32_t frame_count = RenderModule::getRenderBackend()->getFrameNumber();//TODO: maybe frame counter should be kept inside swapchain not render backend?
+
+
+	VkCommandBuffer command_buffer = cmd_buffer.vk_commandBuffer();
+
+	
+
+	VkSubmitInfo submit_info = {};
+	submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	submit_info.pNext = nullptr;
+
+	VkPipelineStageFlags wait_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	submit_info.pWaitDstStageMask = &wait_stage;
+
+	//Wait on the m_present_semaphore, that semaphore is signallled when swapchain ready
+	submit_info.waitSemaphoreCount = 1;
+	submit_info.pWaitSemaphores = &currentSyncStructures(frame_count).m_present_semaphore;
+
+	//Signal the m_render_semaphore, to signal that rendering has finished
+	submit_info.signalSemaphoreCount = 1;
+	submit_info.pSignalSemaphores = &currentSyncStructures(frame_count).m_render_semaphore;
+
+	submit_info.commandBufferCount = 1;
+	submit_info.pCommandBuffers = &command_buffer;
+
+	//Sumbit command buffer to queue and execute. m_render_fence will block until commands finish
+	VkQueue graphics_queue = RenderModule::getRenderBackend()->getGraphicsQueue();
+	VK_CHECK(vkQueueSubmit(graphics_queue, 1, &submit_info, cmd_buffer.fence()));
+
+
+	//Put image on visible window. Must wait on m_render_semaphore to ensure that drawing commands have finished
+	VkPresentInfoKHR present_info = {};
+	present_info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+	present_info.pNext = nullptr;
+
+	VkSwapchainKHR swapchain = swapchainKHR();
+	present_info.pSwapchains = &swapchain;
+	present_info.swapchainCount = 1;
+
+	present_info.pWaitSemaphores = &currentSyncStructures(frame_count).m_render_semaphore;
+	present_info.waitSemaphoreCount = 1;
+
+	present_info.pImageIndices = &currentImageIndex();
+
+
+	VK_CHECK(vkQueuePresentKHR(graphics_queue, &present_info));
+
+	//Increment frame counter
+	RenderModule::getRenderBackend()->incrementFrameCounter();
+
+	
+}
