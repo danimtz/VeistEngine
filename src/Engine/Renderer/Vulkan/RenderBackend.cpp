@@ -580,34 +580,29 @@ void RenderBackend::createSwapchainAndImages()
 
 void RenderBackend::createCommandPoolAndBuffers() {
 
-	VkCommandPoolCreateInfo pool_create_info = {};
-	pool_create_info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-	pool_create_info.queueFamilyIndex = m_graphics_family_idx;
-	pool_create_info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-	pool_create_info.pNext = nullptr;
 
+	
 	for (int i = 0; i < FRAME_OVERLAP_COUNT; i++) {
 
-		
-		VK_CHECK(vkCreateCommandPool(m_device, &pool_create_info, nullptr, &m_frame_data[i].m_command_pool));
-
-		
+		/*
 		VkCommandBufferAllocateInfo buffer_create_info = {};
 		buffer_create_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 		buffer_create_info.pNext = nullptr;
-		buffer_create_info.commandPool = m_frame_data[i].m_command_pool;
+		buffer_create_info.commandPool = command_pool;
 		buffer_create_info.commandBufferCount = 1;
 		buffer_create_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 
 		VK_CHECK(vkAllocateCommandBuffers(m_device, &buffer_create_info, &m_frame_data[i].m_command_buffer));
 
-		m_deletion_queue.pushFunction([=]() { vkDestroyCommandPool(m_device, m_frame_data[i].m_command_pool, nullptr); });
+		//m_deletion_queue.pushFunction([=]() { vkDestroyCommandPool(m_device, m_frame_data[i].m_command_pool, nullptr); });*/
+		
+		CommandPool* command_pool = m_command_pools.emplace_back(std::make_shared<CommandPool>()).get();
+		m_command_buffers[i] = command_pool->allocateCommandBuffer();
 	}
 	
 
 	//Create command pool for upload context (staging buffers etc)
-	VK_CHECK(vkCreateCommandPool(m_device, &pool_create_info, nullptr, &m_upload_context.m_command_pool));
-	m_deletion_queue.pushFunction([=]() { vkDestroyCommandPool(m_device, m_upload_context.m_command_pool, nullptr); });
+	m_upload_context.m_command_pool = std::make_shared<CommandPool>();
 
 }
 
@@ -686,7 +681,7 @@ void RenderBackend::shutdown() {
 	if(m_isInitialized){
 		
 		--m_frame_count;
-		vkWaitForFences(m_device, 1, &m_swapchain.get()->currentSyncStructures(m_frame_count).m_render_fence, true, 1000000000);
+		vkWaitForFences(m_device, 1, &getCurrentFrameCmdBuffer().fence(), true, 1000000000);
 		++m_frame_count;
 
 		m_descriptor_allocator->cleanup();
@@ -775,12 +770,16 @@ void RenderBackend::initImGUI()
 	
 
 
-	ImGui_ImplVulkan_Init(&init_info, m_render_pass.renderpass());
+	ImGui_ImplVulkan_Init(&init_info, m_render_pass.vk_renderpass());
 
 	//execute a gpu command to upload imgui font textures
-	immediateSubmit([&](VkCommandBuffer cmd) {
-		ImGui_ImplVulkan_CreateFontsTexture(cmd);
-		});
+	CommandBuffer cmd_buffer = createDisposableCmdBuffer();
+	ImGui_ImplVulkan_CreateFontsTexture(cmd_buffer.vk_commandBuffer());
+	cmd_buffer.immediateSubmit();
+
+	//immediateSubmit([&](VkCommandBuffer cmd) {
+	//	ImGui_ImplVulkan_CreateFontsTexture(cmd);
+	//	});
 
 	//clear font textures from cpu data
 	ImGui_ImplVulkan_DestroyFontUploadObjects();
@@ -796,6 +795,17 @@ void RenderBackend::initImGUI()
 
 
 /*
+============================================
+RenderBackend create disposable cmd buffer
+============================================
+*/
+
+CommandBuffer& RenderBackend::createDisposableCmdBuffer()
+{
+	return m_upload_context.m_command_pool.get()->allocateCommandBuffer(true);
+}
+
+/*
 =====================================
 RenderBackend Immediate Submit
 =====================================
@@ -807,7 +817,7 @@ void RenderBackend::immediateSubmit(std::function<void(VkCommandBuffer cmd)> fun
 	VkCommandBufferAllocateInfo cmd_allocate_info = {};
 	cmd_allocate_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 	cmd_allocate_info.commandBufferCount = 1;
-	cmd_allocate_info.commandPool = m_upload_context.m_command_pool;
+	cmd_allocate_info.commandPool = m_upload_context.m_command_pool.get()->commandPool();
 	cmd_allocate_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 	cmd_allocate_info.pNext = nullptr;
 		
@@ -850,8 +860,9 @@ void RenderBackend::immediateSubmit(std::function<void(VkCommandBuffer cmd)> fun
 	vkResetFences(m_device, 1, &m_upload_context.m_fence);
 
 	//clear the command pool
-	vkResetCommandPool(m_device, m_upload_context.m_command_pool, 0);
+	m_upload_context.m_command_pool.get()->resetPool();
 
+	CONSOLE_LOG("IMMEDIATE SUBMIT: Data sumbitted to GPU");
 }
 
 
@@ -868,18 +879,18 @@ void RenderBackend::RC_beginFrame()
 {
 
 	//Wait for GPU to finish last frame
-	VK_CHECK(vkWaitForFences(m_device, 1, &m_swapchain.get()->currentSyncStructures(m_frame_count).m_render_fence, true, 1000000000)); //1 second timeout 1000000000ns
-	VK_CHECK(vkResetFences(m_device, 1, &m_swapchain.get()->currentSyncStructures(m_frame_count).m_render_fence));
+	VK_CHECK( vkWaitForFences(m_device, 1, &getCurrentFrameCmdBuffer().fence(), true, 1000000000)); //1 second timeout 1000000000ns
+	VK_CHECK( vkResetFences(m_device, 1, &getCurrentFrameCmdBuffer().fence() ));
 
 	//request next image from swapchain, 1 second timeout
-	
-	VK_CHECK(vkAcquireNextImageKHR(m_device, m_swapchain.get()->swapchainKHR(), 1000000000, m_swapchain.get()->currentSyncStructures(m_frame_count).m_present_semaphore, nullptr, &m_swapchain.get()->currentImageIndex()));
+	VK_CHECK(vkAcquireNextImageKHR(m_device, m_swapchain.get()->swapchainKHR(), 1000000000, m_swapchain.get()->currentSyncStructures(m_frame_count).m_present_semaphore, 
+			nullptr, &m_swapchain.get()->currentImageIndex()));
 
 	//Reset command buffer (past fence so we know commands finished executing)
-	VK_CHECK(vkResetCommandBuffer(getCurrentFrame().m_command_buffer, 0));
+	VK_CHECK(vkResetCommandBuffer(getCurrentFrameCmdBuffer().vk_commandBuffer(), 0));
 
 
-	VkCommandBuffer cmd_buffer = getCurrentFrame().m_command_buffer;
+	VkCommandBuffer cmd_buffer = getCurrentFrameCmdBuffer().vk_commandBuffer();
 
 	VkCommandBufferBeginInfo cmd_buffer_begin_info = {};
 	cmd_buffer_begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -897,7 +908,7 @@ void RenderBackend::RC_beginFrame()
 	render_pass_begin_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 	render_pass_begin_info.pNext = nullptr;
 
-	render_pass_begin_info.renderPass = m_render_pass.renderpass();
+	render_pass_begin_info.renderPass = m_render_pass.vk_renderpass();
 	render_pass_begin_info.renderArea.offset.x = 0;
 	render_pass_begin_info.renderArea.offset.y = 0;
 	render_pass_begin_info.renderArea.extent = m_swapchain.get()->extent();
@@ -921,7 +932,7 @@ void RenderBackend::RC_beginFrame()
 void RenderBackend::RC_endFrame() 
 {
 
-	VkCommandBuffer cmd_buffer = getCurrentFrame().m_command_buffer;
+	VkCommandBuffer cmd_buffer = getCurrentFrameCmdBuffer().vk_commandBuffer();
 
 
 	vkCmdEndRenderPass(cmd_buffer);
@@ -939,7 +950,7 @@ void RenderBackend::RC_endFrame()
 
 	submit_info.pWaitDstStageMask = &wait_stage;
 
-	//Wait on the m_present_semaphore, that semaphore is sgnallled when swapchain ready
+	//Wait on the m_present_semaphore, that semaphore is signallled when swapchain ready
 	submit_info.waitSemaphoreCount = 1;
 	submit_info.pWaitSemaphores = &m_swapchain.get()->currentSyncStructures(m_frame_count).m_present_semaphore;
 
@@ -951,7 +962,7 @@ void RenderBackend::RC_endFrame()
 	submit_info.pCommandBuffers = &cmd_buffer;
 
 	//Sumbit command buffer to queue and execute. m_render_fence will block until commands finish
-	VK_CHECK(vkQueueSubmit(m_graphics_queue, 1, &submit_info, m_swapchain.get()->currentSyncStructures(m_frame_count).m_render_fence));
+	VK_CHECK(vkQueueSubmit(m_graphics_queue, 1, &submit_info, getCurrentFrameCmdBuffer().fence()));
 
 
 	//Put image on visible window. Must wait on m_render_semaphore to ensure that drawing commands have finished
@@ -977,7 +988,7 @@ void RenderBackend::RC_endFrame()
 
 void RenderBackend::RC_bindGraphicsPipeline(const std::shared_ptr<GraphicsPipeline> pipeline)
 {
-	VkCommandBuffer cmd_buffer = getCurrentFrame().m_command_buffer;
+	VkCommandBuffer cmd_buffer = getCurrentFrameCmdBuffer().vk_commandBuffer();
 
 	VkPipeline vulkan_pipeline = pipeline->pipeline();
 	vkCmdBindPipeline(cmd_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkan_pipeline);
@@ -987,7 +998,7 @@ void RenderBackend::RC_bindGraphicsPipeline(const std::shared_ptr<GraphicsPipeli
 
 void RenderBackend::RC_pushConstants(const std::shared_ptr<GraphicsPipeline> pipeline, const MatrixPushConstant push_constant)
 {
-	VkCommandBuffer cmd_buffer = getCurrentFrame().m_command_buffer;
+	VkCommandBuffer cmd_buffer = getCurrentFrameCmdBuffer().vk_commandBuffer();
 
 	VkPipelineLayout vulkan_pipeline_layout = pipeline->pipelineLayout();
 
@@ -999,7 +1010,7 @@ void RenderBackend::RC_pushConstants(const std::shared_ptr<GraphicsPipeline> pip
 
 void RenderBackend::RC_bindVertexBuffer(const std::shared_ptr<VertexBuffer> vertex_buffer)
 {
-	VkCommandBuffer cmd_buffer = getCurrentFrame().m_command_buffer;
+	VkCommandBuffer cmd_buffer = getCurrentFrameCmdBuffer().vk_commandBuffer();
 
 	VkBuffer buffer = (vertex_buffer->getBuffer());
 
@@ -1011,7 +1022,7 @@ void RenderBackend::RC_bindVertexBuffer(const std::shared_ptr<VertexBuffer> vert
 
 void RenderBackend::RC_bindIndexBuffer(const std::shared_ptr<IndexBuffer> index_buffer)
 {
-	VkCommandBuffer cmd_buffer = getCurrentFrame().m_command_buffer;
+	VkCommandBuffer cmd_buffer = getCurrentFrameCmdBuffer().vk_commandBuffer();
 
 	VkBuffer buffer = (index_buffer->getBuffer());
 
@@ -1023,14 +1034,14 @@ void RenderBackend::RC_bindIndexBuffer(const std::shared_ptr<IndexBuffer> index_
 
 void RenderBackend::RC_drawSumbit(uint32_t size)
 {
-	VkCommandBuffer cmd_buffer = getCurrentFrame().m_command_buffer;
+	VkCommandBuffer cmd_buffer = getCurrentFrameCmdBuffer().vk_commandBuffer();
 	vkCmdDraw(cmd_buffer, size, 1, 0, 0);
 }
 
 
 void RenderBackend::RC_drawIndexed(uint32_t size)
 {
-	VkCommandBuffer cmd_buffer = getCurrentFrame().m_command_buffer;
+	VkCommandBuffer cmd_buffer = getCurrentFrameCmdBuffer().vk_commandBuffer();
 
 	vkCmdDrawIndexed(cmd_buffer, size, 1, 0, 0, 0);
 
@@ -1041,10 +1052,18 @@ void RenderBackend::RC_drawIndexed(uint32_t size)
 void RenderBackend::RC_bindDescriptorSet(const std::shared_ptr<GraphicsPipeline> pipeline, const DescriptorSet& descriptor_set, uint32_t offset_count, uint32_t* p_dynamic_offset)
 {
 
-	VkCommandBuffer cmd_buffer = getCurrentFrame().m_command_buffer;
+	VkCommandBuffer cmd_buffer = getCurrentFrameCmdBuffer().vk_commandBuffer();
 
 	VkPipelineLayout vulkan_pipeline_layout = pipeline->pipelineLayout();
 
-	vkCmdBindDescriptorSets(cmd_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkan_pipeline_layout, descriptor_set.setNumber(), 1, &descriptor_set.descriptorSet(), offset_count, p_dynamic_offset);
+	vkCmdBindDescriptorSets(
+		cmd_buffer, 
+		VK_PIPELINE_BIND_POINT_GRAPHICS,
+		vulkan_pipeline_layout, 
+		descriptor_set.setNumber(), 
+		1, 
+		&descriptor_set.descriptorSet(), 
+		offset_count, 
+		p_dynamic_offset);
 
 }
