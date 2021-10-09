@@ -23,12 +23,12 @@ void ForwardRenderer::init(std::shared_ptr<RenderBackend> backend)
 
 
 
-	m_camera_buffer = std::make_unique<ShaderBuffer>(sizeof(CameraData), m_render_backend->getSwapchainBufferCount(), ShaderBufferUsage::Uniform);
-	m_scene_info_buffer = std::make_unique<ShaderBuffer>(sizeof(SceneInfo), m_render_backend->getSwapchainBufferCount(), ShaderBufferUsage::Uniform);
-	m_dir_lights_buffer = std::make_unique<ShaderBuffer>(sizeof(GPUDirLight) * MAX_DIR_LIGHTS, m_render_backend->getSwapchainBufferCount(), ShaderBufferUsage::Uniform);
-	m_point_lights_buffer = std::make_unique<ShaderBuffer>(sizeof(GPUPointLight) * MAX_POINT_LIGHTS, m_render_backend->getSwapchainBufferCount(), ShaderBufferUsage::Storage);
+	m_camera_buffer = std::make_unique<ShaderBuffer>(sizeof(CameraData), m_render_backend->getSwapchain()->imageCount(), ShaderBufferUsage::Uniform);
+	m_scene_info_buffer = std::make_unique<ShaderBuffer>(sizeof(SceneInfo), m_render_backend->getSwapchain()->imageCount(), ShaderBufferUsage::Uniform);
+	m_dir_lights_buffer = std::make_unique<ShaderBuffer>(sizeof(GPUDirLight) * MAX_DIR_LIGHTS, m_render_backend->getSwapchain()->imageCount(), ShaderBufferUsage::Uniform);
+	m_point_lights_buffer = std::make_unique<ShaderBuffer>(sizeof(GPUPointLight) * MAX_POINT_LIGHTS, m_render_backend->getSwapchain()->imageCount(), ShaderBufferUsage::Storage);
 
-	m_global_descriptor.resize(m_render_backend->getSwapchainBufferCount());
+	m_global_descriptor.resize(m_render_backend->getSwapchain()->imageCount());
 
 }
 
@@ -179,9 +179,8 @@ void ForwardRenderer::renderScene(CommandBuffer& cmd_buffer)
 		{
 			
 
-			//m_render_backend->RC_bindGraphicsPipeline(curr_material->pipeline());
+			
 			cmd_buffer.bindPipeline(*curr_material->pipeline());
-			//m_render_backend->RC_pushConstants(curr_material->pipeline(), push_constant);
 			cmd_buffer.setPushConstants(push_constant);
 
 
@@ -202,19 +201,11 @@ void ForwardRenderer::renderScene(CommandBuffer& cmd_buffer)
 				//Change material descriptors
 				
 				//texture descriptor
-				//m_render_backend->RC_bindDescriptorSet(curr_material->pipeline(), curr_material->descriptorSet(), 0, nullptr);
+				
 				cmd_buffer.bindMaterial(*curr_material);
 
 			}
 		}
-		
-
-		//m_render_backend->RC_bindVertexBuffer(curr_mesh->getVertexBuffer());
-		//m_render_backend->RC_bindIndexBuffer(curr_mesh->getIndexBuffer());
-
-		//m_render_backend->RC_drawIndexed(curr_mesh->getIndexBuffer()->getSize());
-
-
 		cmd_buffer.bindVertexBuffer(*curr_mesh->getVertexBuffer());
 		cmd_buffer.bindIndexBuffer(*curr_mesh->getIndexBuffer());
 
@@ -228,22 +219,14 @@ void ForwardRenderer::renderScene(CommandBuffer& cmd_buffer)
 	{
 		Material* curr_material = m_scene->skybox()->material().get();
 		Mesh* curr_mesh = m_scene->skybox()->mesh().get();
-		//m_render_backend->RC_bindGraphicsPipeline(curr_material->pipeline());
 		
 		cmd_buffer.bindMaterial(*curr_material);
 
 		MatrixPushConstant push_constant;
 		push_constant.mat1 = glm::mat3(m_scene->getCamera()->viewMatrix()); //view without tranlation
 		push_constant.mat2 = m_scene->getCamera()->projectionMatrix();	//projection
-		//m_render_backend->RC_pushConstants(curr_material->pipeline(), push_constant);
-		//m_render_backend->RC_bindDescriptorSet(curr_material->pipeline(), curr_material->descriptorSet(), 0, nullptr);
-
 		cmd_buffer.setPushConstants(push_constant);
 		
-
-		//m_render_backend->RC_bindVertexBuffer(curr_mesh->getVertexBuffer());
-		//m_render_backend->RC_bindIndexBuffer(curr_mesh->getIndexBuffer());
-		//m_render_backend->RC_drawIndexed(curr_mesh->getIndexBuffer()->getSize());
 		cmd_buffer.bindVertexBuffer(*curr_mesh->getVertexBuffer());
 		cmd_buffer.bindIndexBuffer(*curr_mesh->getIndexBuffer());
 

@@ -7,6 +7,7 @@
 #include "Engine/Logger.h"
 #include "Engine/Renderer/Vulkan/ShaderAndPipelines/Shader.h"
 #include "Engine/Renderer/Vulkan/Buffers/VertexDescription.h"
+#include "Engine/Renderer/Vulkan/Framebuffers/Renderpass.h"
 
 #include <glm/glm.hpp>
 
@@ -26,44 +27,27 @@ enum class DepthTest {
 };
 
 
-class GraphicsPipeline {
+
+
+class GraphicsPipelineBuilder
+{
 public:
 
-	GraphicsPipeline(std::string shader_name,  const VertexDescription& vertex_desc, DepthTest depth_test = DepthTest::ReadWrite, VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
-		VkPolygonMode polygon_mode = VK_POLYGON_MODE_FILL, VkCullModeFlags cull_mode = VK_CULL_MODE_BACK_BIT,/*VK_CULL_MODE_BACK_BIT*//*VK_CULL_MODE_NONE*/
-		VkFrontFace front_face = VK_FRONT_FACE_COUNTER_CLOCKWISE);
 
-	~GraphicsPipeline(){};
+	GraphicsPipelineBuilder(std::string shader_name, const VertexDescription& vertex_desc, DepthTest depth_test, VkPrimitiveTopology topology,
+		VkPolygonMode polygon_mode, VkCullModeFlags cull_mode, VkFrontFace front_face); 
+	
+	
+	VkPipeline buildPipeline(const RenderPass& renderpass);
 
-
-	VkPipeline pipeline() const { return m_pipeline; };
-	VkPipelineLayout pipelineLayout() const { return m_pipeline_layout; };
-	ShaderProgram* shaderProgram() const { return m_shader_program.get(); };
+	VkRenderPass vk_renderpass() const {return m_renderpass;};
 
 private:
-
-	VkPipeline				m_pipeline;
-	VkPipelineLayout		m_pipeline_layout;
-	std::shared_ptr<ShaderProgram>	m_shader_program;
-};
-
-
-class GraphicsPipelineBuilder {
-public:
-
-	GraphicsPipelineBuilder(std::string shader_name, const VertexDescription&vertex_desc, DepthTest depth_test, VkPrimitiveTopology topology,
-		VkPolygonMode polygon_mode, VkCullModeFlags cull_mode, VkFrontFace front_face);
-	
-
-
-private:
-	
 
 	void createShaderProgram(std::string shader_name);
 	void setVertexInputDescriptions(const VertexDescription& vertex_desc);
 	void createPipelineStates();
 	void createPipelineLayout();
-	void createPipeline();
 
 
 	//Constructor parameters (MORE TO BE ADDED)
@@ -74,18 +58,19 @@ private:
 	DepthTest			m_depth_test;
 
 	//Pipeline attributes
-	VkPipeline										m_pipeline;
+	
 
 
 	std::shared_ptr<ShaderProgram>			m_shader_program;
 
-	
+	VkRenderPass m_renderpass;
+
 	VkPipelineVertexInputStateCreateInfo			m_vertex_input_info = {};
 	VkPipelineInputAssemblyStateCreateInfo			m_input_assembly_info = {};
 	VkPipelineRasterizationStateCreateInfo			m_rasterizer_info = {};
 	VkPipelineMultisampleStateCreateInfo			m_multisample_state_info = {};
 	VkPipelineColorBlendAttachmentState				m_color_blend_attachment_state = {};//This could be a vector if using multiple attachments in a multi-render targer rendering framework
-	VkPipelineColorBlendStateCreateInfo				m_color_blend_state_info = {}; 
+	VkPipelineColorBlendStateCreateInfo				m_color_blend_state_info = {};
 	VkPipelineDepthStencilStateCreateInfo			m_depth_stencil_state_info = {};
 	VkViewport										m_viewport = {};
 	VkRect2D										m_scissor = {};
@@ -101,4 +86,42 @@ private:
 
 };
 
+
+
+
+
+
+class GraphicsPipeline {
+public:
+
+	//Create graphics pipeline for default renderpass
+	GraphicsPipeline(std::string shader_name,  const VertexDescription& vertex_desc, DepthTest depth_test = DepthTest::ReadWrite, VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
+		VkPolygonMode polygon_mode = VK_POLYGON_MODE_FILL, VkCullModeFlags cull_mode = VK_CULL_MODE_BACK_BIT,/*VK_CULL_MODE_BACK_BIT*//*VK_CULL_MODE_NONE*/
+		VkFrontFace front_face = VK_FRONT_FACE_COUNTER_CLOCKWISE);
+	
+	//Create graphics pipeline for specific renderpass
+	GraphicsPipeline(const RenderPass& renderpass, std::string shader_name, const VertexDescription& vertex_desc, DepthTest depth_test = DepthTest::ReadWrite, VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
+		VkPolygonMode polygon_mode = VK_POLYGON_MODE_FILL, VkCullModeFlags cull_mode = VK_CULL_MODE_BACK_BIT,/*VK_CULL_MODE_BACK_BIT*//*VK_CULL_MODE_NONE*/
+		VkFrontFace front_face = VK_FRONT_FACE_COUNTER_CLOCKWISE);
+
+	~GraphicsPipeline(){};
+
+
+	VkPipeline pipeline() const { return m_pipeline; };
+	VkPipelineLayout pipelineLayout() const { return m_pipeline_layout; };
+	ShaderProgram* shaderProgram() const { return m_shader_program.get(); };
+	
+	VkRenderPass getPipelineRenderpass() const  { return m_pipeline_builder.vk_renderpass();};
+
+	//Change pipeline renderpass by rebuilding it
+	void rebuildPipeline (const RenderPass& renderpass);
+
+private:
+
+	VkPipeline				m_pipeline;
+	VkPipelineLayout		m_pipeline_layout;
+	std::shared_ptr<ShaderProgram>	m_shader_program;
+
+	GraphicsPipelineBuilder m_pipeline_builder;
+};
 

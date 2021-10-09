@@ -172,12 +172,14 @@ void CommandBuffer::beginRenderPass(const Framebuffer& framebuffer)
 
 	vkCmdBeginRenderPass(m_cmd_buffer, &render_pass_begin_info, VK_SUBPASS_CONTENTS_INLINE);
 	
+	m_current_renderpass = framebuffer.renderpass();
 }
 
 void CommandBuffer::endRenderPass()
 {
 	//TODO: add check so that end renderpass cant be called without begin having been called first
 	vkCmdEndRenderPass(m_cmd_buffer);
+	m_current_renderpass = nullptr;
 }
 
 
@@ -226,6 +228,13 @@ void CommandBuffer::bindMaterial(const Material& material)
 
 void CommandBuffer::bindPipeline(const GraphicsPipeline& pipeline)
 {
+
+	//If pipeline was created for another renderpass either rebuild the pipeline or assert. choose
+	if (pipeline.getPipelineRenderpass() != m_current_renderpass->vk_renderpass())
+	{
+		CRITICAL_ERROR_LOG("Command Buffer Error: Attempted to bind pipeline for a different renderpass than its own");
+		//pipeline.rebuild(m_current_renderpass)
+	}
 
 	VkPipeline vulkan_pipeline = pipeline.pipeline();
 	vkCmdBindPipeline(m_cmd_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkan_pipeline);

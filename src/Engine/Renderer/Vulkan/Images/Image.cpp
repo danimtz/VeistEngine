@@ -76,49 +76,7 @@ ImageBase::ImageBase(void* data, ImageProperties properties, ImageUsage usage, I
 	auto cmd_buffer = RenderModule::getRenderBackend()->createDisposableCmdBuffer();
 	cmd_buffer.copyBufferToImage(stage_buff, m_image, regions, m_properties);
 	cmd_buffer.immediateSubmit();
-	/*
-	RenderModule::getRenderBackend()->immediateSubmit([&](VkCommandBuffer cmd) {
-
-		//prepare pipeline barrier //TODO: Generalize image barrier to other type of images. i think only works with normal textures atm
-		VkImageSubresourceRange range;
-		range.aspectMask = m_properties.imageFormat().imageAspectFlags();
-		range.baseMipLevel = 0;
-		range.levelCount = m_properties.mipLevels();
-		range.baseArrayLayer = 0;
-		range.layerCount = m_properties.layerCount();
-
-		VkImageMemoryBarrier barrier_toTransfer = {};
-		barrier_toTransfer.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-
-		barrier_toTransfer.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		barrier_toTransfer.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-		barrier_toTransfer.image = m_image;
-		barrier_toTransfer.subresourceRange = range;
-
-		barrier_toTransfer.srcAccessMask = 0;
-		barrier_toTransfer.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-
-		//barrier the image into the transfer-receive layout
-		vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier_toTransfer);
-
-		//copy buffer to image
-		vkCmdCopyBufferToImage(cmd, stage_buff.getBuffer(), m_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, regions.size(), regions.data());
-
-
-		//barrier to shader readable format
-		VkImageMemoryBarrier barrier_toReadable = barrier_toTransfer;
-
-		barrier_toReadable.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-		barrier_toReadable.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-
-		barrier_toReadable.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-		barrier_toReadable.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-
-		//barrier the image into the shader readable layout
-		vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier_toReadable);
-
-		});
-		*/
+	
 
 	
 }

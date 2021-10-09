@@ -4,16 +4,37 @@
 #include "Engine/Renderer/RenderModule.h"
 
 
-GraphicsPipeline::GraphicsPipeline(std::string shader_name, const VertexDescription& vertex_desc, DepthTest depth_test, VkPrimitiveTopology topology,
-	VkPolygonMode polygon_mode, VkCullModeFlags cull_mode, VkFrontFace front_face) 
-{
-	GraphicsPipelineBuilder pipeline_builder = {shader_name, vertex_desc, depth_test, topology, polygon_mode, cull_mode, front_face };
 
-	m_pipeline = pipeline_builder.m_pipeline;
-	m_pipeline_layout = pipeline_builder.m_pipeline_layout;
-	m_shader_program = pipeline_builder.m_shader_program;
+
+
+GraphicsPipeline::GraphicsPipeline(std::string shader_name, const VertexDescription& vertex_desc, DepthTest depth_test, VkPrimitiveTopology topology,
+	VkPolygonMode polygon_mode, VkCullModeFlags cull_mode, VkFrontFace front_face)  : 
+	m_pipeline_builder({ shader_name, vertex_desc, depth_test, topology, polygon_mode, cull_mode, front_face })
+{
+	
+	m_pipeline_layout = m_pipeline_builder.m_pipeline_layout;
+	m_shader_program = m_pipeline_builder.m_shader_program;
+
+	m_pipeline = m_pipeline_builder.buildPipeline(RenderModule::getRenderBackend()->getRenderPass());
+	
+};
+
+GraphicsPipeline::GraphicsPipeline(const RenderPass& renderpass, std::string shader_name, const VertexDescription& vertex_desc, DepthTest depth_test, VkPrimitiveTopology topology,
+	VkPolygonMode polygon_mode, VkCullModeFlags cull_mode, VkFrontFace front_face) :
+	m_pipeline_builder({ shader_name, vertex_desc, depth_test, topology, polygon_mode, cull_mode, front_face })
+{
+
+	m_pipeline_layout = m_pipeline_builder.m_pipeline_layout;
+	m_shader_program = m_pipeline_builder.m_shader_program;
+
+	m_pipeline = m_pipeline_builder.buildPipeline(renderpass);
 
 };
+
+void GraphicsPipeline::rebuildPipeline(const RenderPass& renderpass)
+{
+	m_pipeline = m_pipeline_builder.buildPipeline(renderpass);
+}
 
 
 
@@ -26,10 +47,7 @@ GraphicsPipelineBuilder::GraphicsPipelineBuilder(std::string shader_name, const 
 	m_front_face(front_face)
 {
 	
-	
 
-
-	
 
 	createShaderProgram(shader_name);
 
@@ -37,7 +55,6 @@ GraphicsPipelineBuilder::GraphicsPipelineBuilder(std::string shader_name, const 
 
 	createPipelineStates();
 	createPipelineLayout();
-	createPipeline();
 	
 }
 
@@ -224,7 +241,7 @@ void GraphicsPipelineBuilder::createPipelineStates()
 	//Viewport state	   //
 	/////////////////////////
 
-	VkExtent2D swapchain_extent = RenderModule::getRenderBackend()->getSwapchainExtent();
+	VkExtent2D swapchain_extent = RenderModule::getRenderBackend()->getSwapchain()->extent();
 
 	m_viewport.x = 0.0f;
 	m_viewport.y = 0.0f;
@@ -277,10 +294,11 @@ void GraphicsPipelineBuilder::createPipelineLayout()
 }
 
 
-void GraphicsPipelineBuilder::createPipeline()
+VkPipeline GraphicsPipelineBuilder::buildPipeline(const RenderPass& renderpass)
 {
+	m_renderpass = renderpass.vk_renderpass();
 	VkDevice device = RenderModule::getRenderBackend()->getDevice();
-	VkRenderPass render_pass = RenderModule::getRenderBackend()->getRenderPass();
+	//VkRenderPass render_pass = RenderModule::getRenderBackend()->getRenderPass().vk_renderpass(); //TODO: oh boy pipelines depend on a renderpass. might need to have renderpass as an agrument when creating pipelines
 
 	VkGraphicsPipelineCreateInfo pipeline_info = {};
 	pipeline_info.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -296,7 +314,7 @@ void GraphicsPipelineBuilder::createPipeline()
 	pipeline_info.pColorBlendState = &m_color_blend_state_info;
 	pipeline_info.pDepthStencilState = &m_depth_stencil_state_info;
 	pipeline_info.layout = m_pipeline_layout;
-	pipeline_info.renderPass = render_pass;
+	pipeline_info.renderPass = renderpass.vk_renderpass();
 	pipeline_info.subpass = 0; //This needs to be an argument later if subpasses are used for deferred rendering. NOTE TO FUTURE ME
 	pipeline_info.basePipelineHandle = VK_NULL_HANDLE;
 
@@ -305,8 +323,10 @@ void GraphicsPipelineBuilder::createPipeline()
 	if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipeline_info, nullptr, &pipeline) != VK_SUCCESS) {
 		CONSOLE_LOG("Pipeline creation FAILED!");
 	}
-	m_pipeline = pipeline; 
-	RenderModule::getRenderBackend()->pushToDeletionQueue(	[device, pipeline](){
-		vkDestroyPipeline(device, pipeline, nullptr); 
+
+	RenderModule::getRenderBackend()->pushToDeletionQueue(	[device, pipeline](){ //TODO: if pipeline gets rebuilt this should be destroyed
+		vkDestroyPipeline(device, pipeline, nullptr);  
 	});
+
+	return pipeline;
 }

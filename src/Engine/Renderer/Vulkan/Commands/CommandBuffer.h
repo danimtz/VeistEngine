@@ -67,6 +67,6 @@ private:
 	VkFence m_fence;
 
 	const GraphicsPipeline* m_bound_pipeline{nullptr};
-	
+	const RenderPass* m_current_renderpass{ nullptr };
 };
 

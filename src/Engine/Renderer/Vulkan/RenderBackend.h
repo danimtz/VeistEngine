@@ -71,12 +71,6 @@ struct VulkanFrameData
 };
 
 
-struct GPUUploadContext
-{
-    VkFence m_fence;
-    std::shared_ptr<CommandPool> m_command_pool;
-};
-
 
 class RenderBackend {
 public:
@@ -86,57 +80,25 @@ public:
     void shutdown();
     void initImGUI();
 
-    //TODO: clean a lot of these up AKA remove them
+    //TODO: clean up
     GLFWwindow* getWindow() const { return m_glfw_window;};
     VkDevice getDevice() const { return m_device; }; 
-    const VkExtent2D& getSwapchainExtent() const { return m_swapchain.get()->extent(); };
-    VkRenderPass getRenderPass() const { return m_render_pass.vk_renderpass(); };
     VkSurfaceKHR getSurface() const { return m_surface; };
-    VmaAllocator getAllocator() const { return m_allocator; }; //CONSIDER MOVING ALLOCATOR TO SEPARATE CLASS
     const GPUinfo_t& getGPUinfo() const { return m_gpu_info; };
-
-    VkQueue getGraphicsQueue() const { return m_graphics_queue; };
-
-    uint32_t getGraphicsFamily() const {return m_graphics_family_idx;};
-
+    VkQueue getGraphicsQueue() const { return m_graphics_queue; }
     DescriptorSetAllocator* getDescriptorAllocator() const { return m_descriptor_allocator.get(); };
-    
-    const uint32_t getSwapchainBufferCount() const {return FRAME_OVERLAP_COUNT; };
-    
     uint32_t getSwapchainImageNumber() const { return (m_frame_count % FRAME_OVERLAP_COUNT); };
     void pushToDeletionQueue(std::function<void()> function);
     void pushToSwapchainDeletionQueue(std::function<void()> function);
-
-    void immediateSubmit(std::function<void(VkCommandBuffer cmd)> function);
-    
-    
     const Framebuffer& getCurrentFramebuffer() const {return m_framebuffers[m_swapchain.get()->currentImageIndex()]; };
-
     CommandBuffer& getCurrentCmdBuffer() { return getCurrentFrameCmdBuffer(); }; //TODO rework this later
-
     Swapchain* getSwapchain() const {return m_swapchain.get();};
-    
+    VmaAllocator getAllocator() const { return m_allocator; }; //CONSIDER MOVING ALLOCATOR TO SEPARATE CLASS
     CommandBuffer& createDisposableCmdBuffer();
-
+    uint32_t getGraphicsFamily() const { return m_graphics_family_idx; };
+    const RenderPass& getRenderPass() const { return m_render_pass; };
     uint32_t getFrameNumber() const { return m_frame_count; };
     void incrementFrameCounter() { m_frame_count++; };
-
-public:
-    //render commands/functions that use vulkan commands
-    void RC_beginFrame();
-    void RC_endFrame();
-
-
-    //NOTE TO FUTURE ME should renderbackend have these funcitons? or should GraphicsPipeline and VertexBUffer etc have a  Bind() function that does them
-    void RC_bindGraphicsPipeline(const std::shared_ptr<GraphicsPipeline>); 
-    void RC_pushConstants(const std::shared_ptr<GraphicsPipeline> pipeline, const MatrixPushConstant push_constant);
-    void RC_bindVertexBuffer(const std::shared_ptr<VertexBuffer> vertex_buffer);
-    void RC_bindIndexBuffer(const std::shared_ptr<IndexBuffer> index_buffer);
-
-    void RC_bindDescriptorSet(const std::shared_ptr<GraphicsPipeline> pipeline, const DescriptorSet& descriptor_set, uint32_t offset_count = 0, uint32_t* p_dynamic_offset = nullptr);
-    void RC_drawIndexed(uint32_t size);
-    void RC_drawSumbit(uint32_t size);
-
 
 
 private://main vulkan setup
@@ -152,7 +114,7 @@ private://main vulkan setup
     void createCommandPoolAndBuffers();
     void createDefaultRenderPass();
     void createFramebuffers();
-    void createUploadSemaphoresAndFences();
+    //void createUploadSemaphoresAndFences();
     void createDescriptorAllocator();
     
     CommandBuffer& getCurrentFrameCmdBuffer() { return m_command_buffers[m_frame_count % FRAME_OVERLAP_COUNT]; };
@@ -192,7 +154,7 @@ private:
     //VulkanFrameData                 m_frame_data[FRAME_OVERLAP_COUNT];
 
 //Immediate sumbit 
-    GPUUploadContext                m_upload_context;
+    std::shared_ptr<CommandPool>    m_disposable_pool;         
 
 
 // Other

@@ -39,30 +39,11 @@ int main() {
 
         scene->onUpdate();
 
-
-        
         RenderModule::onUpdate();
 
 
         //Rendering (rework this at some point RenderModule::onUpdate() should be called here only but then GUI module depends on render module etc etc) 
-        /*RenderModule::beginFrame();
-        {
-
-            //Render scene
-            RenderModule::renderScene(scene);
-           
-
-            //Render GUI
-            GUIModule::beginFrame();
-            {
-                //module or whatever->onUpdateImGUI()
-                ImGui::ShowDemoWindow();
-            }
-            GUIModule::endFrame();
-        }
-        RenderModule::endFrame();
-        */
-
+       
     }
 
 
