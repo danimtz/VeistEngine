@@ -4,7 +4,7 @@
 
 #include "Engine/Renderer/RenderModule.h"
 
-
+#include <shaderc/shaderc.hpp>
 
 
 static VkDescriptorSetLayoutBinding& getDescriptorSetLayoutBinding(uint32_t binding, VkDescriptorType descriptor_type, VkShaderStageFlagBits stage_flag)
@@ -43,8 +43,8 @@ ShaderProgram::ShaderProgram(std::string shader_name, std::string folder_path)
 {
 
 	//Simple shaders only for now. Maybe this should be a loop over all shader stages
-	std::string filepath_vert = folder_path + shader_name + ".vert.spv";
-	std::string filepath_frag = folder_path + shader_name + ".frag.spv";
+	std::string filepath_vert = folder_path + shader_name + ".vert";
+	std::string filepath_frag = folder_path + shader_name + ".frag";
 
 	createShaderModule(filepath_vert.c_str(), ShaderStageFlag::Vertex);
 	CONSOLE_LOG("Loaded vertex shader");
@@ -60,7 +60,7 @@ ShaderProgram::ShaderProgram(std::string shader_name, std::string folder_path)
 void ShaderProgram::createShaderModule(const char* file_path, ShaderStageFlag shader_type)
 {
 
-
+/*
 	//open file with cursor at the end
 	std::ifstream file(file_path, std::ios::ate | std::ios::binary);
 
@@ -81,6 +81,59 @@ void ShaderProgram::createShaderModule(const char* file_path, ShaderStageFlag sh
 	file.read((char*)buffer.data(), file_size);
 	file.close();
 
+	*/
+	std::ifstream in(file_path, std::ios::in | std::ios::binary);
+
+	std::string raw_glsl;
+	if (in)
+	{
+		in.seekg(0, std::ios::end);
+		raw_glsl.resize(in.tellg());
+		in.seekg(0, std::ios::beg);
+		in.read(&raw_glsl[0], raw_glsl.size());
+		in.close();
+	}
+	else
+	{
+		CRITICAL_ERROR_LOG("Error reading shaders. Cannot read shader file");
+	}
+
+
+
+	shaderc_shader_kind shaderc_kind;
+
+	switch (shader_type)
+	{
+		case ShaderStageFlag::Vertex:
+			shaderc_kind = shaderc_shader_kind::shaderc_vertex_shader;
+			break;
+
+		case ShaderStageFlag::Fragment:
+			shaderc_kind = shaderc_shader_kind::shaderc_fragment_shader;
+			break;
+
+		case ShaderStageFlag::Compute:
+			shaderc_kind = shaderc_shader_kind::shaderc_compute_shader;
+			break;
+
+		case ShaderStageFlag::Geometry:
+			shaderc_kind = shaderc_shader_kind::shaderc_geometry_shader;
+			break;
+	}
+
+
+	shaderc::Compiler compiler;
+	shaderc::CompileOptions options;
+	shaderc::SpvCompilationResult result = compiler.CompileGlslToSpv(raw_glsl, shaderc_kind, file_path);
+	if (result.GetCompilationStatus() != shaderc_compilation_status_success)
+	{
+		//handle errors
+		CRITICAL_ERROR_LOG("Error compiling shaders");
+	}
+	std::vector<uint32_t> shader_spv;
+	shader_spv.assign(result.cbegin(), result.cend());
+
+
 
 	//Create vulkan shader module
 	VkShaderModuleCreateInfo create_info = {};
@@ -88,8 +141,8 @@ void ShaderProgram::createShaderModule(const char* file_path, ShaderStageFlag sh
 	create_info.pNext = nullptr;
 
 	//codeSize has to be in bytes
-	create_info.codeSize = buffer.size() * sizeof(uint32_t);
-	create_info.pCode = buffer.data();
+	create_info.codeSize = shader_spv.size() * sizeof(uint32_t);
+	create_info.pCode = shader_spv.data();
 
 
 	VkShaderModule shader_module;
@@ -115,7 +168,7 @@ void ShaderProgram::createShaderModule(const char* file_path, ShaderStageFlag sh
 
 
 
-	reflectShaderModule(buffer, shader_type); //on reflect shader extract all sets and bindings etc. 
+	reflectShaderModule(shader_spv, shader_type); //on reflect shader extract all sets and bindings etc. 
 	//Then make a function clled build descriptor set layouts or something that sorts them and creates them and the pipeline layouts2
 
 
