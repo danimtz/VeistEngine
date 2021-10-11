@@ -12,6 +12,9 @@ class Swapchain
 public: 
 
 	Swapchain(const VkExtent2D& extent);
+	Swapchain(const VkExtent2D& extent, std::shared_ptr<Swapchain> old_swapchain);
+
+	~Swapchain();
 
 	void present(const CommandBuffer& cmd_buffer);//TODO
 	void beginNextFrame();
@@ -24,7 +27,7 @@ public:
 		VkFence      m_render_fence; //will be used for when swapchain needs rebuilding
 	};
 
-	VkSwapchainKHR swapchainKHR() const { return m_swapchain; };
+	VkSwapchainKHR vk_swapchainKHR() const { return m_swapchain; };
 	uint32_t& currentImageIndex() {return m_img_idx; };
 	const VkExtent2D& extent() const { return m_extent; }
 	uint32_t imageCount() const {return m_images.size();};
@@ -37,6 +40,9 @@ private:
 	void createSyncStructures();
 
 	VkSwapchainKHR m_swapchain;
+
+	std::shared_ptr<Swapchain> m_old_swapchain;
+
 	std::vector<SwapchainImage> m_images;
 	std::vector<SyncStructures> m_sync_structs;
 	ImageFormat                 m_format;

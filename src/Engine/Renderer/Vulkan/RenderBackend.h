@@ -28,7 +28,7 @@
 #include "Engine/Renderer/Vulkan/Descriptors/DescriptorSetAllocator.h"
 #include "Engine/Renderer/Vulkan/Framebuffers/RenderPass.h"
 #include "Engine/Renderer/Vulkan/Framebuffers/Framebuffer.h"
-#include "Engine/Renderer/Vulkan/Framebuffers/Swapchain.h"
+#include "Engine/Renderer/Vulkan/Swapchain/Swapchain.h"
 #include "Engine/Renderer/Vulkan/Commands/CommandPool.h"
 #include "Engine/Renderer/Vulkan/Commands/CommandBuffer.h"
 
@@ -90,7 +90,7 @@ public:
     uint32_t getSwapchainImageNumber() const { return (m_frame_count % FRAME_OVERLAP_COUNT); };
     void pushToDeletionQueue(std::function<void()> function);
     void pushToSwapchainDeletionQueue(std::function<void()> function);
-    const Framebuffer& getCurrentFramebuffer() const {return m_framebuffers[m_swapchain.get()->currentImageIndex()]; };
+    const Framebuffer& getCurrentFramebuffer() const {return m_framebuffers[m_swapchain->currentImageIndex()]; };
     CommandBuffer& getCurrentCmdBuffer() { return getCurrentFrameCmdBuffer(); }; //TODO rework this later
     Swapchain* getSwapchain() const {return m_swapchain.get();};
     VmaAllocator getAllocator() const { return m_allocator; }; //CONSIDER MOVING ALLOCATOR TO SEPARATE CLASS
@@ -100,6 +100,7 @@ public:
     uint32_t getFrameNumber() const { return m_frame_count; };
     void incrementFrameCounter() { m_frame_count++; };
 
+    void rebuildSwapchain();
 
 private://main vulkan setup
 
@@ -110,10 +111,12 @@ private://main vulkan setup
     void choosePhysicalDevice();
     void createDeviceAndQueues();
     void createVmaAllocator();
+
     void createSwapchainAndImages();
-    void createCommandPoolAndBuffers();
     void createDefaultRenderPass();
     void createFramebuffers();
+
+    void createCommandPoolAndBuffers();
     //void createUploadSemaphoresAndFences();
     void createDescriptorAllocator();
     

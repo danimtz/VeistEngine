@@ -216,14 +216,14 @@ void RenderBackend::initContext_VK()
 	//Initialize swapchain
 	createSwapchainAndImages();
 
-	//Create command pool and command buffers
-	createCommandPoolAndBuffers();
-
 	//Create the default renderpass
 	createDefaultRenderPass();
 
 	//Create the framebufffers
 	createFramebuffers();
+
+	//Create command pool and command buffers
+	createCommandPoolAndBuffers();
 
 	//Create descriptor set pool allocator
 	createDescriptorAllocator();
@@ -536,28 +536,21 @@ void RenderBackend::createVmaAllocator()
 
 void RenderBackend::createSwapchainAndImages()
 {
-
+	
 	VkExtent2D extent = chooseSwapExtent(m_gpu_info.surface_capabilities, m_glfw_window);
 
-	m_swapchain = std::make_unique<Swapchain>(extent);
+	if (m_swapchain == nullptr)
+	{
+		m_swapchain = std::make_unique<Swapchain>(extent);
+	}
+	else
+	{
+		m_swapchain = std::make_unique<Swapchain>(extent, std::move(m_swapchain));
+	}
+	
 
 	ImageProperties depth_img_properties{ {extent.width, extent.height}, {VK_FORMAT_D32_SFLOAT} };
 	m_swapchain_depth_image = SwapchainDepthAttachment{depth_img_properties};
-
-}
-
-
-void RenderBackend::createCommandPoolAndBuffers() {
-
-
-	for (int i = 0; i < FRAME_OVERLAP_COUNT; i++) {
-
-		CommandPool* command_pool = m_command_pools.emplace_back(std::make_shared<CommandPool>()).get();
-		m_command_buffers[i] = command_pool->allocateCommandBuffer();
-	}
-
-	//Create command pool for upload context (staging buffers etc)
-	m_disposable_pool = std::make_shared<CommandPool>();
 
 }
 
@@ -566,7 +559,7 @@ void RenderBackend::createCommandPoolAndBuffers() {
 void RenderBackend::createDefaultRenderPass()
 {
 
-	ImageProperties color_props = m_swapchain.get()->images()[0].properties();//{ ImageSize{m_swapchain_extent.width,m_swapchain_extent.height}, ImageFormat{m_swapchain_format} };
+	ImageProperties color_props = m_swapchain->images()[0].properties();//{ ImageSize{m_swapchain_extent.width,m_swapchain_extent.height}, ImageFormat{m_swapchain_format} };
 	ImageProperties depth_props = m_swapchain_depth_image.properties();//{ ImageSize{m_swapchain_extent.width,m_swapchain_extent.height}, ImageFormat{VK_FORMAT_D32_SFLOAT} };
 
 
@@ -581,19 +574,33 @@ void RenderBackend::createDefaultRenderPass()
 
 void RenderBackend::createFramebuffers() 
 {
-
+	m_framebuffers.clear();
 	//create a framebuffer for each swapchain image
-	const uint32_t swapchain_image_count = m_swapchain.get()->imageCount();
+	const uint32_t swapchain_image_count = m_swapchain->imageCount();
 	for (int i = 0; i < swapchain_image_count; i++) 
 	{
-		std::vector<ImageBase> color_images = { m_swapchain.get()->images()[i] };
+		std::vector<ImageBase> color_images = { m_swapchain->images()[i] };
 		m_framebuffers.push_back({color_images, m_swapchain_depth_image, &m_render_pass});
 	}
 
 }
 
 
+void RenderBackend::createCommandPoolAndBuffers()
+{
 
+
+	for (int i = 0; i < FRAME_OVERLAP_COUNT; i++)
+	{
+
+		CommandPool* command_pool = m_command_pools.emplace_back(std::make_shared<CommandPool>()).get();
+		m_command_buffers[i] = command_pool->allocateCommandBuffer();
+	}
+
+	//Create command pool for upload context (staging buffers etc)
+	m_disposable_pool = std::make_shared<CommandPool>();
+
+}
 
 
 void RenderBackend::createDescriptorAllocator()
@@ -629,6 +636,7 @@ void RenderBackend::shutdown() {
 		m_descriptor_allocator->cleanup();
 
 		m_swapchain_deletion_queue.executeDeletionQueue(); //maybe add the rest to the deletion queue
+		m_swapchain.reset(); // delete swapchain unique ptr
 
 		m_deletion_queue.executeDeletionQueue(); //maybe add the rest to the deletion queue
 
@@ -705,8 +713,8 @@ void RenderBackend::initImGUI()
 	init_info.Device = m_device;
 	init_info.Queue = m_graphics_queue;
 	init_info.DescriptorPool = imguiPool;
-	init_info.MinImageCount = m_swapchain.get()->imageCount(); 
-	init_info.ImageCount = m_swapchain.get()->imageCount();
+	init_info.MinImageCount = m_swapchain->imageCount(); 
+	init_info.ImageCount = m_swapchain->imageCount();
 	init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
 
 	
@@ -741,5 +749,29 @@ RenderBackend create disposable cmd buffer
 
 CommandBuffer& RenderBackend::createDisposableCmdBuffer()
 {
-	return m_disposable_pool.get()->allocateCommandBuffer(true);
+	return m_disposable_pool->allocateCommandBuffer(true);
+}
+
+
+
+
+
+/*
+=====================================
+RenderBackend rebuild swapchain
+=====================================
+*/
+void RenderBackend::rebuildSwapchain()
+{
+	vkDeviceWaitIdle(m_device);
+
+	m_swapchain_deletion_queue.executeDeletionQueue();
+
+	//Check surface capabilities have changed
+	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_gpu_info.device, m_surface, &m_gpu_info.surface_capabilities );
+
+	createSwapchainAndImages();
+	createDefaultRenderPass();
+	createFramebuffers();
+
 }

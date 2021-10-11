@@ -41,13 +41,17 @@ public:
 //Renderpass recording functions
 	void beginRenderPass(const Framebuffer& framebuffer);
 	void endRenderPass();
+
+	void setViewport(const Framebuffer& framebuffer);
+	void setScissor(const glm::u32vec2& offset, const glm::u32vec2& size);
+
 	void bindVertexBuffer(const VertexBuffer& vertex_buffer);
 	void bindIndexBuffer(const IndexBuffer& index_buffer);
 	void drawVertices(uint32_t size);
 	void drawIndexed(uint32_t size);
 	void bindMaterial(const Material& material);
 
-	void bindPipeline(const GraphicsPipeline& pipeline);//maybe combine bindPipeline and bindDescriptorSet
+	void bindPipeline(GraphicsPipeline& pipeline);//maybe combine bindPipeline and bindDescriptorSet
 
 	//binds descriptor sets one at a time. TODO: make it bind all sets at once maybe? feed it a vector of VkDescriptorSet
 	void bindDescriptorSet(const GraphicsPipeline& pipeline, const DescriptorSet& descriptor_set, uint32_t offset_count, uint32_t* p_dynamic_offset);

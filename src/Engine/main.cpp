@@ -18,9 +18,9 @@ int main() {
 
     glfwInit();
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
     GLFWwindow* window = glfwCreateWindow(1280, 720, "Vulkan", nullptr, nullptr);
-    glfwSetWindowAttrib(window, GLFW_RESIZABLE, GLFW_TRUE);
+    //glfwSetWindowAttrib(window, GLFW_RESIZABLE, GLFW_TRUE);
 
 //Initialize main engine modules
 

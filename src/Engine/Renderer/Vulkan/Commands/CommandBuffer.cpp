@@ -173,6 +173,9 @@ void CommandBuffer::beginRenderPass(const Framebuffer& framebuffer)
 	vkCmdBeginRenderPass(m_cmd_buffer, &render_pass_begin_info, VK_SUBPASS_CONTENTS_INLINE);
 	
 	m_current_renderpass = framebuffer.renderpass();
+
+	setViewport(framebuffer);
+	setScissor(glm::u32vec2{ 0, 0 }, framebuffer.size());
 }
 
 void CommandBuffer::endRenderPass()
@@ -181,6 +184,23 @@ void CommandBuffer::endRenderPass()
 	vkCmdEndRenderPass(m_cmd_buffer);
 	m_current_renderpass = nullptr;
 }
+
+
+void CommandBuffer::setViewport(const Framebuffer& framebuffer)
+{
+	
+	const VkViewport viewport{0.0f,0.0f, framebuffer.size().x, framebuffer.size().y, 0.0f, 1.0f }; //TODO depth arguments?
+	vkCmdSetViewport(m_cmd_buffer, 0, 1, &viewport);
+
+}
+
+
+void CommandBuffer::setScissor(const glm::u32vec2& offset, const glm::u32vec2& size)
+{
+	const VkRect2D scissor{ {offset.x, offset.y} , {size.x, size.y}}; 
+	vkCmdSetScissor(m_cmd_buffer, 0, 1, &scissor);
+}
+
 
 
 void CommandBuffer::bindVertexBuffer(const VertexBuffer& vertex_buffer)
@@ -226,14 +246,15 @@ void CommandBuffer::bindMaterial(const Material& material)
 }
 
 
-void CommandBuffer::bindPipeline(const GraphicsPipeline& pipeline)
+void CommandBuffer::bindPipeline(GraphicsPipeline& pipeline)
 {
 
 	//If pipeline was created for another renderpass either rebuild the pipeline or assert. choose
 	if (pipeline.getPipelineRenderpass() != m_current_renderpass->vk_renderpass())
 	{
-		CRITICAL_ERROR_LOG("Command Buffer Error: Attempted to bind pipeline for a different renderpass than its own");
-		//pipeline.rebuild(m_current_renderpass)
+		//CRITICAL_ERROR_LOG("Command Buffer Error: Attempted to bind pipeline for a different renderpass than its own");
+		CONSOLE_LOG("Renderpass changed: Pipeline was rebuilt");
+		pipeline.rebuildPipeline(*m_current_renderpass);
 	}
 
 	VkPipeline vulkan_pipeline = pipeline.pipeline();

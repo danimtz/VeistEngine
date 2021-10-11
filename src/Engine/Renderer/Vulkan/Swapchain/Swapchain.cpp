@@ -19,6 +19,19 @@ static VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFor
 }
 
 
+static bool checkSwapchainOutOfDate(VkResult result)
+{
+	if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
+	{
+		return true;
+	}
+
+	VK_CHECK(result);
+
+	return false;
+}
+
+
 static VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& present_modes) {
 
 	for (const auto& present_mode : present_modes) {
@@ -29,6 +42,29 @@ static VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR
 
 	return VK_PRESENT_MODE_FIFO_KHR;
 }
+
+
+Swapchain::Swapchain(const VkExtent2D& extent) : Swapchain(extent, nullptr)
+{
+}
+
+
+Swapchain::Swapchain(const VkExtent2D& extent, std::shared_ptr<Swapchain> old_swapchain) : m_extent(extent), m_old_swapchain(old_swapchain)
+{
+
+	createSwapchain();
+	createSyncStructures();
+
+	m_old_swapchain.reset(); //delete old swapchain
+}
+
+
+Swapchain::~Swapchain()
+{
+	VkDevice device = RenderModule::getRenderBackend()->getDevice();
+	vkDestroySwapchainKHR(device, vk_swapchainKHR(), nullptr);
+}
+
 
 
 void Swapchain::createSyncStructures()
@@ -105,17 +141,17 @@ void Swapchain::createSwapchain()
 	create_info.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
 	create_info.presentMode = present_mode;
 	create_info.clipped = VK_TRUE;
-	create_info.oldSwapchain = VK_NULL_HANDLE; //Unused for now. needed to recreate swapchain
-
+	create_info.oldSwapchain = (m_old_swapchain == nullptr) ? VK_NULL_HANDLE : m_old_swapchain->vk_swapchainKHR();
 
 	VkDevice device = RenderModule::getRenderBackend()->getDevice();
 
 
 	VK_CHECK(vkCreateSwapchainKHR(device, &create_info, nullptr, &m_swapchain));
 
-
 	VkSwapchainKHR swapchain = m_swapchain;
-	RenderModule::getRenderBackend()->pushToSwapchainDeletionQueue([=]() {vkDestroySwapchainKHR(device, swapchain, nullptr); });
+
+	//Manually delete swapchain later in destructor
+	//RenderModule::getRenderBackend()->pushToSwapchainDeletionQueue([=]() {vkDestroySwapchainKHR(device, swapchain, nullptr); });
 
 
 	//Get swapchain images
@@ -137,13 +173,6 @@ void Swapchain::createSwapchain()
 
 
 
-Swapchain::Swapchain(const VkExtent2D& extent) : m_extent(extent)
-{
-	
-	createSwapchain();
-	createSyncStructures();
-
-}
 
 
 
@@ -157,7 +186,7 @@ void Swapchain::beginNextFrame()
 	VK_CHECK(vkResetFences(device, 1, &RenderModule::getRenderBackend()->getCurrentCmdBuffer().fence()));
 
 	//request next image from swapchain, 1 second timeout
-	VK_CHECK(vkAcquireNextImageKHR(device, swapchainKHR(), 1000000000, currentSyncStructures(frame_count).m_present_semaphore, nullptr, &m_img_idx));
+	VK_CHECK(vkAcquireNextImageKHR(device, vk_swapchainKHR(), 1000000000, currentSyncStructures(frame_count).m_present_semaphore, nullptr, &m_img_idx));
 
 }
 
@@ -200,17 +229,21 @@ void Swapchain::present(const CommandBuffer& cmd_buffer)
 	present_info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 	present_info.pNext = nullptr;
 
-	VkSwapchainKHR swapchain = swapchainKHR();
+	VkSwapchainKHR swapchain = vk_swapchainKHR();
 	present_info.pSwapchains = &swapchain;
 	present_info.swapchainCount = 1;
 
 	present_info.pWaitSemaphores = &currentSyncStructures(frame_count).m_render_semaphore;
 	present_info.waitSemaphoreCount = 1;
-
+	
 	present_info.pImageIndices = &currentImageIndex();
 
 
-	VK_CHECK(vkQueuePresentKHR(graphics_queue, &present_info));
+	if (checkSwapchainOutOfDate(vkQueuePresentKHR(graphics_queue, &present_info)))
+	{
+		RenderModule::getRenderBackend()->rebuildSwapchain();
+	}
+
 
 	//Increment frame counter
 	RenderModule::getRenderBackend()->incrementFrameCounter();

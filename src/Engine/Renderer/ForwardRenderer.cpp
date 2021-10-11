@@ -92,11 +92,11 @@ void ForwardRenderer::renderScene(CommandBuffer& cmd_buffer)
 	m_camera_data.projection = m_scene->getCamera()->projectionMatrix();
 	m_camera_data.view = m_scene->getCamera()->viewMatrix();
 	m_camera_data.view_projection = m_scene->getCamera()->viewProjectionMatrix();
-	m_camera_buffer.get()->setData(&m_camera_data, sizeof(m_camera_data), frame_num);
+	m_camera_buffer->setData(&m_camera_data, sizeof(m_camera_data), frame_num);
 
 	m_scene_info.dir_lights_count = m_scene->getDirLights().size();
 	m_scene_info.point_lights_count = m_scene->getPointLights().size();
-	m_scene_info_buffer.get()->setData(&m_scene_info, sizeof(m_scene_info), frame_num);
+	m_scene_info_buffer->setData(&m_scene_info, sizeof(m_scene_info), frame_num);
 
 
 	//Directional lighting
@@ -108,7 +108,7 @@ void ForwardRenderer::renderScene(CommandBuffer& cmd_buffer)
 		for (int i = 0; i < m_scene_info.dir_lights_count; i++) {
 			dir_lights[i].direction = world_to_view * glm::vec4(m_scene->getDirLights()[i].direction(), 1.0);
 		}
-		m_dir_lights_buffer.get()->setData(&dir_lights, sizeof(GPUDirLight)* MAX_DIR_LIGHTS, frame_num);
+		m_dir_lights_buffer->setData(&dir_lights, sizeof(GPUDirLight)* MAX_DIR_LIGHTS, frame_num);
 	}
 
 
@@ -121,7 +121,7 @@ void ForwardRenderer::renderScene(CommandBuffer& cmd_buffer)
 		for (int i = 0; i < m_scene_info.point_lights_count; i++) {
 			point_lights[i].position = m_scene->getCamera()->viewMatrix() * glm::vec4(m_scene->getPointLights()[i].position(), 1.0);
 		}
-		m_point_lights_buffer.get()->setData(&point_lights, sizeof(GPUDirLight) * MAX_POINT_LIGHTS, frame_num);
+		m_point_lights_buffer->setData(&point_lights, sizeof(GPUDirLight) * MAX_POINT_LIGHTS, frame_num);
 	}
 
 
@@ -186,10 +186,10 @@ void ForwardRenderer::renderScene(CommandBuffer& cmd_buffer)
 
 			constexpr int offset_count = 4;
 			uint32_t offset[offset_count];
-			offset[0] = m_scene_info_buffer.get()->offset() * frame_num;
-			offset[1] = m_camera_buffer.get()->offset() * frame_num;
-			offset[2] = m_dir_lights_buffer.get()->offset() * frame_num;
-			offset[3] = m_point_lights_buffer.get()->offset() * frame_num;
+			offset[0] = m_scene_info_buffer->offset() * frame_num;
+			offset[1] = m_camera_buffer->offset() * frame_num;
+			offset[2] = m_dir_lights_buffer->offset() * frame_num;
+			offset[3] = m_point_lights_buffer->offset() * frame_num;
 			
 			//m_render_backend->RC_bindDescriptorSet(curr_material->pipeline(), m_global_descriptor[frame_num], offset_count, offset);
 			cmd_buffer.bindDescriptorSet(*curr_material->pipeline(), m_global_descriptor[frame_num], offset_count, offset);

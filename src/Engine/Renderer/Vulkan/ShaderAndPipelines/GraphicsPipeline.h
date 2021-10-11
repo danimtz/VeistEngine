@@ -59,8 +59,7 @@ private:
 
 	//Pipeline attributes
 	
-
-
+	;
 	std::shared_ptr<ShaderProgram>			m_shader_program;
 
 	VkRenderPass m_renderpass;
@@ -72,9 +71,10 @@ private:
 	VkPipelineColorBlendAttachmentState				m_color_blend_attachment_state = {};//This could be a vector if using multiple attachments in a multi-render targer rendering framework
 	VkPipelineColorBlendStateCreateInfo				m_color_blend_state_info = {};
 	VkPipelineDepthStencilStateCreateInfo			m_depth_stencil_state_info = {};
-	VkViewport										m_viewport = {};
-	VkRect2D										m_scissor = {};
 	VkPipelineViewportStateCreateInfo				m_viewport_state_info = {};
+	VkPipelineDynamicStateCreateInfo				m_dynamic_state_info = {};
+
+	std::vector<VkDynamicState> m_dynamic_states;
 
 	std::vector<VkVertexInputBindingDescription>	m_vertex_bindings;
 	std::vector<VkVertexInputAttributeDescription>	m_vertex_attributes;

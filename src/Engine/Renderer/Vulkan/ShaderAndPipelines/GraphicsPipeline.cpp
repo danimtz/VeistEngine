@@ -238,10 +238,10 @@ void GraphicsPipelineBuilder::createPipelineStates()
 	}
 
 	/////////////////////////
-	//Viewport state	   //
+	//Dynamic states	   //
 	/////////////////////////
 
-	VkExtent2D swapchain_extent = RenderModule::getRenderBackend()->getSwapchain()->extent();
+	/*VkExtent2D swapchain_extent = RenderModule::getRenderBackend()->getSwapchain()->extent();
 
 	m_viewport.x = 0.0f;
 	m_viewport.y = 0.0f;
@@ -252,14 +252,22 @@ void GraphicsPipelineBuilder::createPipelineStates()
 
 	m_scissor.offset = { 0, 0 };
 	m_scissor.extent = swapchain_extent;
+	*/
 
 	m_viewport_state_info.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
 	m_viewport_state_info.pNext = nullptr;
 
 	m_viewport_state_info.viewportCount = 1;
-	m_viewport_state_info.pViewports = &m_viewport;
+	m_viewport_state_info.pViewports = nullptr;
 	m_viewport_state_info.scissorCount = 1;
-	m_viewport_state_info.pScissors = &m_scissor;
+	m_viewport_state_info.pScissors = nullptr;
+
+	m_dynamic_states = {VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
+
+	m_dynamic_state_info.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+	m_dynamic_state_info.pDynamicStates = m_dynamic_states.data();
+	m_dynamic_state_info.dynamicStateCount = m_dynamic_states.size();
+	m_dynamic_state_info.flags = 0;
 }
 
 
@@ -296,6 +304,7 @@ void GraphicsPipelineBuilder::createPipelineLayout()
 
 VkPipeline GraphicsPipelineBuilder::buildPipeline(const RenderPass& renderpass)
 {
+
 	m_renderpass = renderpass.vk_renderpass();
 	VkDevice device = RenderModule::getRenderBackend()->getDevice();
 	//VkRenderPass render_pass = RenderModule::getRenderBackend()->getRenderPass().vk_renderpass(); //TODO: oh boy pipelines depend on a renderpass. might need to have renderpass as an agrument when creating pipelines
@@ -313,6 +322,7 @@ VkPipeline GraphicsPipelineBuilder::buildPipeline(const RenderPass& renderpass)
 	pipeline_info.pMultisampleState = &m_multisample_state_info;
 	pipeline_info.pColorBlendState = &m_color_blend_state_info;
 	pipeline_info.pDepthStencilState = &m_depth_stencil_state_info;
+	pipeline_info.pDynamicState = &m_dynamic_state_info;
 	pipeline_info.layout = m_pipeline_layout;
 	pipeline_info.renderPass = renderpass.vk_renderpass();
 	pipeline_info.subpass = 0; //This needs to be an argument later if subpasses are used for deferred rendering. NOTE TO FUTURE ME
