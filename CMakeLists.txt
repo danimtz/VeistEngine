@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.16)
+cmake_minimum_required (VERSION 3.19)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -30,27 +30,19 @@ file(GLOB_RECURSE GLSL_SOURCE_FILES
 
 message(STATUS ${GLSL_VALIDATOR})
 ## iterate each shader
-foreach(GLSL ${GLSL_SOURCE_FILES})
-  message(STATUS "BUILDING SHADER")
-  get_filename_component(FILE_NAME ${GLSL} NAME)
-  set(SPIRV "${PROJECT_SOURCE_DIR}/src/Shaders/${FILE_NAME}.spv")
-  message(STATUS ${GLSL})
 
-  ##execute glslang command to compile that specific shader
-  #add_custom_command(
-  #  OUTPUT ${SPIRV}
-  #  COMMENT "compile shaders"
-  #  COMMAND ${GLSL_VALIDATOR} -V ${GLSL} -o ${SPIRV} 
-  #  DEPENDS ${GLSL}
-  #)
-  execute_process(
-    COMMAND ${GLSL_VALIDATOR} -V ${GLSL} -o ${SPIRV} 
-  )
-  list(APPEND SPIRV_BINARY_FILES ${SPIRV})
-endforeach(GLSL)
+#foreach(GLSL ${GLSL_SOURCE_FILES})
+#  message(STATUS "BUILDING SHADER")
+#  get_filename_component(FILE_NAME ${GLSL} NAME)
+#  set(SPIRV "${PROJECT_SOURCE_DIR}/src/Shaders/${FILE_NAME}.spv")
+#  message(STATUS ${GLSL})
+#
+#  ##execute glslang command to compile that specific shader
+#
+#  execute_process(
+#    COMMAND ${GLSL_VALIDATOR} -V ${GLSL} -o ${SPIRV} 
+#  )
+#  list(APPEND SPIRV_BINARY_FILES ${SPIRV})
+#endforeach(GLSL)
 
-#add_custom_target(
-#    Shaders 
-#    DEPENDS ${SPIRV_BINARY_FILES}
-#    )
 

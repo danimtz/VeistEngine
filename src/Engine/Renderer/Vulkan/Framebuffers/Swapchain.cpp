@@ -146,6 +146,7 @@ Swapchain::Swapchain(const VkExtent2D& extent) : m_extent(extent)
 }
 
 
+
 void Swapchain::beginNextFrame()
 {
 	//FROM RC_beginFrame
@@ -159,6 +160,8 @@ void Swapchain::beginNextFrame()
 	VK_CHECK(vkAcquireNextImageKHR(device, swapchainKHR(), 1000000000, currentSyncStructures(frame_count).m_present_semaphore, nullptr, &m_img_idx));
 
 }
+
+
 
 void Swapchain::present(const CommandBuffer& cmd_buffer)
 {

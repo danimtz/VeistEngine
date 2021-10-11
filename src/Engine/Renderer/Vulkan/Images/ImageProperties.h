@@ -45,8 +45,8 @@ private:
 
 	ImageSize m_size;
 	ImageFormat m_format;
-	uint32_t m_mip_levels{1};
-	uint32_t m_layers{1};
+	uint32_t m_mip_levels = 1;
+	uint32_t m_layers = 1;
 
 
 	uint32_t mipLevelBytes(uint32_t mip_level);

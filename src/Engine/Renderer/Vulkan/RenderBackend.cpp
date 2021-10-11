@@ -542,7 +542,7 @@ void RenderBackend::createSwapchainAndImages()
 	m_swapchain = std::make_unique<Swapchain>(extent);
 
 	ImageProperties depth_img_properties{ {extent.width, extent.height}, {VK_FORMAT_D32_SFLOAT} };
-	m_swapchain_depth_image = {depth_img_properties};
+	m_swapchain_depth_image = SwapchainDepthAttachment{depth_img_properties};
 
 }
 

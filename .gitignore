@@ -23,6 +23,11 @@ vendor/Release/
 vendor/glfw-3.3.4/src/Debug/
 vendor/glfw-3.3.4/src/Release/
 vendor/glfw-3.3.4/src/glfw.dir/
+vendor/MinSizeRel/
+vendor/RelWithDebInfo/
+vendor/glfw-3.3.4/src/MinSizeRel/
+vendor/glfw-3.3.4/src/RelWithDebInfo/
+
 vendor/imgui.dir/
 x64/
 src/VulkanEngine.dir

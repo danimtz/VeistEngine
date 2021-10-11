@@ -4,7 +4,7 @@
 
 #include "Engine/Renderer/Vulkan/Buffers/StagingBuffer.h"
 
-static VkImageCreateInfo& getImageCreateInfo( ImageProperties properties, ImageUsage usage, ImageViewType view_type) {
+static VkImageCreateInfo getImageCreateInfo( ImageProperties properties, ImageUsage usage, ImageViewType view_type) {
 	
 	VkImageCreateInfo img_info = {};
 	img_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -25,7 +25,8 @@ static VkImageCreateInfo& getImageCreateInfo( ImageProperties properties, ImageU
 	return img_info;
 }
 
-static VkImageViewCreateInfo& getImageViewCreateInfo(VkImage image, ImageProperties properties, ImageViewType view_type) {
+
+static VkImageViewCreateInfo getImageViewCreateInfo(VkImage image, ImageProperties& properties, ImageViewType view_type) {
 	
 	VkImageViewCreateInfo img_view_info = {};
 	img_view_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
