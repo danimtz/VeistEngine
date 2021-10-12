@@ -27,6 +27,7 @@ vendor/MinSizeRel/
 vendor/RelWithDebInfo/
 vendor/glfw-3.3.4/src/MinSizeRel/
 vendor/glfw-3.3.4/src/RelWithDebInfo/
+vendor/shaderc_file_includer.dir/
 
 vendor/imgui.dir/
 x64/

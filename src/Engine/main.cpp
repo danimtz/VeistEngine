@@ -20,7 +20,8 @@ int main() {
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
     GLFWwindow* window = glfwCreateWindow(1280, 720, "Vulkan", nullptr, nullptr);
-    //glfwSetWindowAttrib(window, GLFW_RESIZABLE, GLFW_TRUE);
+    glfwSetWindowSizeLimits(window, 100, 100, GLFW_DONT_CARE, GLFW_DONT_CARE);
+    
 
 //Initialize main engine modules
 
@@ -31,6 +32,7 @@ int main() {
     Scene* scene = new Scene();
 
     RenderModule::setScene(scene);
+
 //Mainloop
     while (!glfwWindowShouldClose(window)) 
     {

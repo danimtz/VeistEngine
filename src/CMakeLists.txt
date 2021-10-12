@@ -8,11 +8,12 @@ set_property(TARGET ${PROJECT_NAME} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TA
 
 target_include_directories(${PROJECT_NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 
-target_link_libraries(${PROJECT_NAME} vma glm stb_image tinygltf nlohmann )
+target_link_libraries(${PROJECT_NAME} vma glm stb_image tinygltf nlohmann)
 target_link_libraries(${PROJECT_NAME} glfw)
 target_link_libraries(${PROJECT_NAME} spirv-cross-core)
 target_link_libraries(${PROJECT_NAME} spirv-cross-glsl)
 target_link_libraries(${PROJECT_NAME} imgui)
+target_link_libraries(${PROJECT_NAME} shaderc_file_includer)
 target_link_libraries(${PROJECT_NAME} Vulkan::Vulkan)
 
 

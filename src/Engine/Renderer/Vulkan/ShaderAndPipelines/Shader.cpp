@@ -6,8 +6,7 @@
 
 #include <shaderc/shaderc.hpp>
 
-
-
+#include <file_includer.h>
 
 static VkDescriptorSetLayoutBinding getDescriptorSetLayoutBinding(uint32_t binding, VkDescriptorType descriptor_type, VkShaderStageFlagBits stage_flag)
 {
@@ -90,9 +89,7 @@ std::shared_ptr<ShaderProgram> ShaderProgram::Create(std::string shader_name)
 ShaderProgram::ShaderProgram(const std::string shader_name)
 {
 
-	//Simple shaders only for now. Maybe this should be a loop over all shader stages
-	//std::string filepath_vert = folder_path + shader_name + ".vert";
-	//std::string filepath_frag = folder_path + shader_name + ".frag";
+	
 
 	compileOrGetSpirV(shader_name);
 
@@ -110,18 +107,10 @@ void ShaderProgram::compileOrGetSpirV(const std::string shader_name)
 
 	//std::string comp_shader = shader_name + ".comp";// No compute for now
 	
-	shaderc::Compiler compiler;
-	shaderc::CompileOptions options;
-
-	const bool optimize = true;
-	if (optimize)
-	{
-		options.SetOptimizationLevel(shaderc_optimization_level_size);
-	}
+	
 
 
 	std::unordered_map<ShaderStageFlag, std::string> shader_names;
-
 	shader_names.emplace(ShaderStageFlag::Vertex, shader_name + ".vert");
 	shader_names.emplace(ShaderStageFlag::Fragment, shader_name + ".frag");
 	shader_names.emplace(ShaderStageFlag::Geometry, shader_name + ".geom");
@@ -134,7 +123,7 @@ void ShaderProgram::compileOrGetSpirV(const std::string shader_name)
 		//Find shader in cache folder
 		std::string cached_shader = getShaderCacheDirectory() + it.second + ".spv";
 		std::ifstream in(cached_shader, std::ios::in | std::ios::binary);
-		if (in.is_open())
+		if (in.is_open()) //TODO: if open and shader file has not changed since last time
 		{
 			in.seekg(0, std::ios::end);
 			auto file_size = in.tellg();
@@ -152,20 +141,50 @@ void ShaderProgram::compileOrGetSpirV(const std::string shader_name)
 			std::ifstream in(glsl_shader, std::ios::in | std::ios::binary);
 			std::string raw_glsl;
 
+		
+			shaderc::Compiler compiler;
+			shaderc::CompileOptions options;
+
+			const bool optimize = false;
+			if (optimize)
+			{
+				options.SetOptimizationLevel(shaderc_optimization_level_size);
+			}
+
+			shaderc_util::FileFinder fileFinder;
+			options.SetIncluder(std::make_unique<glslc::FileIncluder>(&fileFinder));
+			options.SetGenerateDebugInfo();
+			
+
 			if (in) //if found compile and cache spirv
 			{
+
+				
+
 				in.seekg(0, std::ios::end);
 				raw_glsl.resize(in.tellg());
 				in.seekg(0, std::ios::beg);
 				in.read(&raw_glsl[0], raw_glsl.size());
 				in.close();
 
+				//std::cout << "output 1:\n" << raw_glsl << std::endl;
 
-				shaderc::SpvCompilationResult result = compiler.CompileGlslToSpv(raw_glsl, shaderStageFlagToShaderc(it.first), glsl_shader.c_str());
+				shaderc::PreprocessedSourceCompilationResult preprocessed = compiler.PreprocessGlsl(raw_glsl, shaderStageFlagToShaderc(it.first), glsl_shader.c_str(), options);
+				
+				if (preprocessed.GetCompilationStatus() != shaderc_compilation_status_success)
+				{
+					CRITICAL_ERROR_LOG("Preprocess failed for file " + glsl_shader + ":\n" + preprocessed.GetErrorMessage());
+				}
+
+				std::string preprocessed_glsl = { preprocessed.cbegin(), preprocessed.cend() };
+				
+				//std::cout << "output 2:\n" << preprocessed_glsl << std::endl;
+
+				shaderc::SpvCompilationResult result = compiler.CompileGlslToSpv(preprocessed_glsl, shaderStageFlagToShaderc(it.first), glsl_shader.c_str());
 				if (result.GetCompilationStatus() != shaderc_compilation_status_success)
 				{
 					//handle errors
-					CRITICAL_ERROR_LOG("Error compiling shaders: " + glsl_shader);
+					CRITICAL_ERROR_LOG("Error compiling shaders: " + glsl_shader +".  \n" +	result.GetErrorMessage());
 				}
 
 				auto& data = m_spirv_source[it.first];

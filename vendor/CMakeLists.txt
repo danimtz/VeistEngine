@@ -14,6 +14,26 @@ target_include_directories(stb_image INTERFACE stb_image)
 target_include_directories(tinygltf INTERFACE tinygltf)
 target_include_directories(nlohmann INTERFACE nlohmann)
 
+
+#Add shaderc includer support
+add_library(shaderc_file_includer STATIC)
+target_include_directories(shaderc_file_includer PUBLIC shaderc_file_includer)
+target_include_directories(shaderc_file_includer PUBLIC "$ENV{VULKAN_SDK}/Include" )
+target_sources(shaderc_file_includer PRIVATE 
+    "${CMAKE_CURRENT_SOURCE_DIR}/shaderc_file_includer/file_includer.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/shaderc_file_includer/file_includer.cc"
+    )
+
+target_link_libraries(shaderc_file_includer  "$ENV{VULKAN_SDK}/Lib/shaderc.lib")
+target_link_libraries(shaderc_file_includer  "$ENV{VULKAN_SDK}/Lib/shaderc_combined.lib")
+target_link_libraries(shaderc_file_includer  "$ENV{VULKAN_SDK}/Lib/shaderc_shared.lib")
+target_link_libraries(shaderc_file_includer  "$ENV{VULKAN_SDK}/Lib/shaderc_util.lib")
+
+
+
+
+
+
 # Add glfw
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)

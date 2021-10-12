@@ -1,4 +1,0 @@
-
-
-//LearnOpenGL
-//Google filament
