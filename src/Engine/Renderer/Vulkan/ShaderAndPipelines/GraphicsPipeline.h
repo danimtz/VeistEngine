@@ -34,7 +34,7 @@ class GraphicsPipelineBuilder
 public:
 
 
-	GraphicsPipelineBuilder(std::string shader_name, const VertexDescription& vertex_desc, DepthTest depth_test, VkPrimitiveTopology topology,
+	GraphicsPipelineBuilder(const std::string& shader_name, const VertexDescription& vertex_desc, DepthTest depth_test, VkPrimitiveTopology topology,
 		VkPolygonMode polygon_mode, VkCullModeFlags cull_mode, VkFrontFace front_face); 
 	
 	
@@ -44,7 +44,7 @@ public:
 
 private:
 
-	void createShaderProgram(std::string shader_name);
+	void createShaderProgram(const std::string& shader_name);
 	void setVertexInputDescriptions(const VertexDescription& vertex_desc);
 	void createPipelineStates();
 	void createPipelineLayout();
@@ -95,7 +95,7 @@ class GraphicsPipeline {
 public:
 
 	//Create graphics pipeline for default renderpass
-	GraphicsPipeline(std::string shader_name,  const VertexDescription& vertex_desc, DepthTest depth_test = DepthTest::ReadWrite, VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
+	GraphicsPipeline(const std::string& shader_name,  const VertexDescription& vertex_desc, DepthTest depth_test = DepthTest::ReadWrite, VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
 		VkPolygonMode polygon_mode = VK_POLYGON_MODE_FILL, VkCullModeFlags cull_mode = VK_CULL_MODE_BACK_BIT,/*VK_CULL_MODE_BACK_BIT*//*VK_CULL_MODE_NONE*/
 		VkFrontFace front_face = VK_FRONT_FACE_COUNTER_CLOCKWISE);
 	

@@ -111,9 +111,9 @@ ImageBase::ImageBase(ImageProperties properties, ImageUsage usage, ImageViewType
 
 	//Create image view
 	VkImageViewCreateInfo view_info = getImageViewCreateInfo(m_image, m_properties, view_type);
-	VkImageView image_view;
-	vkCreateImageView(device, &view_info, nullptr, &image_view);
-	m_image_view = image_view;
+
+	vkCreateImageView(device, &view_info, nullptr, &m_image_view);
+	VkImageView image_view = m_image_view;
 
 
 	//If image view is being used in swapchain use swapchain deletion queue

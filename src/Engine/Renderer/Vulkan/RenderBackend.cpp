@@ -747,7 +747,7 @@ RenderBackend create disposable cmd buffer
 ============================================
 */
 
-CommandBuffer& RenderBackend::createDisposableCmdBuffer()
+CommandBuffer RenderBackend::createDisposableCmdBuffer()
 {
 	return m_disposable_pool->allocateCommandBuffer(true);
 }

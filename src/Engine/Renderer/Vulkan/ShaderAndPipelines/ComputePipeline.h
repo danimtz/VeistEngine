@@ -14,9 +14,20 @@ class ComputePipeline
 {
 
 public:
-	ComputePipeline() = default;
+
+	ComputePipeline(const std::string& shader_name);
+
+
+	VkPipeline pipeline() const { return m_pipeline; };
+	VkPipelineLayout pipelineLayout() const { return m_pipeline_layout; };
+	ShaderProgram* shaderProgram() const { return m_shader_program.get(); };
 
 private:
+
+	void createShaderProgram(const std::string& shader_name);
+	void createPipelineLayout();
+	void createPipeline();
+
 	
 	VkPipeline				m_pipeline;
 	VkPipelineLayout		m_pipeline_layout;

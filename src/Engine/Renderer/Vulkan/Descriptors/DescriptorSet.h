@@ -3,6 +3,7 @@
 
 #include <vulkan/vulkan.h>
 #include "Engine/Renderer/Vulkan/ShaderAndPipelines/GraphicsPipeline.h"
+#include "Engine/Renderer/Vulkan/ShaderAndPipelines/ComputePipeline.h"
 #include "Engine/Renderer/Vulkan/Images/Image.h"
 
 class ShaderBuffer;
@@ -14,6 +15,8 @@ public:
 	
 	DescriptorSet() = default;
 	void setDescriptorSetLayout(uint32_t set, const GraphicsPipeline* pipeline);
+	void setDescriptorSetLayout(uint32_t set, const ComputePipeline* pipeline); //TODO: maybe make compute and graphics pipeline inherit from pipeline? maybe not though
+
 	void bindUniformBuffer(uint32_t binding, const ShaderBuffer* buffer, uint32_t range);
 	void bindStorageBuffer(uint32_t binding, const ShaderBuffer* buffer, uint32_t range);
 	void bindCombinedSamplerTexture(uint32_t binding, const Texture* texture/*sampler view etc?*/);

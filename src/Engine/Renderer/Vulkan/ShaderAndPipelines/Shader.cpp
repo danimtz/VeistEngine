@@ -73,25 +73,25 @@ static shaderc_shader_kind shaderStageFlagToShaderc(ShaderStageFlag stage)
 }
 
 
-std::shared_ptr<ShaderProgram> ShaderProgram::Create(std::string shader_name)
+std::shared_ptr<ShaderProgram> ShaderProgram::Create(const std::string& shader_name, bool isCompute)
 {
 
 	//Check if shader with that name exists, if it does return pointer to it
 			//TODO
 
 	//Else create new shader
-	return std::make_shared<ShaderProgram>(shader_name);
+	return std::make_shared<ShaderProgram>(shader_name, isCompute);
 
 }
 
 
 
-ShaderProgram::ShaderProgram(const std::string shader_name)
+ShaderProgram::ShaderProgram(const std::string& shader_name, bool isCompute)
 {
 
 	
 
-	compileOrGetSpirV(shader_name);
+	compileOrGetSpirV(shader_name, isCompute);
 
 	createShaderModules();
 	
@@ -102,21 +102,25 @@ ShaderProgram::ShaderProgram(const std::string shader_name)
 }
 
 
-void ShaderProgram::compileOrGetSpirV(const std::string shader_name)
+void ShaderProgram::compileOrGetSpirV(const std::string& shader_name, bool isCompute)
 {
 
-	//std::string comp_shader = shader_name + ".comp";// No compute for now
-	
-	
-
-
 	std::unordered_map<ShaderStageFlag, std::string> shader_names;
-	shader_names.emplace(ShaderStageFlag::Vertex, shader_name + ".vert");
-	shader_names.emplace(ShaderStageFlag::Fragment, shader_name + ".frag");
-	shader_names.emplace(ShaderStageFlag::Geometry, shader_name + ".geom");
-	shader_names.emplace(ShaderStageFlag::TessC, shader_name + ".tesc");
-	shader_names.emplace(ShaderStageFlag::TessE, shader_name + ".tese");
 
+	if (isCompute)
+	{
+		shader_names.emplace(ShaderStageFlag::Compute, shader_name + ".comp");
+	}
+	else
+	{
+		shader_names.emplace(ShaderStageFlag::Vertex, shader_name + ".vert");
+		shader_names.emplace(ShaderStageFlag::Fragment, shader_name + ".frag");
+		shader_names.emplace(ShaderStageFlag::Geometry, shader_name + ".geom");
+		shader_names.emplace(ShaderStageFlag::TessC, shader_name + ".tesc");
+		shader_names.emplace(ShaderStageFlag::TessE, shader_name + ".tese");
+
+	}
+	
 	
 	for (auto& it : shader_names)
 	{
@@ -212,98 +216,11 @@ void ShaderProgram::compileOrGetSpirV(const std::string shader_name)
 		CRITICAL_ERROR_LOG("Error building shaders. No shader exists with name: " + shader_name);
 	}
 
-	//Find shaders with that name in shader and shader cache folder
 }
 
 
 void ShaderProgram::createShaderModules()
 {
-
-/*
-	//open file with cursor at the end
-	std::ifstream file(file_path, std::ios::ate | std::ios::binary);
-
-	if (!file.is_open()) {
-		CRITICAL_ERROR_LOG("Could not open shader file");
-	}
-
-	//Get file size by inspecting location of cursor(since it is at the end of the file it gives size in bytes)
-	size_t file_size = (size_t)file.tellg();
-
-	//spirv expects the buffer to be on uint32. reserve enough for entire file
-	std::vector<uint32_t> shader_spv(file_size / sizeof(uint32_t));
-
-	//put file cursor at start
-	file.seekg(0);
-
-	//load file into buffer
-	file.read((char*)shader_spv.data(), file_size);
-	file.close();
-
-	
-/*
-	std::ifstream in(file_path, std::ios::in | std::ios::binary);
-
-	std::string raw_glsl;
-	if (in)
-	{
-		in.seekg(0, std::ios::end);
-		raw_glsl.resize(in.tellg());
-		in.seekg(0, std::ios::beg);
-		in.read(&raw_glsl[0], raw_glsl.size());
-		in.close();
-	}
-	else
-	{
-		CRITICAL_ERROR_LOG("Error reading shaders. Cannot read shader file");
-	}
-
-
-
-
-	shaderc_shader_kind shaderc_kind;
-
-	switch (shader_type)
-	{
-		case ShaderStageFlag::Vertex:
-			shaderc_kind = shaderc_shader_kind::shaderc_vertex_shader;
-			break;
-
-		case ShaderStageFlag::Fragment:
-			shaderc_kind = shaderc_shader_kind::shaderc_fragment_shader;
-			break;
-
-		case ShaderStageFlag::Compute:
-			shaderc_kind = shaderc_shader_kind::shaderc_compute_shader;
-			break;
-
-		case ShaderStageFlag::Geometry:
-			shaderc_kind = shaderc_shader_kind::shaderc_geometry_shader;
-			break;
-	}
-
-	shaderc::Compiler compiler;
-	shaderc::CompileOptions options;
-
-	const bool optimize = true;
-	if (optimize)
-	{
-		options.SetOptimizationLevel(shaderc_optimization_level_size);
-	}
-
-
-	shaderc::SpvCompilationResult result = compiler.CompileGlslToSpv(raw_glsl, shaderc_kind, file_path);
-	if (result.GetCompilationStatus() != shaderc_compilation_status_success)
-	{
-		//handle errors
-		CRITICAL_ERROR_LOG("Error compiling shaders");
-	}
-
-
-
-	std::vector<uint32_t> shader_spv;
-	shader_spv.assign(result.cbegin(), result.cend());
-	*/
 
 	//Create vulkan shader module
 	for (auto& it : m_spirv_source)

@@ -38,6 +38,9 @@ public:
 	void copyBufferToImage(const Buffer stage_buff, const VkImage image, const std::vector<VkBufferImageCopy>& regions,  const ImageProperties& properties );
 	//void pipelineBarrier(); TODO: Pipeline barriers inside copyBufferToImage, extract them into functions
 
+	void dispatch(const ComputePipeline& pipeline, const DescriptorSet& descriptor_set, const glm::u32vec3& group_count);//TODO: only 1 descriptor set for now for compute shaders and no push constants
+
+
 //Renderpass recording functions
 	void beginRenderPass(const Framebuffer& framebuffer);
 	void endRenderPass();

@@ -10,6 +10,7 @@ public:
 	VkImageAspectFlags imageAspectFlags() const;
 	
 	const VkFormat format() const { return m_format; };
+	uint32_t bytesPerPixel() const;
 
 private:
 	VkFormat m_format;

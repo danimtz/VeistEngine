@@ -15,9 +15,9 @@ Scene::Scene() {
 
 
 
-	m_scene_models.push_back({ "..\\..\\assets\\Bottle\\",  "PBRforward", "WaterBottle.gltf" }); //{ "..\\..\\assets\\Box\\Box With Spaces.gltf" }; //
+	m_scene_models.push_back({ "..\\..\\assets\\GLTF_models\\Bottle\\",  "PBRforward", "WaterBottle.gltf" }); //{ "..\\..\\assets\\Box\\Box With Spaces.gltf" }; //
 	
-	m_scene_models.push_back({ "..\\..\\assets\\DamagedHelmet\\",  "PBRforward", "DamagedHelmet.gltf" }); //{ "..\\..\\assets\\Box\\Box With Spaces.gltf" }; //
+	m_scene_models.push_back({ "..\\..\\assets\\GLTF_models\\DamagedHelmet\\",  "PBRforward", "DamagedHelmet.gltf" }); //{ "..\\..\\assets\\Box\\Box With Spaces.gltf" }; //
 
 
 	m_scene_models[0].modelMatrix() = glm::translate(m_scene_models[0].modelMatrix(), glm::vec3{ 2.0, 0.0, 0.0 });
@@ -59,8 +59,8 @@ Scene::Scene() {
 
 
 	//Skybox
-	m_skybox = std::make_unique<Skybox>("Skybox", "..\\..\\assets\\Cubemaps\\Ryfjallet\\Ryfjallet");
-
+	//m_skybox = Skybox::createFromCubemap("Skybox", "..\\..\\assets\\Skyboxes\\Cubemaps\\Ryfjallet\\Ryfjallet");
+	m_skybox = Skybox::createFromHDRMap("Skybox", "..\\..\\assets\\Skyboxes\\Equirect\\Ice_Lake\\Ice_Lake_Ref.hdr");
 
 
 

@@ -8,7 +8,7 @@
 
 
 //IMPORTANT NOTE: if for example descriptor set 3 is used, the pipeline MUST have descriptors 1 and 2 declared in the shaders.
-void DescriptorSet::setDescriptorSetLayout(uint32_t set, const GraphicsPipeline* pipeline)
+void DescriptorSet::setDescriptorSetLayout(uint32_t set, const GraphicsPipeline* pipeline) 
 {
 	if (set >= pipeline->shaderProgram()->descriptorLayouts().size())
 	{
@@ -17,6 +17,18 @@ void DescriptorSet::setDescriptorSetLayout(uint32_t set, const GraphicsPipeline*
 	m_descriptor_layout = pipeline->shaderProgram()->descriptorLayouts()[set];
 	m_set_number = set;
 }
+
+
+void DescriptorSet::setDescriptorSetLayout(uint32_t set, const ComputePipeline* pipeline)
+{
+	if (set >= pipeline->shaderProgram()->descriptorLayouts().size())
+	{
+		CRITICAL_ERROR_LOG("Pipeline does not contain descriptor set number used");
+	}
+	m_descriptor_layout = pipeline->shaderProgram()->descriptorLayouts()[set];
+	m_set_number = set;
+}
+
 
 
 void DescriptorSet::bindSampledImage(uint32_t binding, VkImageView image_view, VkDescriptorType type, VkSampler sampler/*sampler view etc?*/)

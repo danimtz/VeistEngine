@@ -14,6 +14,8 @@
 #include "Engine/Material/PBRMaterial.h"
 #include "Engine/Material/SkyboxMaterial.h"
 
+#include "Engine/Renderer/RenderModule.h"
+
 static VertexAttributeType convertTinyGLTFtype(int type) {
 
 	switch (type) {
@@ -401,6 +403,64 @@ std::shared_ptr<Cubemap> AssetLoader::loadCubemapFromFiles(const char* posx, con
 
 
 
+
+
+std::shared_ptr<Cubemap> AssetLoader::loadCubemapFromHDRMap(const char* filepath, ImageFormat format )
+{
+
+	//Load HDR map
+	if (!stbi_is_hdr(filepath))
+	{
+		CRITICAL_ERROR_LOG("Image filepath given for HDR image is not HDR")
+
+	}
+
+	stbi_set_flip_vertically_on_load(true);
+	int width, height, n_channels;
+	float* data = stbi_loadf(filepath, &width, &height, &n_channels, STBI_rgb_alpha);
+	
+	n_channels = 4;//rgb aplha format
+
+	ImageSize img_size{ (uint32_t)width, (uint32_t)height, (uint32_t)n_channels };
+
+	if (!data)
+	{
+		std::cout << "Error loading file: " << filepath << std::endl;
+		CRITICAL_ERROR_LOG("Failed to load texture file");
+	}
+
+	//Create texture
+	ImageProperties properties = { img_size, format, 1, 1 };
+	Texture equirect = {data, properties};
+	stbi_image_free(data);
+	
+	//Create empty cubemap
+	ImageProperties cubemap_properties = { {(uint32_t)width / 4, (uint32_t)width / 4, (uint32_t)n_channels }, format, 1, 6 };
+	std::shared_ptr<Cubemap> resource = std::make_shared<Cubemap>(cubemap_properties); // add layers
+
+
+	//Use compute shader to convert equirectangular image to cubemap
+	ComputePipeline compute_program = { "equirect_to_cubemap" };
+	DescriptorSet compute_descriptor;
+	compute_descriptor.setDescriptorSetLayout(0, &compute_program);
+	compute_descriptor.bindCombinedSamplerTexture(0, &equirect);
+	compute_descriptor.bindCombinedSamplerCubemap(1, resource.get());
+	compute_descriptor.buildDescriptorSet();
+
+	CommandBuffer cmd_buff = RenderModule::getRenderBackend()->createDisposableCmdBuffer();
+	cmd_buff.dispatch(compute_program, compute_descriptor, {8,8,1});
+	cmd_buff.immediateSubmit();
+
+	return resource;
+}
+
+
+
+
+
+
+
+
 std::shared_ptr<PBRMaterial> AssetLoader::loadPBRMaterialFromGLTF(const char* material_name, const char* gltf_filepath, std::string folder_path, const VertexDescription& vertex_desc)
 {
 	//Load TinyGLTF model
@@ -473,7 +533,7 @@ std::shared_ptr<PBRMaterial> AssetLoader::loadPBRMaterialFromGLTF(const char* ma
 
 
 
-std::shared_ptr<SkyboxMaterial> AssetLoader::loadSkyboxMaterialFromFilepath(const char* material_name, std::string filepath, const VertexDescription& vertex_desc)
+std::shared_ptr<SkyboxMaterial> AssetLoader::loadSkyboxMaterialFromCubemap(const char* material_name, const std::string& filepath, const VertexDescription& vertex_desc)
 {
 
 	std::string posx = filepath;
@@ -495,4 +555,17 @@ std::shared_ptr<SkyboxMaterial> AssetLoader::loadSkyboxMaterialFromFilepath(cons
 	std::shared_ptr<Cubemap> cubemap = AssetLoader::loadCubemapFromFiles(posx.c_str(), negx.c_str(), posy.c_str(), negy.c_str(), posz.c_str(), negz.c_str(), { VK_FORMAT_R8G8B8A8_SRGB });
 
 	return std::make_shared<SkyboxMaterial>(material_name, vertex_desc, cubemap);
+}
+
+
+
+
+std::shared_ptr<SkyboxMaterial> AssetLoader::loadSkyboxMaterialFromHDRMap(const char* material_name, const std::string& filepath, const VertexDescription& vertex_desc)
+{
+
+	std::shared_ptr<Cubemap> cubemap = AssetLoader::loadCubemapFromHDRMap(filepath.c_str(), { VK_FORMAT_R32G32B32A32_SFLOAT });
+
+
+	return std::make_shared<SkyboxMaterial>(material_name, vertex_desc, cubemap);
+
 }

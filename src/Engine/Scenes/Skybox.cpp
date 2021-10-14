@@ -38,7 +38,19 @@ static void fillSkyboxMeshData(MeshData& mesh_data)
 
 }
 
-Skybox::Skybox(std::string material_name, std::string file_path)
+std::unique_ptr<Skybox> Skybox::createFromCubemap(const std::string& material_name, const std::string& file_path)
+{
+	return std::make_unique<Skybox>(material_name, file_path, true);
+}
+
+
+std::unique_ptr<Skybox> Skybox::createFromHDRMap(const std::string& material_name, const std::string& file_path)
+{
+	return std::make_unique<Skybox>(material_name, file_path, false);
+}
+
+
+Skybox::Skybox(const std::string& material_name, const std::string& cubemap_files_path, bool isCubemap)
 {
 
 	MeshData skybox_data;
@@ -46,6 +58,13 @@ Skybox::Skybox(std::string material_name, std::string file_path)
 
 	m_skybox_mesh = std::make_shared<Mesh>(skybox_data); //Vertices not working
 
-	m_material = AssetLoader::loadSkyboxMaterialFromFilepath(material_name.c_str(), file_path, m_skybox_mesh->getVertexBuffer()->getInputDescription());
-
+	if (isCubemap)
+	{
+		m_material = AssetLoader::loadSkyboxMaterialFromCubemap(material_name.c_str(), cubemap_files_path, m_skybox_mesh->getVertexBuffer()->getInputDescription());
+	}
+	else
+	{
+		m_material = AssetLoader::loadSkyboxMaterialFromHDRMap(material_name.c_str(), cubemap_files_path, m_skybox_mesh->getVertexBuffer()->getInputDescription());
+	}
+	
 }

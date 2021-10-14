@@ -9,9 +9,13 @@ class Skybox
 {
 public:
 
-	//filepath must be path to filename without extension. asset loader adds the _negx.jpg etc etc. TODO: rework this at some point
-	Skybox(std::string material_name, std::string file_path);
+	static std::unique_ptr<Skybox> createFromCubemap(const std::string& material_name, const std::string& cubemap_files_path);
+	static std::unique_ptr<Skybox> createFromHDRMap(const std::string& material_name, const std::string& env_map);
 
+	//filepath must be path to filename without extension. asset loader adds the _negx.jpg etc etc. TODO: rework this at some point
+	
+	Skybox(const std::string& material_name, const std::string& file_path, bool isCubemap);
+	
 
 	std::shared_ptr<Mesh>	mesh() const { return m_skybox_mesh; };
 	std::shared_ptr<SkyboxMaterial> material() const { return m_material; };

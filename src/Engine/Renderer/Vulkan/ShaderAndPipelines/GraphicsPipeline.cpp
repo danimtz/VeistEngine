@@ -7,7 +7,7 @@
 
 
 
-GraphicsPipeline::GraphicsPipeline(std::string shader_name, const VertexDescription& vertex_desc, DepthTest depth_test, VkPrimitiveTopology topology,
+GraphicsPipeline::GraphicsPipeline(const std::string& shader_name, const VertexDescription& vertex_desc, DepthTest depth_test, VkPrimitiveTopology topology,
 	VkPolygonMode polygon_mode, VkCullModeFlags cull_mode, VkFrontFace front_face)  : 
 	m_pipeline_builder({ shader_name, vertex_desc, depth_test, topology, polygon_mode, cull_mode, front_face })
 {
@@ -38,7 +38,7 @@ void GraphicsPipeline::rebuildPipeline(const RenderPass& renderpass)
 
 
 
-GraphicsPipelineBuilder::GraphicsPipelineBuilder(std::string shader_name, const VertexDescription& vertex_desc, DepthTest depth_test, VkPrimitiveTopology topology,
+GraphicsPipelineBuilder::GraphicsPipelineBuilder(const std::string& shader_name, const VertexDescription& vertex_desc, DepthTest depth_test, VkPrimitiveTopology topology,
 	VkPolygonMode polygon_mode, VkCullModeFlags cull_mode, VkFrontFace front_face) :
 	m_depth_test(depth_test),
 	m_topology(topology), 
@@ -59,7 +59,7 @@ GraphicsPipelineBuilder::GraphicsPipelineBuilder(std::string shader_name, const 
 }
 
 
-void GraphicsPipelineBuilder::createShaderProgram(std::string shader_name)
+void GraphicsPipelineBuilder::createShaderProgram(const std::string& shader_name)
 {
 
 	m_shader_program = ShaderProgram::Create(shader_name);
@@ -277,13 +277,6 @@ void GraphicsPipelineBuilder::createPipelineLayout()
 	create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 	create_info.pNext = nullptr;
 
-	//Add pushconstant from MatrixPushConstant struct in graphicspipeline.h TEMPORARY, WILL NEED REFACTORING LATER ON
-	//setup push constants
-	/*VkPushConstantRange push_constant;
-	push_constant.offset = 0;
-	push_constant.size = sizeof(MatrixPushConstant);
-	push_constant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-	*/
 	create_info.pushConstantRangeCount = m_shader_program->pushConstantRanges().size();
 	if (create_info.pushConstantRangeCount != 0)
 	{

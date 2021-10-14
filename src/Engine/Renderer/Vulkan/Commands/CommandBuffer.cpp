@@ -138,6 +138,27 @@ void CommandBuffer::copyBufferToImage(const Buffer stage_buff, const VkImage ima
 }
 
 
+
+void CommandBuffer::dispatch(const ComputePipeline& pipeline, const DescriptorSet& descriptor_set, const glm::u32vec3& group_count)
+{
+
+	vkCmdBindPipeline(m_cmd_buffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipeline.pipeline());
+
+	vkCmdBindDescriptorSets(m_cmd_buffer, 
+		VK_PIPELINE_BIND_POINT_COMPUTE, 
+		pipeline.pipelineLayout(), 
+		0, 
+		1,
+		&descriptor_set.descriptorSet(),
+		0, nullptr);
+
+	vkCmdDispatch(m_cmd_buffer, group_count.x, group_count.y, group_count.z);
+
+
+}
+
+
+
 //=================== RenderPass functions =================================
 
 void CommandBuffer::beginRenderPass(const Framebuffer& framebuffer)

@@ -23,9 +23,9 @@ class ShaderProgram
 {
 public:
 
-    static std::shared_ptr<ShaderProgram> Create(std::string shader_name);
+    static std::shared_ptr<ShaderProgram> Create(const std::string& shader_name, bool isCompute = false);
 
-    ShaderProgram(std::string file_path);
+    ShaderProgram(const std::string& file_path, bool isCompute);
 
     std::vector<VkShaderModule>& shaderModules() { return m_shader_module; };
     std::vector<VkPipelineShaderStageCreateInfo>& pipelineStages() { return m_pipeline_stages; };
@@ -38,7 +38,7 @@ public:
 private:
     
 
-    void compileOrGetSpirV(const std::string shader_name);
+    void compileOrGetSpirV(const std::string& shader_name, bool isCompute);
     void createShaderModules();
     void reflectShaderModules();
     void createDescriptorSetLayouts();

@@ -17,7 +17,7 @@ uint32_t ImageProperties::mipLevelBytes(uint32_t mip_level)
 	uint32_t mip_bytes = 0;
 	auto mip_size = ImageProperties::mipSize(mip_level);
 
-	mip_bytes = mip_size.x * mip_size.y * mip_size.z * 4/*TODO: *bytes_per_pixel*/;
+	mip_bytes = mip_size.x * mip_size.y * mip_size.z * m_format.bytesPerPixel();
 
 	return mip_bytes;
 }

@@ -94,7 +94,7 @@ public:
     CommandBuffer& getCurrentCmdBuffer() { return getCurrentFrameCmdBuffer(); }; //TODO rework this later
     Swapchain* getSwapchain() const {return m_swapchain.get();};
     VmaAllocator getAllocator() const { return m_allocator; }; //CONSIDER MOVING ALLOCATOR TO SEPARATE CLASS
-    CommandBuffer& createDisposableCmdBuffer();
+    CommandBuffer createDisposableCmdBuffer();
     uint32_t getGraphicsFamily() const { return m_graphics_family_idx; };
     const RenderPass& getRenderPass() const { return m_render_pass; };
     uint32_t getFrameNumber() const { return m_frame_count; };
