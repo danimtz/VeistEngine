@@ -138,6 +138,23 @@ void CommandBuffer::copyBufferToImage(const Buffer stage_buff, const VkImage ima
 }
 
 
+void CommandBuffer::calcSizeAndDispatch(const ComputePipeline& pipeline, const DescriptorSet& descriptor_set, const glm::u32vec3& size)
+{
+	glm::u32vec3 group_count;
+	
+	glm::u32vec3 local_size = pipeline.shaderProgram()->localSize();
+	
+	for (size_t i = 0; i != 3; i++)
+	{
+		uint32_t round_up = 1;
+		group_count[i] = size[i] / local_size[i] + round_up;
+	}
+
+	dispatch(pipeline, descriptor_set, group_count);
+}
+
+
+
 
 void CommandBuffer::dispatch(const ComputePipeline& pipeline, const DescriptorSet& descriptor_set, const glm::u32vec3& group_count)
 {

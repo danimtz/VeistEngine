@@ -126,6 +126,11 @@ ImageBase::ImageBase(ImageProperties properties, ImageUsage usage, ImageViewType
 		RenderModule::getRenderBackend()->pushToDeletionQueue([=]() { vkDestroyImageView(device, image_view, nullptr); });
 	}
 	
+	//If storage image set layout to general
+	if ((usage & ImageUsage::Storage) == ImageUsage::Storage)
+	{
+		transitionImageLayout(VK_IMAGE_LAYOUT_GENERAL);
+	}
 
 }
 
@@ -143,4 +148,44 @@ ImageBase::ImageBase(VkImage vk_image, ImageProperties properties, ImageUsage us
 
 	RenderModule::getRenderBackend()->pushToDeletionQueue([=]() { vkDestroyImageView(device, image_view, nullptr); });
 
+}
+
+
+
+
+void ImageBase::transitionImageLayout(VkImageLayout new_layout, VkImageLayout old_layout)
+{
+	CommandBuffer cmd = RenderModule::getRenderBackend()->createDisposableCmdBuffer();
+
+	//TODO: move barrier functionality to CommandBuffer class
+	 //from vulkan-tutorial
+
+	VkImageMemoryBarrier barrier = {};
+	barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+	barrier.oldLayout = old_layout;
+	barrier.newLayout = new_layout;
+	barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+
+	barrier.image = m_image;
+	barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	barrier.subresourceRange.baseMipLevel = 0;
+	barrier.subresourceRange.levelCount = m_properties.mipLevels();
+	barrier.subresourceRange.baseArrayLayer = 0;
+	barrier.subresourceRange.layerCount = m_properties.layerCount();
+	barrier.subresourceRange.aspectMask = m_properties.imageFormat().imageAspectFlags();
+
+	barrier.srcAccessMask = 0; // TODO
+	barrier.dstAccessMask = 0; // TODO
+
+	vkCmdPipelineBarrier( cmd.vk_commandBuffer(), //Non blocking barrier for now
+		VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT /* src */, 
+		VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT /* dst */,
+		0,
+		0, nullptr,
+		0, nullptr,
+		1, &barrier
+	);
+
+	cmd.immediateSubmit();
 }

@@ -279,6 +279,13 @@ void ShaderProgram::reflectShaderModules()
 		// The SPIR-V is now parsed, and we can perform reflection on it.
 		spirv_cross::ShaderResources resources = comp.get_shader_resources();
 
+
+		for (uint32_t i = 0; i < 3; i++)//Compute shader
+		{
+			m_local_size[i] = comp.get_execution_mode_argument(spv::ExecutionMode::ExecutionModeLocalSize, i);
+		}
+
+
 		//Uniform Buffers
 		for (auto& resource : resources.uniform_buffers)
 		{
@@ -319,6 +326,28 @@ void ShaderProgram::reflectShaderModules()
 			printf("Storage Buffer %s at set = %u, binding = %u\n", resource.name.c_str(), set, binding);
 
 		}
+
+		//Storage Image
+		for (auto& resource : resources.storage_images)
+		{
+			unsigned set = comp.get_decoration(resource.id, spv::DecorationDescriptorSet);
+			unsigned binding = comp.get_decoration(resource.id, spv::DecorationBinding);
+			if (m_bindings[set].find(binding) == m_bindings[set].end()) //if not found
+			{
+				auto decriptor_binding = getDescriptorSetLayoutBinding(binding, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, static_cast<VkShaderStageFlagBits>(spirv_source_it.first));
+				m_bindings[set].insert({ binding, decriptor_binding });
+			}
+			else
+			{
+				//Add stage flag
+				addStageFlagToBinding(m_bindings[set][binding], static_cast<VkShaderStageFlagBits>(spirv_source_it.first)); //UNTESTED MIGHT NOT WORK
+
+			}
+
+			printf("Storage Image %s at set = %u, binding = %u\n", resource.name.c_str(), set, binding);
+
+		}
+
 
 
 		//Combined Image Samplers

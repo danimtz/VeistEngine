@@ -60,7 +60,7 @@ Scene::Scene() {
 
 	//Skybox
 	//m_skybox = Skybox::createFromCubemap("Skybox", "..\\..\\assets\\Skyboxes\\Cubemaps\\Ryfjallet\\Ryfjallet");
-	m_skybox = Skybox::createFromHDRMap("Skybox", "..\\..\\assets\\Skyboxes\\Equirect\\Ice_Lake\\Ice_Lake_Ref.hdr");
+	m_skybox = Skybox::createFromEquirectMap("Skybox", "..\\..\\assets\\Skyboxes\\Equirect\\Ice_Lake\\Ice_Lake_HiRes_TMap.jpg");
 
 
 

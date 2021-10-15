@@ -6,6 +6,7 @@
 #include <string>
 #include <map>
 #include "Engine/Logger.h"
+#include "glm/glm.hpp"
 
 enum class ShaderStageFlag : uint32_t {
     None = 0,
@@ -31,7 +32,7 @@ public:
     std::vector<VkPipelineShaderStageCreateInfo>& pipelineStages() { return m_pipeline_stages; };
     std::vector<VkDescriptorSetLayout>& descriptorLayouts() { return m_descriptor_layouts; };
     std::vector<VkPushConstantRange>& pushConstantRanges() { return m_push_constants; };
-   
+    const glm::u32vec3& localSize() const { return m_local_size; };
    
   
 
@@ -45,6 +46,8 @@ private:
 
     static constexpr int MAX_DESCRIPTOR_SETS = 4;//find better palce for this
 
+    glm::u32vec3			m_local_size;//compute shaders only
+
     std::map<uint32_t, VkDescriptorSetLayoutBinding> m_bindings[MAX_DESCRIPTOR_SETS];
 
     std::vector<VkShaderModule>						m_shader_module;
@@ -56,6 +59,7 @@ private:
     std::unordered_map<ShaderStageFlag, std::string> m_shader_source_code;
     std::unordered_map<ShaderStageFlag, std::vector<uint32_t>> m_spirv_source;
     
+
 
 };
 

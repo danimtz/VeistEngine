@@ -54,6 +54,31 @@ void DescriptorSet::bindSampledImage(uint32_t binding, VkImageView image_view, V
 
 
 
+
+
+void DescriptorSet::bindStorageImage(uint32_t binding, const ImageBase* image)
+{
+	DescriptorInfo desc_info;
+	desc_info.image_info.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+	desc_info.image_info.imageView = image->imageView();
+
+
+	m_write_data.push_back({ desc_info });
+
+	VkWriteDescriptorSet set_write = {};
+	set_write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+	set_write.pNext = nullptr;
+	set_write.dstBinding = binding;
+	set_write.descriptorCount = 1;
+	set_write.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+
+
+	m_writes.push_back(set_write);
+}
+
+
+
+
 void DescriptorSet::bindBuffer(uint32_t binding, const ShaderBuffer* buffer, uint32_t range, VkDescriptorType type)
 {
 	DescriptorInfo desc_info;
@@ -84,6 +109,8 @@ void DescriptorSet::bindStorageBuffer(uint32_t binding, const ShaderBuffer* buff
 {
 	bindBuffer(binding, buffer, range, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC);
 }
+
+
 
 void DescriptorSet::bindCombinedSamplerTexture(uint32_t binding, const Texture* texture/*sampler view etc?*/)
 {

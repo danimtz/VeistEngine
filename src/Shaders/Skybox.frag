@@ -20,6 +20,10 @@ layout(set = 0, binding = 0) uniform samplerCube skybox;
 
 void main()
 {
-	outFragColor = texture(skybox, inFragPos);
+
+	vec3 env_color =  texture(skybox, inFragPos).rgb;
+	//env_color = env_color/(env_color + vec3(1.0));//tonemap
+	env_color = pow(env_color, vec3(2.2));//over gamma correct since swapchain later corrects it back and image is UNORM not SRGB
+	outFragColor = vec4(env_color, 1.0);
 	
 }

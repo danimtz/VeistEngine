@@ -59,14 +59,26 @@ public:
 	const ImageProperties& properties() const {return m_properties;};
 	const ImageUsage& imageUsage() const { return m_usage; };
 
+	void transitionImageLayout( VkImageLayout new_layout, VkImageLayout old_layout = VK_IMAGE_LAYOUT_UNDEFINED);
+	
+	ImageBase(const ImageBase&) = default;
+	ImageBase& operator=(const ImageBase&) = default;
+	ImageBase(ImageBase&&) = default;
+	ImageBase& operator=(ImageBase&&) = default;
+
 protected:
+
+	ImageBase() = default;
 
 	//swapchain
 	ImageBase(VkImage vk_image, ImageProperties properties, ImageUsage usage, ImageViewType view_type);
 
 	ImageBase(void* data, ImageProperties properties, ImageUsage usage,  ImageViewType view_type);
 	ImageBase(ImageProperties properties, ImageUsage usage, ImageViewType type);
-	ImageBase() = default;
+	
+	
+	
+	
 
 	VkImage m_image;
 	VkImageView m_image_view;
@@ -79,12 +91,25 @@ protected:
 template<ImageUsage usage, ImageViewType type = ImageViewType::Flat>
 class Image : public ImageBase {
 public:
-	
+
+	static constexpr bool types_compatible(ImageUsage new_use)
+	{
+		return ((usage & new_use) == usage);
+	}
+
 	//swapchain
 	Image(VkImage vk_image, ImageProperties properties) : ImageBase(vk_image, properties, usage, type) {};
 
 	Image(ImageProperties properties) : ImageBase(properties, usage, type) {};
 	Image(void* data, ImageProperties properties) : ImageBase(data, properties, usage, type){};
+	
+
+	//Move constructor (example use convert StorageCubemap to Cubemap)
+	template<ImageUsage use, typename = std::enable_if_t<types_compatible(use)>>
+	Image(Image<use, type>&& other)
+	{
+		ImageBase::operator=(std::move(other));
+	}
 	
 	Image() = default;
 
@@ -92,6 +117,10 @@ public:
 
 using Texture = Image<ImageUsage::Texture>;
 using Cubemap = Image<ImageUsage::Texture, ImageViewType::Cube>;
+
+using StorageTexture = Image<ImageUsage::Texture | ImageUsage::Storage>;
+using StorageCubemap = Image<ImageUsage::Texture | ImageUsage::Storage, ImageViewType::Cube>;
+
 using ColorAttachment = Image<ImageUsage::ColorAttachment>;
 using DepthAttachment = Image<ImageUsage::DepthAttachment>;
 using SwapchainImage = Image<ImageUsage::ColorAttachment | ImageUsage::SwapchainImage>;

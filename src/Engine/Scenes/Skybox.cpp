@@ -11,14 +11,14 @@ static void fillSkyboxMeshData(MeshData& mesh_data)
 	std::vector<Vertex>& vertices = mesh_data.vbuffer_data;
 	vertices.resize(8);
 
-	vertices[0].position = glm::vec3{-1, -1, -1};
-	vertices[1].position = glm::vec3{ 1, -1, -1};
-	vertices[2].position = glm::vec3{1, 1, -1};
-	vertices[3].position = glm::vec3{-1, 1, -1};
-	vertices[4].position = glm::vec3{-1, -1, 1};
-	vertices[5].position = glm::vec3{1, -1, 1};
-	vertices[6].position = glm::vec3{1, 1, 1};
-	vertices[7].position = glm::vec3{-1, 1, 1};
+	vertices[0].position = glm::vec3{-0.5, -0.5, -0.5};
+	vertices[1].position = glm::vec3{ 0.5, -0.5, -0.5};
+	vertices[2].position = glm::vec3{0.5, 0.5, -0.5};
+	vertices[3].position = glm::vec3{-0.5, 0.5, -0.5};
+	vertices[4].position = glm::vec3{-0.5, -0.5, 0.5};
+	vertices[5].position = glm::vec3{0.5, -0.5, 0.5};
+	vertices[6].position = glm::vec3{0.5, 0.5, 0.5};
+	vertices[7].position = glm::vec3{-0.5, 0.5, 0.5};
 
 	mesh_data.index_count = 36;
 	uint16_t indices[36] = {0, 1, 3, 3, 1, 2, 1, 5, 2, 2, 5, 6, 5, 4, 6, 6, 4, 7, 4, 0, 7, 7, 0, 3, 3, 2, 7, 7, 2, 6, 4, 5, 0, 0, 5, 1};
@@ -44,10 +44,12 @@ std::unique_ptr<Skybox> Skybox::createFromCubemap(const std::string& material_na
 }
 
 
-std::unique_ptr<Skybox> Skybox::createFromHDRMap(const std::string& material_name, const std::string& file_path)
+std::unique_ptr<Skybox> Skybox::createFromEquirectMap(const std::string& material_name, const std::string& file_path)
 {
 	return std::make_unique<Skybox>(material_name, file_path, false);
 }
+
+
 
 
 Skybox::Skybox(const std::string& material_name, const std::string& cubemap_files_path, bool isCubemap)
@@ -64,7 +66,10 @@ Skybox::Skybox(const std::string& material_name, const std::string& cubemap_file
 	}
 	else
 	{
-		m_material = AssetLoader::loadSkyboxMaterialFromHDRMap(material_name.c_str(), cubemap_files_path, m_skybox_mesh->getVertexBuffer()->getInputDescription());
+		
+		m_material = AssetLoader::loadSkyboxMaterialFromEquirectMap(material_name.c_str(), cubemap_files_path, m_skybox_mesh->getVertexBuffer()->getInputDescription());
+		
+		
 	}
 	
 }

@@ -405,53 +405,84 @@ std::shared_ptr<Cubemap> AssetLoader::loadCubemapFromFiles(const char* posx, con
 
 
 
-std::shared_ptr<Cubemap> AssetLoader::loadCubemapFromHDRMap(const char* filepath, ImageFormat format )
+std::shared_ptr<Cubemap> AssetLoader::loadCubemapFromEquirectMap(const char* filepath )
 {
+	ImageSize img_size;
+	ImageProperties properties;
+	Texture equirect;
+	int width, height, n_channels;
+	ImageFormat format;
 
 	//Load HDR map
-	if (!stbi_is_hdr(filepath))
+	if (stbi_is_hdr(filepath))
 	{
-		CRITICAL_ERROR_LOG("Image filepath given for HDR image is not HDR")
+		stbi_set_flip_vertically_on_load(true);
+		
+		float* data = stbi_loadf(filepath, &width, &height, &n_channels, STBI_rgb_alpha);
+		stbi_set_flip_vertically_on_load(false);
 
+		n_channels = 4;//rgb aplha format
+
+		img_size = { (uint32_t)width, (uint32_t)height, (uint32_t)n_channels };
+
+		if (!data)
+		{
+			std::cout << "Error loading file: " << filepath << std::endl;
+			CRITICAL_ERROR_LOG("Failed to load texture file");
+		}
+		format = { VK_FORMAT_R32G32B32A32_SFLOAT };
+		//Create texture
+		properties = { img_size, format, 1, 1 };
+		equirect = { data, properties };
+		stbi_image_free(data);
+	}
+	else
+	{
+		stbi_set_flip_vertically_on_load(true);
+		stbi_uc* data = stbi_load(filepath, &width, &height, &n_channels, STBI_rgb_alpha);
+		stbi_set_flip_vertically_on_load(false);
+
+		n_channels = 4;//rgb aplha format
+
+		img_size = { (uint32_t)width, (uint32_t)height, (uint32_t)n_channels };
+
+		if (!data)
+		{
+			std::cout << "Error loading file: " << filepath << std::endl;
+			CRITICAL_ERROR_LOG("Failed to load texture file");
+		}
+
+		format = { VK_FORMAT_R8G8B8A8_UNORM };
+		//Create texture
+		properties = { img_size, format, 1, 1 };
+		equirect = { data, properties };
+		stbi_image_free(data);
 	}
 
-	stbi_set_flip_vertically_on_load(true);
-	int width, height, n_channels;
-	float* data = stbi_loadf(filepath, &width, &height, &n_channels, STBI_rgb_alpha);
 	
-	n_channels = 4;//rgb aplha format
 
-	ImageSize img_size{ (uint32_t)width, (uint32_t)height, (uint32_t)n_channels };
-
-	if (!data)
-	{
-		std::cout << "Error loading file: " << filepath << std::endl;
-		CRITICAL_ERROR_LOG("Failed to load texture file");
-	}
-
-	//Create texture
-	ImageProperties properties = { img_size, format, 1, 1 };
-	Texture equirect = {data, properties};
-	stbi_image_free(data);
+	
 	
 	//Create empty cubemap
-	ImageProperties cubemap_properties = { {(uint32_t)width / 4, (uint32_t)width / 4, (uint32_t)n_channels }, format, 1, 6 };
-	std::shared_ptr<Cubemap> resource = std::make_shared<Cubemap>(cubemap_properties); // add layers
-
-
+	ImageProperties cubemap_properties = { {(uint32_t)height, (uint32_t)height, (uint32_t)n_channels }, format, 1, 6 }; //set cubemap to max size of smallest side of equirect
+	StorageCubemap cubemap = {cubemap_properties}; // add layers
+	
+	
 	//Use compute shader to convert equirectangular image to cubemap
 	ComputePipeline compute_program = { "equirect_to_cubemap" };
 	DescriptorSet compute_descriptor;
 	compute_descriptor.setDescriptorSetLayout(0, &compute_program);
 	compute_descriptor.bindCombinedSamplerTexture(0, &equirect);
-	compute_descriptor.bindCombinedSamplerCubemap(1, resource.get());
+	compute_descriptor.bindStorageImage(1, &cubemap);
 	compute_descriptor.buildDescriptorSet();
 
 	CommandBuffer cmd_buff = RenderModule::getRenderBackend()->createDisposableCmdBuffer();
-	cmd_buff.dispatch(compute_program, compute_descriptor, {8,8,1});
+	cmd_buff.calcSizeAndDispatch(compute_program, compute_descriptor, { width, height, 1});
+	//cmd_buff.dispatch(compute_program, compute_descriptor, {8,8,1});
 	cmd_buff.immediateSubmit();
 
-	return resource;
+	cubemap.transitionImageLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_GENERAL);
+	return std::make_shared<Cubemap>(std::move(cubemap));//TODO move constructor on Image<>
 }
 
 
@@ -560,12 +591,13 @@ std::shared_ptr<SkyboxMaterial> AssetLoader::loadSkyboxMaterialFromCubemap(const
 
 
 
-std::shared_ptr<SkyboxMaterial> AssetLoader::loadSkyboxMaterialFromHDRMap(const char* material_name, const std::string& filepath, const VertexDescription& vertex_desc)
+std::shared_ptr<SkyboxMaterial> AssetLoader::loadSkyboxMaterialFromEquirectMap(const char* material_name, const std::string& filepath, const VertexDescription& vertex_desc)
 {
 
-	std::shared_ptr<Cubemap> cubemap = AssetLoader::loadCubemapFromHDRMap(filepath.c_str(), { VK_FORMAT_R32G32B32A32_SFLOAT });
+	std::shared_ptr<Cubemap> cubemap = AssetLoader::loadCubemapFromEquirectMap(filepath.c_str());
 
 
 	return std::make_shared<SkyboxMaterial>(material_name, vertex_desc, cubemap);
 
 }
+
