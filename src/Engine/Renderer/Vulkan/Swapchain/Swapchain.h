@@ -31,7 +31,7 @@ public:
 	uint32_t& currentImageIndex() {return m_img_idx; };
 	const VkExtent2D& extent() const { return m_extent; }
 	uint32_t imageCount() const {return m_images.size();};
-	const std::vector<SwapchainImage>& images() const {return m_images;};
+	std::vector<std::unique_ptr<SwapchainImage>>& images() {return m_images;};
 	SyncStructures& currentSyncStructures(uint32_t frame_count) { return m_sync_structs[frame_count % m_image_count]; };
 
 private:
@@ -43,8 +43,9 @@ private:
 
 	std::shared_ptr<Swapchain> m_old_swapchain;
 
-	std::vector<SwapchainImage> m_images;
+	std::vector<std::unique_ptr<SwapchainImage>> m_images;
 	std::vector<SyncStructures> m_sync_structs;
+
 	ImageFormat                 m_format;
 	VkExtent2D					m_extent;
 	uint32_t					m_img_idx{0};

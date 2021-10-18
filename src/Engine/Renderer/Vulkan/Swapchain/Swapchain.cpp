@@ -62,6 +62,7 @@ Swapchain::Swapchain(const VkExtent2D& extent, std::shared_ptr<Swapchain> old_sw
 Swapchain::~Swapchain()
 {
 	VkDevice device = RenderModule::getRenderBackend()->getDevice();
+	m_images.clear();
 	vkDestroySwapchainKHR(device, vk_swapchainKHR(), nullptr);
 }
 
@@ -165,7 +166,7 @@ void Swapchain::createSwapchain()
 
 	//Create image views
 	for (size_t i = 0; i < m_image_count; i++) {
-		m_images.push_back({ swapchain_vkimages[i], swapchain_img_properties });
+		m_images.emplace_back( std::make_unique<SwapchainImage>(swapchain_vkimages[i], swapchain_img_properties) );
 	}
 
 	

@@ -100,6 +100,8 @@ public:
     uint32_t getFrameNumber() const { return m_frame_count; };
     void incrementFrameCounter() { m_frame_count++; };
 
+    void waitIdle();
+
     void rebuildSwapchain();
 
 private://main vulkan setup
@@ -144,7 +146,7 @@ private:
     std::unique_ptr<Swapchain>      m_swapchain;
     RenderPass                      m_render_pass;
     std::vector<Framebuffer>        m_framebuffers;
-    SwapchainDepthAttachment        m_swapchain_depth_image;
+    std::unique_ptr<SwapchainDepthAttachment>  m_swapchain_depth_image;
   
 
 

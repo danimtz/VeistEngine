@@ -303,7 +303,7 @@ void ShaderProgram::reflectShaderModules()
 			
 			}
 
-			printf("Uniform Buffer %s at set = %u, binding = %u\n", resource.name.c_str(), set, binding);
+			//printf("Uniform Buffer %s at set = %u, binding = %u\n", resource.name.c_str(), set, binding);
 		}
 
 		//Storage Buffers
@@ -323,7 +323,7 @@ void ShaderProgram::reflectShaderModules()
 
 			}
 
-			printf("Storage Buffer %s at set = %u, binding = %u\n", resource.name.c_str(), set, binding);
+			//printf("Storage Buffer %s at set = %u, binding = %u\n", resource.name.c_str(), set, binding);
 
 		}
 
@@ -344,7 +344,7 @@ void ShaderProgram::reflectShaderModules()
 
 			}
 
-			printf("Storage Image %s at set = %u, binding = %u\n", resource.name.c_str(), set, binding);
+			//printf("Storage Image %s at set = %u, binding = %u\n", resource.name.c_str(), set, binding);
 
 		}
 
@@ -367,7 +367,7 @@ void ShaderProgram::reflectShaderModules()
 
 			}
 
-			printf("Combined Image Sampler %s at set = %u, binding = %u\n", resource.name.c_str(), set, binding);
+			//printf("Combined Image Sampler %s at set = %u, binding = %u\n", resource.name.c_str(), set, binding);
 
 		}
 

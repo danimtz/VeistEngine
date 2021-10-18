@@ -61,15 +61,14 @@ Scene::Scene() {
 	//Skybox
 	//m_skybox = Skybox::createFromCubemap("Skybox", "..\\..\\assets\\Skyboxes\\Cubemaps\\Ryfjallet\\Ryfjallet");
 	m_skybox = Skybox::createFromEquirectMap("Skybox", "..\\..\\assets\\Skyboxes\\Equirect\\Ice_Lake\\Ice_Lake_HiRes_TMap.jpg");
+	//m_skybox = Skybox::createFromEquirectMap("Skybox", "..\\..\\assets\\Skyboxes\\Equirect\\Winter_Forest\\WinterForest_8k.jpg");
+	
 
+	//IBL probe
+	std::shared_ptr<Cubemap> cube = AssetLoader::loadCubemapFromEquirectMap("..\\..\\assets\\Skyboxes\\Equirect\\Ice_Lake\\Ice_Lake_HiRes_TMap.jpg");
+	m_global_probe = LightProbe::Create( *cube.get() );
 
-
-
-	//I dont like how im using pipelines here. Pipelines are being used as a shader (which is kind of how it works in vulkan)
-	//A better way i reckon would be to use shader or material here in the renderer and abstract the usage of the pipeline object away from whoever 
-	//is writing the renderer class (which is me in this case but yeah). Then the shader class or material should contain stuff like Pipeline Layout and DescriptorSetLayout
-	//and push constant range, VertexDescription(my own thing). Leaving it for now
-	//m_test_pipeline = GraphicsPipeline::Create("helmet", "..\\..\\src\\Shaders\\", m_scene_meshes[0].getVertexBuffer()->getInputDescription()); //
+	
 }
 
 

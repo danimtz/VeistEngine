@@ -550,7 +550,7 @@ void RenderBackend::createSwapchainAndImages()
 	
 
 	ImageProperties depth_img_properties{ {extent.width, extent.height}, {VK_FORMAT_D32_SFLOAT} };
-	m_swapchain_depth_image = SwapchainDepthAttachment{depth_img_properties};
+	m_swapchain_depth_image = std::make_unique<SwapchainDepthAttachment>(depth_img_properties);
 
 }
 
@@ -559,8 +559,8 @@ void RenderBackend::createSwapchainAndImages()
 void RenderBackend::createDefaultRenderPass()
 {
 
-	ImageProperties color_props = m_swapchain->images()[0].properties();//{ ImageSize{m_swapchain_extent.width,m_swapchain_extent.height}, ImageFormat{m_swapchain_format} };
-	ImageProperties depth_props = m_swapchain_depth_image.properties();//{ ImageSize{m_swapchain_extent.width,m_swapchain_extent.height}, ImageFormat{VK_FORMAT_D32_SFLOAT} };
+	ImageProperties color_props = m_swapchain->images()[0]->properties();//{ ImageSize{m_swapchain_extent.width,m_swapchain_extent.height}, ImageFormat{m_swapchain_format} };
+	ImageProperties depth_props = m_swapchain_depth_image->properties();//{ ImageSize{m_swapchain_extent.width,m_swapchain_extent.height}, ImageFormat{VK_FORMAT_D32_SFLOAT} };
 
 
 	std::vector<RenderPass::AttachmentProperties> main_color_attachments;
@@ -579,8 +579,8 @@ void RenderBackend::createFramebuffers()
 	const uint32_t swapchain_image_count = m_swapchain->imageCount();
 	for (int i = 0; i < swapchain_image_count; i++) 
 	{
-		std::vector<ImageBase> color_images = { m_swapchain->images()[i] };
-		m_framebuffers.push_back({color_images, m_swapchain_depth_image, &m_render_pass});
+		std::vector<ImageBase*> color_images = { m_swapchain->images()[i].get() };
+		m_framebuffers.push_back({color_images, m_swapchain_depth_image.get(), &m_render_pass});
 	}
 
 }
@@ -625,6 +625,12 @@ void RenderBackend::pushToSwapchainDeletionQueue(std::function<void()> function)
 }
 
 
+void RenderBackend::waitIdle()
+{
+	vkDeviceWaitIdle(m_device);
+}
+
+
 void RenderBackend::shutdown() {
 	
 	if(m_isInitialized){
@@ -636,6 +642,7 @@ void RenderBackend::shutdown() {
 		m_descriptor_allocator->cleanup();
 
 		m_swapchain_deletion_queue.executeDeletionQueue(); //maybe add the rest to the deletion queue
+		m_swapchain_depth_image.reset();
 		m_swapchain.reset(); // delete swapchain unique ptr
 
 		m_deletion_queue.executeDeletionQueue(); //maybe add the rest to the deletion queue

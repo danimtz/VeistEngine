@@ -472,7 +472,7 @@ std::shared_ptr<Cubemap> AssetLoader::loadCubemapFromEquirectMap(const char* fil
 	ComputePipeline compute_program = { "equirect_to_cubemap" };
 	DescriptorSet compute_descriptor;
 	compute_descriptor.setDescriptorSetLayout(0, &compute_program);
-	compute_descriptor.bindCombinedSamplerTexture(0, &equirect);
+	compute_descriptor.bindCombinedSamplerTexture(0, &equirect); 
 	compute_descriptor.bindStorageImage(1, &cubemap);
 	compute_descriptor.buildDescriptorSet();
 
@@ -523,14 +523,15 @@ std::shared_ptr<PBRMaterial> AssetLoader::loadPBRMaterialFromGLTF(const char* ma
 	std::string uri = model.images[tex_src].uri;
 	std::string folder = folder_path;
 	std::shared_ptr<Texture> albedo = AssetLoader::loadTextureFromFile(folder.append(uri).c_str(), {VK_FORMAT_R8G8B8A8_SRGB});
-	
+	CONSOLE_LOG(" ===================== ALBEDO TEXTURE");
+
 	//Occlusion/Metallic/roughness (ASSUMES OCCLUSION IN IN METALLIC ROUGHNESS TEXTURE. as in gltf2.0 spec)
 	int roughness_metallic_idx = gltf_material.pbrMetallicRoughness.metallicRoughnessTexture.index;
 	tex_src = model.textures[roughness_metallic_idx].source;
 	uri = model.images[tex_src].uri;
 	folder = folder_path;
 	std::shared_ptr<Texture> occlusionRoughnessMetallic = AssetLoader::loadTextureFromFile(folder.append(uri).c_str(), { VK_FORMAT_R8G8B8A8_UNORM });
-
+	CONSOLE_LOG(" ===================== OCC TEXTURE");
 
 	//Normal
 	int normal_idx = gltf_material.normalTexture.index;
@@ -538,7 +539,7 @@ std::shared_ptr<PBRMaterial> AssetLoader::loadPBRMaterialFromGLTF(const char* ma
 	uri = model.images[tex_src].uri;
 	folder = folder_path;
 	std::shared_ptr<Texture> normal = AssetLoader::loadTextureFromFile(folder.append(uri).c_str(), { VK_FORMAT_R8G8B8A8_UNORM });
-
+	CONSOLE_LOG(" ===================== NORMAL TEXTURE");
 	
 
 	//Emmissive
@@ -548,7 +549,7 @@ std::shared_ptr<PBRMaterial> AssetLoader::loadPBRMaterialFromGLTF(const char* ma
 	uri = model.images[tex_src].uri;
 	folder = folder_path;
 	std::shared_ptr<Texture> emmissive = AssetLoader::loadTextureFromFile(folder.append(uri).c_str(), { VK_FORMAT_R8G8B8A8_SRGB });
-
+	CONSOLE_LOG(" ===================== EMMISSIVE TEXTURE");
 	/*
 	MaterialData mat_data{material_name, vertex_desc};
 	mat_data.addTexture(albedo, MaterialData::PBRTextures::Albedo);
@@ -584,7 +585,7 @@ std::shared_ptr<SkyboxMaterial> AssetLoader::loadSkyboxMaterialFromCubemap(const
 
 
 	std::shared_ptr<Cubemap> cubemap = AssetLoader::loadCubemapFromFiles(posx.c_str(), negx.c_str(), posy.c_str(), negy.c_str(), posz.c_str(), negz.c_str(), { VK_FORMAT_R8G8B8A8_SRGB });
-
+	CONSOLE_LOG(" ===================== CUBEMAP TEXTURE");
 	return std::make_shared<SkyboxMaterial>(material_name, vertex_desc, cubemap);
 }
 

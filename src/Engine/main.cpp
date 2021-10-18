@@ -51,10 +51,15 @@ int main() {
 
 //Cleanup Vulkan and window
     
+    RenderModule::getRenderBackend()->waitIdle(); //This is needed to make sure images are not in use. probably wont be necessary once asset system is implemented 
+
+    delete scene; //Delete scene including vkDeleteImage in destructor of textures (will be done in asset/resource system later on since they are shared pointers)
+    
     GUIModule::shutdown();
+   
     RenderModule::shutdown();
 
-    delete scene;
+    
 
     glfwDestroyWindow(window);
     glfwTerminate();

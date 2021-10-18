@@ -5,17 +5,17 @@
 #include "Engine/Renderer/RenderModule.h"
 
 
-static std::unique_ptr<RenderPass> createRenderPass(std::vector<ImageBase>& colors, ImageBase& depth, RenderPass::LoadOp load_op)
+static std::unique_ptr<RenderPass> createRenderPass(std::vector<ImageBase*>& colors, ImageBase* depth, RenderPass::LoadOp load_op)
 {
 	
 	std::vector<RenderPass::AttachmentProperties> color_properties;
 
 	for (uint32_t i = 0; i < colors.size(); i++)
 	{
-		color_properties.push_back({colors[i], load_op});
+		color_properties.push_back({*colors[i], load_op});
 	}
 
-	RenderPass::AttachmentProperties depth_properties = {depth, load_op};
+	RenderPass::AttachmentProperties depth_properties = {*depth, load_op};
 
 	return std::make_unique<RenderPass>(color_properties, depth_properties);
 }
@@ -37,11 +37,11 @@ static glm::u32vec2 calculateFramebufferSize(ImageBase& image)
 }
 
 
-static void createFramebuffer(std::vector<ImageBase>& colors, ImageBase& depth, VkFramebuffer& framebuffer, RenderPass* renderpass, glm::u32vec2& fb_size)
+static void createFramebuffer(std::vector<ImageBase*>& colors, ImageBase* depth, VkFramebuffer& framebuffer, RenderPass* renderpass, glm::u32vec2& fb_size)
 {
 	//TODO:check that all color attachments and depth are the same width and height
 	
-	fb_size = calculateFramebufferSize(colors[0]);
+	fb_size = calculateFramebufferSize(*colors[0]);
 
 	VkFramebufferCreateInfo framebuffer_info = {};
 	framebuffer_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
@@ -59,10 +59,10 @@ static void createFramebuffer(std::vector<ImageBase>& colors, ImageBase& depth, 
 	//add color attachment imageview to vector
 	for (uint32_t i = 0; i < colors.size(); i++)
 	{
-		attachments.push_back(colors[i].imageView());
+		attachments.push_back(colors[i]->imageView());
 	}
 	//add depth attachment imageview to vector
-	attachments.push_back(depth.imageView());
+	attachments.push_back(depth->imageView());
 
 	framebuffer_info.attachmentCount = attachment_count;
 	framebuffer_info.pAttachments = attachments.data();
@@ -72,7 +72,7 @@ static void createFramebuffer(std::vector<ImageBase>& colors, ImageBase& depth, 
 	VK_CHECK(vkCreateFramebuffer(device, &framebuffer_info, nullptr, &framebuffer));
 
 	
-	if ((colors[0].imageUsage() & ImageUsage::SwapchainImage) != ImageUsage::None)
+	if ((colors[0]->imageUsage() & ImageUsage::SwapchainImage) != ImageUsage::None)
 	{
 		RenderModule::getRenderBackend()->pushToSwapchainDeletionQueue([=]() { vkDestroyFramebuffer(device, framebuffer, nullptr);	});
 	}
@@ -86,14 +86,14 @@ static void createFramebuffer(std::vector<ImageBase>& colors, ImageBase& depth, 
 }
 
 
-Framebuffer::Framebuffer(std::vector<ImageBase>& colors, ImageBase& depth, LoadOp load_op) : 
+Framebuffer::Framebuffer(std::vector<ImageBase*>& colors, ImageBase* depth, LoadOp load_op) : 
 	m_render_pass(createRenderPass(colors, depth, load_op)), m_color_attachment_count(colors.size())
 {
 	createFramebuffer(colors, depth, m_framebuffer, m_render_pass.get(), m_size);
 }
 
 
-Framebuffer::Framebuffer(std::vector<ImageBase>& colors, ImageBase& depth, RenderPass* renderpass) : 
+Framebuffer::Framebuffer(std::vector<ImageBase*>& colors, ImageBase* depth, RenderPass* renderpass) : 
 	m_render_pass(std::make_unique<RenderPass>(renderpass->vk_renderpass())), m_color_attachment_count(colors.size())
 {
 	createFramebuffer(colors, depth, m_framebuffer, m_render_pass.get(), m_size);

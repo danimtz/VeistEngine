@@ -233,7 +233,7 @@ void ForwardRenderer::renderScene(CommandBuffer& cmd_buffer)
 		cmd_buffer.drawIndexed(curr_mesh->getIndexBuffer()->getIndexCount());
 	}
 
-
+	
 
 
 }

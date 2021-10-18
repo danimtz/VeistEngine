@@ -82,6 +82,10 @@ ImageBase::ImageBase(void* data, ImageProperties properties, ImageUsage usage, I
 	
 }
 
+
+
+
+
 ImageBase::ImageBase(ImageProperties properties, ImageUsage usage, ImageViewType view_type) : m_properties(properties), m_usage(usage)
 {
 	
@@ -105,7 +109,7 @@ ImageBase::ImageBase(ImageProperties properties, ImageUsage usage, ImageViewType
 	m_image = image;
 	m_allocation = allocation;
 
-	RenderModule::getRenderBackend()->pushToDeletionQueue([allocator, image, allocation]() { vmaDestroyImage(allocator, image, allocation); });
+	//RenderModule::getRenderBackend()->pushToDeletionQueue([allocator, image, allocation]() { vmaDestroyImage(allocator, image, allocation); });
 
 
 
@@ -116,15 +120,7 @@ ImageBase::ImageBase(ImageProperties properties, ImageUsage usage, ImageViewType
 	VkImageView image_view = m_image_view;
 
 
-	//If image view is being used in swapchain use swapchain deletion queue
-	if ((usage & ImageUsage::SwapchainImage) != ImageUsage::None)
-	{
-		RenderModule::getRenderBackend()->pushToSwapchainDeletionQueue([=]() { vkDestroyImageView(device, image_view, nullptr);	});
-	}
-	else 
-	{
-		RenderModule::getRenderBackend()->pushToDeletionQueue([=]() { vkDestroyImageView(device, image_view, nullptr); });
-	}
+	
 	
 	//If storage image set layout to general
 	if ((usage & ImageUsage::Storage) == ImageUsage::Storage)
@@ -146,7 +142,7 @@ ImageBase::ImageBase(VkImage vk_image, ImageProperties properties, ImageUsage us
 	vkCreateImageView(device, &view_info, nullptr, &image_view);
 	m_image_view = image_view;
 
-	RenderModule::getRenderBackend()->pushToDeletionQueue([=]() { vkDestroyImageView(device, image_view, nullptr); });
+	//RenderModule::getRenderBackend()->pushToDeletionQueue([=]() { vkDestroyImageView(device, image_view, nullptr); });
 
 }
 
@@ -188,4 +184,77 @@ void ImageBase::transitionImageLayout(VkImageLayout new_layout, VkImageLayout ol
 	);
 
 	cmd.immediateSubmit();
+}
+
+
+//Destructor
+ImageBase::~ImageBase()
+{
+
+	VkDevice device = RenderModule::getRenderBackend()->getDevice();
+
+	if (m_image_view != VK_NULL_HANDLE)
+	{
+		vkDestroyImageView(device, m_image_view, nullptr);
+
+	}
+	if (m_allocation != nullptr)
+	{
+		VmaAllocator allocator = RenderModule::getRenderBackend()->getAllocator();
+		vmaDestroyImage(allocator, m_image, m_allocation);
+	}
+
+
+}
+
+
+
+//Move assignment
+ImageBase::ImageBase(ImageBase&& other)
+{
+	m_image = other.m_image;
+	m_image_view = other.m_image_view;
+	m_properties = other.m_properties;
+	m_usage = other.m_usage;
+	m_allocation = other.m_allocation;
+
+	other.m_image = VK_NULL_HANDLE;
+	other.m_image_view = VK_NULL_HANDLE;
+	other.m_allocation = nullptr;
+}
+
+
+
+//Move copy
+ImageBase& ImageBase::operator=(ImageBase&& other)
+{
+	if (this != &other)
+	{
+		// Free the existing resource if it exists
+		VkDevice device = RenderModule::getRenderBackend()->getDevice();
+		if (m_image_view != VK_NULL_HANDLE)
+		{
+
+			vkDestroyImageView(device, m_image_view, nullptr);
+		}
+		if (m_allocation != nullptr)
+		{
+			VmaAllocator allocator = RenderModule::getRenderBackend()->getAllocator();
+			vmaDestroyImage(allocator, m_image, m_allocation);
+		}
+	
+
+		//copy resources
+		m_image = other.m_image;
+		m_image_view = other.m_image_view;
+		m_properties = other.m_properties;
+		m_usage = other.m_usage;
+		m_allocation = other.m_allocation;
+
+		other.m_image = VK_NULL_HANDLE;
+		other.m_image_view = VK_NULL_HANDLE;
+		other.m_allocation = nullptr;
+	}
+	return *this;
+
 }

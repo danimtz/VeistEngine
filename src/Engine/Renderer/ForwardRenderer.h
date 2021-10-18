@@ -28,6 +28,8 @@ public:
 
 private:
 
+
+	
 	Scene* m_scene {nullptr};
 	
 	//Maybe put all this in a RendererData struct or something

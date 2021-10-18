@@ -61,14 +61,19 @@ public:
 
 	void transitionImageLayout( VkImageLayout new_layout, VkImageLayout old_layout = VK_IMAGE_LAYOUT_UNDEFINED);
 	
+
+	
+	~ImageBase();
 	ImageBase(const ImageBase&) = default;
 	ImageBase& operator=(const ImageBase&) = default;
-	ImageBase(ImageBase&&) = default;
-	ImageBase& operator=(ImageBase&&) = default;
+	
+	ImageBase(ImageBase&&);
+	ImageBase& operator=(ImageBase&&);
 
 protected:
-
+	
 	ImageBase() = default;
+
 
 	//swapchain
 	ImageBase(VkImage vk_image, ImageProperties properties, ImageUsage usage, ImageViewType view_type);
@@ -78,13 +83,12 @@ protected:
 	
 	
 	
-	
 
-	VkImage m_image;
-	VkImageView m_image_view;
+	VkImage m_image{ VK_NULL_HANDLE };
+	VkImageView m_image_view{ VK_NULL_HANDLE };
 	ImageProperties m_properties;
 	ImageUsage m_usage{0};
-	VmaAllocation m_allocation;
+	VmaAllocation m_allocation{nullptr};
 };
 
 
