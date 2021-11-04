@@ -334,25 +334,62 @@ std::shared_ptr<Mesh> AssetLoader::loadMeshFromGLTF(const char* gltf_filepath)
 std::shared_ptr<Texture> AssetLoader::loadTextureFromFile(const char* filepath, ImageFormat format)//TODO add argument to edit amount if mip levels
 {
 
-	int width, height, n_channels;
 
-	stbi_uc* pixels = stbi_load(filepath, &width, &height, &n_channels, STBI_rgb_alpha);
+	if (stbi_is_hdr(filepath))//TODO: This is kinda duplicated, somehow split this into a single function
+	{
+		int width, height, n_channels;
+		float* pixels = stbi_loadf(filepath, &width, &height, &n_channels, STBI_rgb_alpha);
+		
 
-	n_channels = 4;//rgb aplha format
-	ImageSize img_size{ (uint32_t)width, (uint32_t)height, (uint32_t)n_channels };
+		n_channels = 4;//rgb aplha format
 
-	if (!pixels) {
-		std::cout << "Error loading file: " << filepath << std::endl;
-		CRITICAL_ERROR_LOG("Failed to load texture file");
+		ImageSize img_size = { (uint32_t)width, (uint32_t)height, (uint32_t)n_channels };
+
+		if (!pixels)
+		{
+			std::cout << "Error loading file: " << filepath << std::endl;
+			CRITICAL_ERROR_LOG("Failed to load texture file");
+		}
+
+		//Create texture
+		void* data = pixels;
+		ImageProperties properties = { img_size, format, 1, 1 };
+		std::shared_ptr<Texture> resource = std::make_shared<Texture>(data, properties);
+
+		stbi_image_free(pixels);
+
+		return resource;
+		
+	}
+	else
+	{
+		int width, height, n_channels;
+
+		stbi_uc* pixels = stbi_load(filepath, &width, &height, &n_channels, STBI_rgb_alpha);
+
+		n_channels = 4;//rgb aplha format
+		ImageSize img_size{ (uint32_t)width, (uint32_t)height, (uint32_t)n_channels };
+
+		if (!pixels)
+		{
+			std::cout << "Error loading file: " << filepath << std::endl;
+			CRITICAL_ERROR_LOG("Failed to load texture file");
+		}
+
+		void* data = pixels;
+		ImageProperties properties = { img_size, format, 1, 1 };
+		std::shared_ptr<Texture> resource = std::make_shared<Texture>(data, properties);
+
+		stbi_image_free(pixels);
+
+		return resource;
+
+		
+
 	}
 
-	void* data = pixels;
-	ImageProperties properties = {img_size, format, 1, 1}; 
-	std::shared_ptr<Texture> resource = std::make_shared<Texture>(data, properties);
-	
-	stbi_image_free(pixels);
-	
-	return resource;
+
+
 }
 
 
@@ -405,7 +442,7 @@ std::shared_ptr<Cubemap> AssetLoader::loadCubemapFromFiles(const char* posx, con
 
 
 
-std::shared_ptr<Cubemap> AssetLoader::loadCubemapFromEquirectMap(const char* filepath )
+std::shared_ptr<Cubemap> AssetLoader::loadCubemapFromEquirectMap(const char* filepath ) 
 {
 	ImageSize img_size;
 	ImageProperties properties;
@@ -414,7 +451,7 @@ std::shared_ptr<Cubemap> AssetLoader::loadCubemapFromEquirectMap(const char* fil
 	ImageFormat format;
 
 	//Load HDR map
-	if (stbi_is_hdr(filepath))
+	if (stbi_is_hdr(filepath))//TODO: This is kinda duplicated, somehow split this into a single function
 	{
 		stbi_set_flip_vertically_on_load(true);
 		
@@ -435,6 +472,27 @@ std::shared_ptr<Cubemap> AssetLoader::loadCubemapFromEquirectMap(const char* fil
 		properties = { img_size, format, 1, 1 };
 		equirect = { data, properties };
 		stbi_image_free(data);
+
+		//Create empty cubemap
+		format = { VK_FORMAT_R16G16B16A16_SFLOAT };
+		ImageProperties cubemap_properties = { {(uint32_t)height, (uint32_t)height, (uint32_t)n_channels }, format, 1, 6 }; //set cubemap to max size of smallest side of equirect
+		StorageCubemap cubemap = { cubemap_properties }; // add layers
+
+
+		//Use compute shader to convert equirectangular image to cubemap
+		ComputePipeline compute_program = { "equirectToCubemapHDR" };
+		DescriptorSet compute_descriptor;
+		compute_descriptor.setDescriptorSetLayout(0, &compute_program);
+		compute_descriptor.bindCombinedSamplerTexture(0, &equirect);
+		compute_descriptor.bindStorageImage(1, &cubemap);
+		compute_descriptor.buildDescriptorSet();
+
+		CommandBuffer cmd_buff = RenderModule::getRenderBackend()->createDisposableCmdBuffer();
+		cmd_buff.calcSizeAndDispatch(compute_program, compute_descriptor, img_size);
+		cmd_buff.immediateSubmit();
+
+		cubemap.transitionImageLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_GENERAL);
+		return std::make_shared<Cubemap>(std::move(cubemap));
 	}
 	else
 	{
@@ -457,32 +515,35 @@ std::shared_ptr<Cubemap> AssetLoader::loadCubemapFromEquirectMap(const char* fil
 		properties = { img_size, format, 1, 1 };
 		equirect = { data, properties };
 		stbi_image_free(data);
+		
+		//Create empty cubemap
+		ImageProperties cubemap_properties = { {(uint32_t)height, (uint32_t)height, (uint32_t)n_channels }, format, 1, 6 }; //set cubemap to max size of smallest side of equirect
+		StorageCubemap cubemap = { cubemap_properties }; // add layers
+
+
+		//Use compute shader to convert equirectangular image to cubemap
+		ComputePipeline compute_program = { "equirectToCubemapRGB8" };
+		DescriptorSet compute_descriptor;
+		compute_descriptor.setDescriptorSetLayout(0, &compute_program);
+		compute_descriptor.bindCombinedSamplerTexture(0, &equirect);
+		compute_descriptor.bindStorageImage(1, &cubemap);
+		compute_descriptor.buildDescriptorSet();
+
+		CommandBuffer cmd_buff = RenderModule::getRenderBackend()->createDisposableCmdBuffer();
+		cmd_buff.calcSizeAndDispatch(compute_program, compute_descriptor, img_size);
+		cmd_buff.immediateSubmit();
+
+		cubemap.transitionImageLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_GENERAL);
+		return std::make_shared<Cubemap>(std::move(cubemap));
+
 	}
 
 	
+	
 
 	
 	
-	//Create empty cubemap
-	ImageProperties cubemap_properties = { {(uint32_t)height, (uint32_t)height, (uint32_t)n_channels }, format, 1, 6 }; //set cubemap to max size of smallest side of equirect
-	StorageCubemap cubemap = {cubemap_properties}; // add layers
 	
-	
-	//Use compute shader to convert equirectangular image to cubemap
-	ComputePipeline compute_program = { "equirect_to_cubemap" };
-	DescriptorSet compute_descriptor;
-	compute_descriptor.setDescriptorSetLayout(0, &compute_program);
-	compute_descriptor.bindCombinedSamplerTexture(0, &equirect); 
-	compute_descriptor.bindStorageImage(1, &cubemap);
-	compute_descriptor.buildDescriptorSet();
-
-	CommandBuffer cmd_buff = RenderModule::getRenderBackend()->createDisposableCmdBuffer();
-	cmd_buff.calcSizeAndDispatch(compute_program, compute_descriptor, { width, height, 1});
-	//cmd_buff.dispatch(compute_program, compute_descriptor, {8,8,1});
-	cmd_buff.immediateSubmit();
-
-	cubemap.transitionImageLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_GENERAL);
-	return std::make_shared<Cubemap>(std::move(cubemap));//TODO move constructor on Image<>
 }
 
 

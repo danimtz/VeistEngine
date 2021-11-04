@@ -43,6 +43,8 @@ layout(std140, set = 0, binding = 3) readonly buffer pointLights{
 	PointLights point_lights[];
 };
 
+layout(set = 0, binding = 4) uniform samplerCube inIrradianceMap;
+
 layout(set = 1, binding = 0) uniform sampler2D inAlbedo;
 layout(set = 1, binding = 1) uniform sampler2D inNormalTex;
 layout(set = 1, binding = 2) uniform sampler2D inOccRoughMetal;
@@ -129,9 +131,17 @@ void main()
 
 	}
 
-	vec3 ambient = vec3(0.01) * albedo * occlusion;
-    vec3 color = Lo + ambient + emmissive;
-    color = color / (color + vec3(1.0));
+	//Ambient
+	//vec3 ambient = vec3(0.001) * albedo * occlusion;
+    vec3 kS =  F_SchlickRoughness(max(dot(N,V), 0.0), approximateFO(albedo, metallic), roughness);
+	vec3 kD = 1.0 - kS;
+	vec3 irradiance = texture(inIrradianceMap, N).rgb;
+	vec3 ambient_diffuse = irradiance * albedo;
+	vec3 ambient = (kD * ambient_diffuse) * occlusion;
+	
+
+	vec3 color = Lo + ambient + emmissive;
+	//color = color / (color + vec3(1.0));
 	vec3 gamma_corrected_color = pow(color, vec3(0.4545));
 	vec3 final_color = clamp(gamma_corrected_color, 0.0, 1.0);
 	outFragColor = vec4(final_color, 1.0);

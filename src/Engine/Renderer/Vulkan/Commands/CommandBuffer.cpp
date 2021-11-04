@@ -52,14 +52,8 @@ void CommandBuffer::immediateSubmit()
 	VK_CHECK(vkEndCommandBuffer(m_cmd_buffer));
 	VkSubmitInfo submit_info = {};
 	submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-	submit_info.pNext = nullptr;
-	submit_info.waitSemaphoreCount = 0;
-	submit_info.pWaitSemaphores = nullptr;
-	submit_info.pWaitDstStageMask = nullptr;
 	submit_info.commandBufferCount = 1;
 	submit_info.pCommandBuffers = &m_cmd_buffer;
-	submit_info.signalSemaphoreCount = 0;
-	submit_info.pSignalSemaphores = nullptr;
 
 	//submit command buffer to queue and execute it.
 	//fence will block until the commands finish
@@ -70,7 +64,7 @@ void CommandBuffer::immediateSubmit()
 	VK_CHECK(vkQueueSubmit(graphics_queue, 1, &submit_info, m_fence));
 
 
-	vkWaitForFences(device, 1, &m_fence, true, 9999999999);
+	VK_CHECK(vkWaitForFences(device, 1, &m_fence, true, 9999999999));
 	vkResetFences(device, 1, &m_fence);
 
 	//clear the command pool
@@ -137,6 +131,12 @@ void CommandBuffer::copyBufferToImage(const Buffer stage_buff, const VkImage ima
 
 }
 
+void CommandBuffer::calcSizeAndDispatch(const ComputePipeline& pipeline, const DescriptorSet& descriptor_set, const ImageSize& size)
+{
+	calcSizeAndDispatch(pipeline, descriptor_set, glm::u32vec3{size.height, size.width, 1});
+}
+
+
 
 void CommandBuffer::calcSizeAndDispatch(const ComputePipeline& pipeline, const DescriptorSet& descriptor_set, const glm::u32vec3& size)
 {
@@ -146,7 +146,8 @@ void CommandBuffer::calcSizeAndDispatch(const ComputePipeline& pipeline, const D
 	
 	for (size_t i = 0; i != 3; i++)
 	{
-		uint32_t round_up = 1;
+		uint32_t round_up = (size[i] % local_size[i]) ? 1 : 0;
+
 		group_count[i] = size[i] / local_size[i] + round_up;
 	}
 

@@ -8,10 +8,8 @@ class LightProbe
 
 public:
 
-	static std::unique_ptr<LightProbe> Create(Cubemap& HDRcubemap);
-
-
-	LightProbe() = default;
+	LightProbe(const Cubemap& HDRcubemap, uint32_t irradiance_size = 32, uint32_t environment_size = 128);
+	Cubemap* irradianceMap() const { return m_irradiance.get(); };
 
 private:
 
@@ -20,6 +18,8 @@ private:
 	std::unique_ptr<Cubemap> m_environment_map;
 	std::unique_ptr<Texture> m_brdf_LUT;
 
+	uint32_t m_irr_map_size;
+	uint32_t m_env_map_size;
 
 };
 

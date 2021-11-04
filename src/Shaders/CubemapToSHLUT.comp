@@ -1,0 +1,22 @@
+#version 450
+
+#include "utils/SH_utils.glsl"
+
+layout(local_size_x = 8, local_size_y = 8, local_size_z = 6) in;
+
+layout(set = 0, binding = 0) uniform samplerCube HDRcubemap;
+
+layout(rgba16f, set = 0, binding = 1) uniform writeonly imageCube SH_LUT;
+
+
+
+void main() {
+    
+    const vec2 uv = (gl_GlobalInvocationID.xy + vec2(0.5)) / vec2(imageSize(irradianceMap).xy);
+
+ 
+
+
+    imageStore(irradianceMap, ivec3(gl_GlobalInvocationID.xy, gl_GlobalInvocationID.z), vec4(irradiance, 1.0f));
+    
+}

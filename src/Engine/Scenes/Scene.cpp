@@ -17,7 +17,7 @@ Scene::Scene() {
 
 	m_scene_models.push_back({ "..\\..\\assets\\GLTF_models\\Bottle\\",  "PBRforward", "WaterBottle.gltf" }); //{ "..\\..\\assets\\Box\\Box With Spaces.gltf" }; //
 	
-	m_scene_models.push_back({ "..\\..\\assets\\GLTF_models\\DamagedHelmet\\",  "PBRforward", "DamagedHelmet.gltf" }); //{ "..\\..\\assets\\Box\\Box With Spaces.gltf" }; //
+	//m_scene_models.push_back({ "..\\..\\assets\\GLTF_models\\DamagedHelmet\\",  "PBRforward", "DamagedHelmet.gltf" }); //{ "..\\..\\assets\\Box\\Box With Spaces.gltf" }; //
 
 
 	m_scene_models[0].modelMatrix() = glm::translate(m_scene_models[0].modelMatrix(), glm::vec3{ 2.0, 0.0, 0.0 });
@@ -26,10 +26,10 @@ Scene::Scene() {
 
 
 
-	m_scene_models[1].modelMatrix() = glm::translate(m_scene_models[1].modelMatrix(), glm::vec3{-1.0, 0.0, 0.0 });
-	m_scene_models[1].modelMatrix() = glm::rotate(m_scene_models[1].modelMatrix(), glm::radians(180.0f), glm::vec3{ 0.0f, 1.0f, 0.0f });
-	m_scene_models[1].modelMatrix() = glm::rotate(m_scene_models[1].modelMatrix(), glm::radians(90.0f), glm::vec3{ 1.0f, 0.0f, 0.0f });
-	m_scene_models[1].modelMatrix() = glm::scale(m_scene_models[1].modelMatrix(), glm::vec3{ 1, 1, 1 });
+	//m_scene_models[1].modelMatrix() = glm::translate(m_scene_models[1].modelMatrix(), glm::vec3{-1.0, 0.0, 0.0 });
+	//m_scene_models[1].modelMatrix() = glm::rotate(m_scene_models[1].modelMatrix(), glm::radians(180.0f), glm::vec3{ 0.0f, 1.0f, 0.0f });
+	//m_scene_models[1].modelMatrix() = glm::rotate(m_scene_models[1].modelMatrix(), glm::radians(90.0f), glm::vec3{ 1.0f, 0.0f, 0.0f });
+	//m_scene_models[1].modelMatrix() = glm::scale(m_scene_models[1].modelMatrix(), glm::vec3{ 1, 1, 1 });
 	
 
 
@@ -46,29 +46,31 @@ Scene::Scene() {
 
 	glm::vec3 pos = glm::vec3(-3.0, 1.0, 0.0);
 	col = glm::vec3(0.7, 0.13, 0.21);
-	m_point_lights.push_back(PointLight(pos, col)); 
+	//m_point_lights.push_back(PointLight(pos, col)); 
 
 	pos = glm::vec3(3.0, 0.0, 0.0);
 	col = glm::vec3(0.1, 0.13, 0.81);
-	m_point_lights.push_back(PointLight(pos, col));
+	//m_point_lights.push_back(PointLight(pos, col));
 
 	pos = glm::vec3(0.2, 0.4, -1.0);
 	col = glm::vec3(1.0);
-	m_point_lights.push_back(PointLight(pos, col));
+	//m_point_lights.push_back(PointLight(pos, col));
 
 
 
 	//Skybox
-	//m_skybox = Skybox::createFromCubemap("Skybox", "..\\..\\assets\\Skyboxes\\Cubemaps\\Ryfjallet\\Ryfjallet");
+
 	m_skybox = Skybox::createFromEquirectMap("Skybox", "..\\..\\assets\\Skyboxes\\Equirect\\Ice_Lake\\Ice_Lake_HiRes_TMap.jpg");
-	//m_skybox = Skybox::createFromEquirectMap("Skybox", "..\\..\\assets\\Skyboxes\\Equirect\\Winter_Forest\\WinterForest_8k.jpg");
+	//m_skybox = Skybox::createFromEquirectMap("Skybox", "..\\..\\assets\\Skyboxes\\Equirect\\Winter_Forest\\WinterForest_Ref.hdr");
 	
 
 	//IBL probe
-	std::shared_ptr<Cubemap> cube = AssetLoader::loadCubemapFromEquirectMap("..\\..\\assets\\Skyboxes\\Equirect\\Ice_Lake\\Ice_Lake_HiRes_TMap.jpg");
-	m_global_probe = LightProbe::Create( *cube.get() );
 
-	
+
+	std::shared_ptr<Cubemap> computed_cube = AssetLoader::loadCubemapFromEquirectMap("..\\..\\assets\\Skyboxes\\Equirect\\Ice_Lake\\Ice_Lake_Ref.hdr");
+	//std::shared_ptr<Cubemap> computed_cube = AssetLoader::loadCubemapFromEquirectMap("..\\..\\assets\\Skyboxes\\Equirect\\Winter_Forest\\WinterForest_Ref.hdr");
+	m_global_probe = std::make_unique<LightProbe>(*computed_cube.get());
+
 }
 
 

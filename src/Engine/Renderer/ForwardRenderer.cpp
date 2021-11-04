@@ -170,6 +170,8 @@ void ForwardRenderer::renderScene(CommandBuffer& cmd_buffer)
 			m_global_descriptor[frame_num].bindUniformBuffer(2, m_dir_lights_buffer.get(), sizeof(GPUDirLight) * MAX_DIR_LIGHTS);
 			m_global_descriptor[frame_num].bindStorageBuffer(3, m_point_lights_buffer.get(), sizeof(GPUPointLight) * MAX_POINT_LIGHTS);
 
+			m_global_descriptor[frame_num].bindCombinedSamplerCubemap(4, m_scene->globalProbe()->irradianceMap());
+
 			m_global_descriptor[frame_num].buildDescriptorSet();
 		}
 

@@ -22,6 +22,7 @@ public:
 	const std::vector<PointLight>& getPointLights() const { return m_point_lights; };
 	Camera* getCamera() const {return m_scene_camera.get();}
 	Skybox* skybox() const { return m_skybox.get(); }
+	LightProbe* globalProbe() const { return m_global_probe.get(); }
 
 	void onUpdate();
 

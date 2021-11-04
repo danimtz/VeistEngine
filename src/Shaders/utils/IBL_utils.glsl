@@ -1,6 +1,8 @@
 #ifndef IBL_UTILS_GLSL
 #define IBL_UTILS_GLSL
 
+const float PI = 3.14159265358979323846f;
+
 //Converts uv coordinate in equirectmap to a direction in the corresponding cubemap
 vec3 cubemapDirection(vec2 uv, uint face)//NOTE: branching in shader probably not good
 {

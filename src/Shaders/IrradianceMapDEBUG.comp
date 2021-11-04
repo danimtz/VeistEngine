@@ -1,0 +1,30 @@
+#version 450
+
+#include "utils/IBL_utils.glsl"
+
+layout(local_size_x = 8, local_size_y = 8) in;
+
+layout(set = 0, binding = 0) uniform samplerCube HDRcubemap;
+
+layout(rgba16f, set = 0, binding = 1) uniform writeonly imageCube irradianceMap;
+
+const float deltaPhi = (2.0f * PI) / 180.0f;
+const float deltaTheta = (0.5f * PI) / 64.0f;
+
+void main() {
+    const vec2 uv = (gl_GlobalInvocationID.xy + vec2(0.5)) / vec2(imageSize(irradianceMap).xy);
+
+    //each cube face
+    for (uint i = 0; i < 6; i++)
+    {
+        vec3 N = normalize(cubemapDirection(uv, i));
+        vec3 up = vec3(0.0f, 1.0f, 0.0f);
+        vec3 right = normalize(cross(up, N));
+        up = normalize(cross(N, right));
+
+
+        vec3 conv = texture(HDRcubemap, N).rgb;
+
+        imageStore(irradianceMap, ivec3(gl_GlobalInvocationID.xy, i), vec4(conv, 1.0f));
+    }
+}

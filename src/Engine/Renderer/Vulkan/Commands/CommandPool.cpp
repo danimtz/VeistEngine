@@ -34,6 +34,7 @@ CommandPool::CommandPool(int thread_id) : m_thread_id(thread_id)
 
 CommandBuffer CommandPool::allocateCommandBuffer(bool begin_cmd_buffer)
 {
+
 	VkDevice device = RenderModule::getRenderBackend()->getDevice();
 
 	//Create Fence
