@@ -26,8 +26,9 @@ float D_GGX(float NdotH, float roughness){
 }
 
 float G_SchlickGGX(float NdotV, float roughness){
-	float r = roughness+1.0;
-	float k = (r*r)/8.0;
+	//float r = roughness+1.0;
+	//float k = (r*r)/8.0; //Direct
+	float k = (roughness * roughness)/ 2.0; //IBL
 	float denom = NdotV * (1.0 - k) + k;
 	return NdotV / denom;
 }
@@ -39,7 +40,6 @@ float G_Smith(float NdotV, float NdotL, float roughness){
 float getCookTorranceDenom(float NdotL, float NdotV){
 	return max(4.0*NdotV*NdotL, 0.001);
 }
-
 
 
 vec3 approximateFO(vec3 albedo, float metallic){

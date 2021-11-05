@@ -21,20 +21,26 @@ void main() {
     for (uint i = 0; i < 6; i++)
     {
         vec3 N = normalize(cubemapDirection(uv, i));
-        
-        vec3 up = vec3(0.0f, 1.0f, 0.0f);
-        vec3 right = normalize(cross(up, N));
-        up = normalize(cross(N, right));
+        vec3 V = N; //assume view direction is equal to sample direction
 
-    
-        //convert spherical coordinates to cartesian tangent space
-        vec3 tangentSample = vec3(0, 0, 1);
-        //convert tangent space to world space
-        vec3 sampleDir = tangentSample.x * right + tangentSample.y * up + tangentSample.z * N; 
+        vec3 prefilter_color = vec3(0.0);
+        float total_weight = 0; 
+        const uint sample_count = 1024;
+        for(uint i = 0; i < sample_count; i++)
+        {
+            vec2 Xi = hammersley2d(i, sample_count);
+            vec3 H = importanceSampleGGX(Xi, N, PushConstants.roughness);
+            vec3 L = normalize(2.0 * dot(V,H) * H - V);
 
-        
-        vec3 irradiance = texture(HDRcubemap, sampleDir).rgb;
-       
-        imageStore(environmentMap, ivec3(gl_GlobalInvocationID.xy, i), vec4(irradiance, 1.0f));
+            float NdotL = max(dot(N, L), 0.0);
+            if (NdotL > 0.0)
+            {
+                prefilter_color += texture(HDRcubemap, L).rgb * NdotL;
+                total_weight += NdotL;
+            }
+        }
+
+        prefilter_color /= total_weight;
+        imageStore(environmentMap, ivec3(gl_GlobalInvocationID.xy, i), vec4(prefilter_color, 1.0f));
     }
 }

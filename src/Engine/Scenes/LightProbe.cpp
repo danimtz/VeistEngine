@@ -58,7 +58,7 @@ static std::unique_ptr<Cubemap> calculateEnvironmentMap(const Cubemap& HDRcubema
 {
 	
 	uint32_t max_mips = std::floor(std::log2(HDRcubemap.properties().imageSize().width)) + 1;
-	uint32_t mip_levels = 4; //calculate mip levels for env map
+	uint32_t mip_levels = 5; //calculate mip levels for env map
 	assert(max_mips > mip_levels);
 
 	ComputePipeline compute_IBLenvironment = { "IBLEnvironmentMap" };
@@ -111,20 +111,35 @@ static std::unique_ptr<Cubemap> calculateEnvironmentMap(const Cubemap& HDRcubema
 }
 
 
-static std::unique_ptr<Texture> calculateBRDF_LUT(const Cubemap& HDRcubemap)
+static std::unique_ptr<Texture> calculateBRDF_LUT(const Cubemap& HDRcubemap, uint32_t map_size)
 {
 
+	ComputePipeline compute_BRDF = { "IntegrateBRDF" };
 
+	ImageProperties texture_properties = { {map_size, map_size}, HDRcubemap.properties().imageFormat(), 1, 1 }; 
+	StorageTexture brdf_lut{ texture_properties };
 
+	DescriptorSet compute_descriptor;
+	compute_descriptor.setDescriptorSetLayout(0, &compute_BRDF);
+	compute_descriptor.bindStorageImage(0, &brdf_lut);
+	compute_descriptor.buildDescriptorSet();
 
+	CommandBuffer cmd_buff = RenderModule::getRenderBackend()->createDisposableCmdBuffer();
 
-	return std::unique_ptr<Texture>();
+	cmd_buff.calcSizeAndDispatch(compute_BRDF, compute_descriptor, texture_properties.imageSize());
+	cmd_buff.immediateSubmit();
+
+	brdf_lut.transitionImageLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_GENERAL);
+
+	return std::make_unique<Texture>(std::move(brdf_lut));
+
 }
 
 
 
 
-LightProbe::LightProbe(const Cubemap& HDRcubemap, uint32_t irradiance_size, uint32_t environment_size) : m_irr_map_size(irradiance_size), m_env_map_size(environment_size)
+LightProbe::LightProbe(const Cubemap& HDRcubemap, uint32_t irradiance_size, uint32_t environment_size, uint32_t brdf_size ) :
+	m_irr_map_size(irradiance_size), m_env_map_size(environment_size), m_brdf_LUT_size(brdf_size)
 {
 	
 	//TODO: create light probe
@@ -138,7 +153,7 @@ LightProbe::LightProbe(const Cubemap& HDRcubemap, uint32_t irradiance_size, uint
 
 
 	// BRDF LUT
-	m_brdf_LUT = calculateBRDF_LUT(HDRcubemap);
+	m_brdf_LUT = calculateBRDF_LUT(HDRcubemap, m_brdf_LUT_size);
 
 
 }

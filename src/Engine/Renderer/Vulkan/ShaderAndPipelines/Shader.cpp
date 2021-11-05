@@ -127,6 +127,8 @@ void ShaderProgram::compileOrGetSpirV(const std::string& shader_name, bool isCom
 		//Find shader in cache folder
 		std::string cached_shader = getShaderCacheDirectory() + it.second + ".spv";
 		std::ifstream in(cached_shader, std::ios::in | std::ios::binary);
+
+		
 		if (in.is_open()) //TODO: if open and shader file has not changed since last time
 		{
 			in.seekg(0, std::ios::end);

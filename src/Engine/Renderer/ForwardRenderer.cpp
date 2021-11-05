@@ -91,6 +91,7 @@ void ForwardRenderer::renderScene(CommandBuffer& cmd_buffer)
 	//Write per-frame buffers (camera, lights)
 	m_camera_data.projection = m_scene->getCamera()->projectionMatrix();
 	m_camera_data.view = m_scene->getCamera()->viewMatrix();
+	m_camera_data.inverse_view = glm::inverse(glm::mat3(m_scene->getCamera()->viewMatrix()));
 	m_camera_data.view_projection = m_scene->getCamera()->viewProjectionMatrix();
 	m_camera_buffer->setData(&m_camera_data, sizeof(m_camera_data), frame_num);
 
@@ -171,6 +172,9 @@ void ForwardRenderer::renderScene(CommandBuffer& cmd_buffer)
 			m_global_descriptor[frame_num].bindStorageBuffer(3, m_point_lights_buffer.get(), sizeof(GPUPointLight) * MAX_POINT_LIGHTS);
 
 			m_global_descriptor[frame_num].bindCombinedSamplerCubemap(4, m_scene->globalProbe()->irradianceMap());
+			m_global_descriptor[frame_num].bindCombinedSamplerCubemap(5, m_scene->globalProbe()->prefilterMap());
+			m_global_descriptor[frame_num].bindCombinedSamplerTexture(6, m_scene->globalProbe()->brdfLUT());
+
 
 			m_global_descriptor[frame_num].buildDescriptorSet();
 		}

@@ -26,6 +26,7 @@ layout(set = 0, binding = 1) uniform  cameraBuffer
 	mat4 mV;
 	mat4 mP;
 	mat4 mVP;
+	mat4 mInvV;
 } camera_data;
 
 

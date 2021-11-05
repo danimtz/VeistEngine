@@ -35,6 +35,14 @@ layout(set = 0, binding = 0) uniform  sceneInfo{
 	float point_light_count;
 }scene_info;
 
+layout(set = 0, binding = 1) uniform  cameraBuffer
+{
+	mat4 mV;
+	mat4 mP;
+	mat4 mVP;
+	mat4 mInvV;
+} camera_data;
+
 layout(set = 0, binding = 2) uniform  directionalLights{
 	DirLights dir_lights[MAX_DIR_LIGHTS];
 };
@@ -43,7 +51,10 @@ layout(std140, set = 0, binding = 3) readonly buffer pointLights{
 	PointLights point_lights[];
 };
 
+
 layout(set = 0, binding = 4) uniform samplerCube inIrradianceMap;
+layout(set = 0, binding = 5) uniform samplerCube inPrefilterMap;
+layout(set = 0, binding = 6) uniform sampler2D inBRDF_LUT;
 
 layout(set = 1, binding = 0) uniform sampler2D inAlbedo;
 layout(set = 1, binding = 1) uniform sampler2D inNormalTex;
@@ -103,6 +114,8 @@ void main()
 	//
 	vec3 N = normalize(mTBN * tex_normal);
 	vec3 V = -normalize(inFragPos);
+	vec3 worldR = vec3(camera_data.mInvV * vec4(reflect(-V, N), 1.0));   
+
 	vec3 albedo = texture(inAlbedo, inUV).xyz; 
 	float roughness = texture(inOccRoughMetal, inUV).y;
 	float metallic = texture(inOccRoughMetal, inUV).z;
@@ -131,19 +144,28 @@ void main()
 
 	}
 
-	//Ambient
-	//vec3 ambient = vec3(0.001) * albedo * occlusion;
-    vec3 kS =  F_SchlickRoughness(max(dot(N,V), 0.0), approximateFO(albedo, metallic), roughness);
+	//IBL
+	vec3 F0 = approximateFO(albedo, metallic);
+	vec3 F = F_SchlickRoughness(max(dot(N, V), 0.0), F0, roughness);
+    vec3 kS =  F;
 	vec3 kD = 1.0 - kS;
+	kD *= 1.0 - metallic;	
 	vec3 irradiance = texture(inIrradianceMap, N).rgb;
-	vec3 ambient_diffuse = irradiance * albedo;
-	vec3 ambient = (kD * ambient_diffuse) * occlusion;
+	vec3 ambient_diffuse = irradiance * albedo; //Diffuse
+
+    const float MAX_REFLECTION_LOD = 4.0;
+    vec3 prefilteredColor = textureLod(inPrefilterMap, worldR,  roughness * MAX_REFLECTION_LOD).rgb;
+	vec2 envBRDF  = texture(inBRDF_LUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
+	vec3 ambient_specular = prefilteredColor * (F * envBRDF.x + envBRDF.y); //Specular
+
+
+	vec3 ambient = (kD * ambient_diffuse + ambient_specular ) * occlusion;
 	
 
 	vec3 color = Lo + ambient + emmissive;
 	//color = color / (color + vec3(1.0));
-	vec3 gamma_corrected_color = pow(color, vec3(0.4545));
-	vec3 final_color = clamp(gamma_corrected_color, 0.0, 1.0);
+	//color = pow(color, vec3(0.4545)); //GAMMA CORRECTION not needed
+	vec3 final_color = clamp(color, 0.0, 1.0);
 	outFragColor = vec4(final_color, 1.0);
 
 }
