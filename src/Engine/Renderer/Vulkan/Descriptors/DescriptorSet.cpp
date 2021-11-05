@@ -53,14 +53,13 @@ void DescriptorSet::bindSampledImage(uint32_t binding, VkImageView image_view, V
 }
 
 
-
-
-
-void DescriptorSet::bindStorageImage(uint32_t binding, const ImageBase* image)
+void DescriptorSet::bindStorageImage(uint32_t binding, const VkImageView image_view)
 {
+
+
 	DescriptorInfo desc_info;
 	desc_info.image_info.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-	desc_info.image_info.imageView = image->imageView();
+	desc_info.image_info.imageView = image_view;
 
 
 	m_write_data.push_back({ desc_info });
@@ -75,6 +74,13 @@ void DescriptorSet::bindStorageImage(uint32_t binding, const ImageBase* image)
 
 	m_writes.push_back(set_write);
 }
+
+
+void DescriptorSet::bindStorageImage(uint32_t binding, const ImageBase* image)
+{
+	bindStorageImage(binding, image->imageView());
+}
+
 
 
 

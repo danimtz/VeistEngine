@@ -40,6 +40,8 @@ public:
 
 	void dispatch(const ComputePipeline& pipeline, const DescriptorSet& descriptor_set, const glm::u32vec3& group_count);//TODO: only 1 descriptor set for now for compute shaders and no push constants
 	
+	void setComputePushConstant(const ComputePipeline& pipeline, float constant_value); //TODO: Should be a class PushConstant, not a float etc etc.
+
 	void calcSizeAndDispatch(const ComputePipeline& pipeline, const DescriptorSet& descriptor_set, const ImageSize& size);
 	void calcSizeAndDispatch(const ComputePipeline& pipeline, const DescriptorSet& descriptor_set, const glm::u32vec3& size);
 

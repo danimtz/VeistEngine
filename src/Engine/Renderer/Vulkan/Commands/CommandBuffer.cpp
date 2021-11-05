@@ -131,6 +131,16 @@ void CommandBuffer::copyBufferToImage(const Buffer stage_buff, const VkImage ima
 
 }
 
+
+void CommandBuffer::setComputePushConstant(const ComputePipeline& pipeline, float constant_value)
+{
+
+	vkCmdPushConstants(m_cmd_buffer, pipeline.pipelineLayout(), VK_SHADER_STAGE_COMPUTE_BIT, 0, uint32_t(sizeof(constant_value)), &constant_value);
+
+}
+
+
+
 void CommandBuffer::calcSizeAndDispatch(const ComputePipeline& pipeline, const DescriptorSet& descriptor_set, const ImageSize& size)
 {
 	calcSizeAndDispatch(pipeline, descriptor_set, glm::u32vec3{size.height, size.width, 1});

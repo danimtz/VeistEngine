@@ -22,7 +22,7 @@ public:
 	void bindCombinedSamplerTexture(uint32_t binding, const Texture* texture/*sampler view etc?*/);//TODO combine these two functions to use ImageBase as argument
 	void bindCombinedSamplerCubemap(uint32_t binding, const Cubemap* cubemap/*sampler view etc?*/);
 	void bindStorageImage(uint32_t binding, const ImageBase* image);
-	
+	void bindStorageImage(uint32_t binding, const VkImageView image_view);
 
 	void buildDescriptorSet();
 	void updateDescriptorSet();
