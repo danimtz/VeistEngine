@@ -440,9 +440,21 @@ std::shared_ptr<Cubemap> AssetLoader::loadCubemapFromFiles(const char* posx, con
 
 
 
+static uint32_t getMaxMipLevels(uint32_t width, uint32_t height, bool mipmaps)
+{
+	if (!mipmaps)
+	{
+		return 1;
+	}
+	else
+	{
+		return static_cast<uint32_t>(std::floor(std::log2(std::max(width, height)))) + 1;
+	}
+}
 
 
-std::shared_ptr<Cubemap> AssetLoader::loadCubemapFromEquirectMap(const char* filepath ) 
+
+std::shared_ptr<Cubemap> AssetLoader::loadCubemapFromEquirectMap(const char* filepath, bool mipmaps) 
 {
 	ImageSize img_size;
 	ImageProperties properties;
@@ -475,7 +487,7 @@ std::shared_ptr<Cubemap> AssetLoader::loadCubemapFromEquirectMap(const char* fil
 
 		//Create empty cubemap
 		format = { VK_FORMAT_R16G16B16A16_SFLOAT };
-		ImageProperties cubemap_properties = { {(uint32_t)height, (uint32_t)height, (uint32_t)n_channels }, format, 1, 6 }; //set cubemap to max size of smallest side of equirect
+		ImageProperties cubemap_properties = { {(uint32_t)height, (uint32_t)height, (uint32_t)n_channels }, format, getMaxMipLevels(height, height, mipmaps), 6 }; //set cubemap to max size of smallest side of equirect
 		StorageCubemap cubemap = { cubemap_properties }; // add layers
 
 
@@ -491,7 +503,15 @@ std::shared_ptr<Cubemap> AssetLoader::loadCubemapFromEquirectMap(const char* fil
 		cmd_buff.calcSizeAndDispatch(compute_program, compute_descriptor, img_size);
 		cmd_buff.immediateSubmit();
 
-		cubemap.transitionImageLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_GENERAL);
+		if(mipmaps)
+		{
+			cubemap.transitionImageLayout(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_GENERAL);
+			cubemap.generateMipmaps();
+		}
+		else
+		{
+			cubemap.transitionImageLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_GENERAL);
+		}
 		return std::make_shared<Cubemap>(std::move(cubemap));
 	}
 	else
@@ -517,7 +537,7 @@ std::shared_ptr<Cubemap> AssetLoader::loadCubemapFromEquirectMap(const char* fil
 		stbi_image_free(data);
 		
 		//Create empty cubemap
-		ImageProperties cubemap_properties = { {(uint32_t)height, (uint32_t)height, (uint32_t)n_channels }, format, 1, 6 }; //set cubemap to max size of smallest side of equirect
+		ImageProperties cubemap_properties = { {(uint32_t)height, (uint32_t)height, (uint32_t)n_channels }, format, getMaxMipLevels(height, height, mipmaps), 6 }; //set cubemap to max size of smallest side of equirect
 		StorageCubemap cubemap = { cubemap_properties }; // add layers
 
 
@@ -533,7 +553,16 @@ std::shared_ptr<Cubemap> AssetLoader::loadCubemapFromEquirectMap(const char* fil
 		cmd_buff.calcSizeAndDispatch(compute_program, compute_descriptor, img_size);
 		cmd_buff.immediateSubmit();
 
-		cubemap.transitionImageLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_GENERAL);
+		if (mipmaps)
+		{
+			cubemap.transitionImageLayout(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_GENERAL);
+			cubemap.generateMipmaps();
+		}
+		else
+		{
+			cubemap.transitionImageLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_GENERAL);
+		}
+
 		return std::make_shared<Cubemap>(std::move(cubemap));
 
 	}

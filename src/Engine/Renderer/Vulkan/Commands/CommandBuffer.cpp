@@ -89,6 +89,11 @@ void CommandBuffer::copyBuffer(const Buffer& src, const Buffer& dst)
 }
 
 
+
+
+
+
+
 void CommandBuffer::copyBufferToImage(const Buffer stage_buff, const VkImage image, const std::vector<VkBufferImageCopy>& regions, const ImageProperties& properties)
 {
 	//prepare pipeline barrier //TODO: Generalize image barrier to other type of images. i think only works with normal textures atm

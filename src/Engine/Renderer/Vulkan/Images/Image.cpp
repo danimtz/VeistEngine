@@ -4,6 +4,13 @@
 
 #include "Engine/Renderer/Vulkan/Buffers/StagingBuffer.h"
 
+
+
+
+
+
+
+
 static VkImageCreateInfo getImageCreateInfo( ImageProperties properties, ImageUsage usage, ImageViewType view_type) {
 	
 	VkImageCreateInfo img_info = {};
@@ -90,9 +97,12 @@ ImageBase::ImageBase(ImageProperties properties, ImageUsage usage, ImageViewType
 {
 	
 
-
 	usage = usage | ImageUsage::TransferDst;
-	
+	if (m_properties.mipLevels() > 1)
+	{
+		usage = usage | ImageUsage::TransferSrc; //If it has mipmaps
+	}
+
 
 	//Allocate VkImage
 	VmaAllocator allocator = RenderModule::getRenderBackend()->getAllocator();
@@ -142,7 +152,6 @@ ImageBase::ImageBase(VkImage vk_image, ImageProperties properties, ImageUsage us
 	vkCreateImageView(device, &view_info, nullptr, &image_view);
 	m_image_view = image_view;
 
-	//RenderModule::getRenderBackend()->pushToDeletionQueue([=]() { vkDestroyImageView(device, image_view, nullptr); });
 
 }
 
@@ -185,6 +194,95 @@ void ImageBase::transitionImageLayout(VkImageLayout new_layout, VkImageLayout ol
 
 	cmd.immediateSubmit();
 }
+
+
+void ImageBase::generateMipmaps() //https://vulkan-tutorial.com/Generating_Mipmaps
+{
+	if (!(m_properties.mipLevels() > 1))
+	{
+		CONSOLE_LOG("Warning: Generate mipmaps called on an image with no mip levels")
+		return;
+	}
+	CommandBuffer cmd = RenderModule::getRenderBackend()->createDisposableCmdBuffer();
+
+	VkImageMemoryBarrier barrier{};
+	barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+	barrier.image = m_image;
+	barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	barrier.subresourceRange.baseArrayLayer = 0;
+	barrier.subresourceRange.layerCount = m_properties.layerCount();
+	barrier.subresourceRange.levelCount = 1;
+	barrier.subresourceRange.aspectMask = m_properties.imageFormat().imageAspectFlags();
+
+	int32_t mip_width = m_properties.imageSize().width;
+	int32_t mip_height = m_properties.imageSize().height;
+
+	for (uint32_t i = 1; i < m_properties.mipLevels(); i++)
+	{
+		barrier.subresourceRange.baseMipLevel = i - 1;
+		barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+		barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+		barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+		barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+
+		vkCmdPipelineBarrier(cmd.vk_commandBuffer(),
+			VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0,
+			0, nullptr,
+			0, nullptr,
+			1, &barrier);
+
+		VkImageBlit blit{};
+		blit.srcOffsets[0] = { 0, 0, 0 };
+		blit.srcOffsets[1] = { mip_width, mip_height, 1 };
+		blit.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		blit.srcSubresource.mipLevel = i - 1;
+		blit.srcSubresource.baseArrayLayer = 0;
+		blit.srcSubresource.layerCount = m_properties.layerCount();
+		blit.dstOffsets[0] = { 0, 0, 0 };
+		blit.dstOffsets[1] = { mip_width > 1 ? mip_width / 2 : 1, mip_height > 1 ? mip_height / 2 : 1, 1 };
+		blit.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		blit.dstSubresource.mipLevel = i;
+		blit.dstSubresource.baseArrayLayer = 0;
+		blit.dstSubresource.layerCount = m_properties.layerCount();
+
+		vkCmdBlitImage(cmd.vk_commandBuffer(),
+			m_image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+			m_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+			1, &blit,
+			VK_FILTER_LINEAR);
+
+		barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+		barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+		barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+		vkCmdPipelineBarrier(cmd.vk_commandBuffer(),
+			VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0,
+			0, nullptr,
+			0, nullptr,
+			1, &barrier);
+
+		if (mip_width > 1) mip_width /= 2;
+		if (mip_height > 1) mip_height /= 2;
+	}
+
+	barrier.subresourceRange.baseMipLevel = m_properties.mipLevels() - 1;
+	barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+	barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+	barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+	vkCmdPipelineBarrier(cmd.vk_commandBuffer(),
+		VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0,
+		0, nullptr,
+		0, nullptr,
+		1, &barrier);
+
+	cmd.immediateSubmit();
+}
+
 
 
 //Destructor

@@ -60,16 +60,16 @@ Scene::Scene() {
 
 	//Skybox
 
-	m_skybox = Skybox::createFromEquirectMap("Skybox", "..\\..\\assets\\Skyboxes\\Equirect\\Ice_Lake\\Ice_Lake_Ref.hdr");
+	//m_skybox = Skybox::createFromEquirectMap("Skybox", "..\\..\\assets\\Skyboxes\\Equirect\\Ice_Lake\\Ice_Lake_Ref.hdr");
 	//m_skybox = Skybox::createFromEquirectMap("Skybox", "..\\..\\assets\\Skyboxes\\Equirect\\Winter_Forest\\WinterForest_Ref.hdr");
-	//m_skybox = Skybox::createFromEquirectMap("Skybox", "..\\..\\assets\\Skyboxes\\Equirect\\Venice\\Venice.hdr");
+	m_skybox = Skybox::createFromEquirectMap("Skybox", "..\\..\\assets\\Skyboxes\\Equirect\\Venice\\Venice.hdr");
 
 	//IBL probe
 
 
-	std::shared_ptr<Cubemap> computed_cube = AssetLoader::loadCubemapFromEquirectMap("..\\..\\assets\\Skyboxes\\Equirect\\Ice_Lake\\Ice_Lake_Ref.hdr");
-	//std::shared_ptr<Cubemap> computed_cube = AssetLoader::loadCubemapFromEquirectMap("..\\..\\assets\\Skyboxes\\Equirect\\Winter_Forest\\WinterForest_Ref.hdr");
-	//std::shared_ptr<Cubemap> computed_cube = AssetLoader::loadCubemapFromEquirectMap("..\\..\\assets\\Skyboxes\\Equirect\\Venice\\Venice.hdr");
+	//std::shared_ptr<Cubemap> computed_cube = AssetLoader::loadCubemapFromEquirectMap("..\\..\\assets\\Skyboxes\\Equirect\\Ice_Lake\\Ice_Lake_Ref.hdr", true);
+	//std::shared_ptr<Cubemap> computed_cube = AssetLoader::loadCubemapFromEquirectMap("..\\..\\assets\\Skyboxes\\Equirect\\Winter_Forest\\WinterForest_Ref.hdr", true);
+	std::shared_ptr<Cubemap> computed_cube = AssetLoader::loadCubemapFromEquirectMap("..\\..\\assets\\Skyboxes\\Equirect\\Venice\\Venice.hdr", true);
 
 	m_global_probe = std::make_unique<LightProbe>(*computed_cube.get());
 

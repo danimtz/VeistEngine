@@ -44,6 +44,10 @@ inline constexpr ImageUsage operator~( VkImageUsageFlagBits right) {
 }
 
 
+
+
+
+
 enum class ImageViewType : uint32_t {
 	Flat = VK_IMAGE_VIEW_TYPE_2D,
 	Cube = VK_IMAGE_VIEW_TYPE_CUBE
@@ -60,7 +64,7 @@ public:
 	const ImageUsage& imageUsage() const { return m_usage; };
 
 	void transitionImageLayout( VkImageLayout new_layout, VkImageLayout old_layout = VK_IMAGE_LAYOUT_UNDEFINED);
-	
+	void generateMipmaps();
 
 	
 	~ImageBase();
