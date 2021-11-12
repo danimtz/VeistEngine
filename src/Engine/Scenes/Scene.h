@@ -9,6 +9,9 @@
 #include "Engine/Scenes/Skybox.h"
 #include "Engine/Scenes/LightProbe.h"
 
+#include "Engine/Scenes/EntityRegistry.h"
+
+
 //Temporary scene class. Must be reworked into a btter system later (Scenegraph, ECS etc etc)
 class Scene
 {
@@ -20,9 +23,9 @@ public:
 	const std::vector<Model>& getModels() const {return m_scene_models;}; // this function should order models by material then pipeline
 	const std::vector<DirectionalLight>& getDirLights() const { return m_directional_lights; };
 	const std::vector<PointLight>& getPointLights() const { return m_point_lights; };
-	Camera* getCamera() const {return m_scene_camera.get();}
-	Skybox* skybox() const { return m_skybox.get(); }
-	LightProbe* globalProbe() const { return m_global_probe.get(); }
+	Camera* getCamera() const {return m_scene_camera.get();};
+	Skybox* skybox() const { return m_skybox.get(); };
+	LightProbe* globalProbe() const { return m_global_probe.get(); };
 
 	void onUpdate();
 
@@ -30,8 +33,8 @@ public:
 
 private:
 
-	//void precomputeIBLMaps();
 
+	ecs::EntityRegistry m_registry;
 
 	CameraController m_cam_control;
 	std::unique_ptr<Camera> m_scene_camera;

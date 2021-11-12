@@ -14,10 +14,12 @@ class SkyboxMaterial;
 namespace AssetLoader {
 
 
-	//This will need to be expanded upon. for now just load a mesh from a gltf file
+	//This will need to be expanded upon. for now just load a mesh from a gltf files
 
 
 	//semi-temporary rework into resource/asset system later 
+	//std::shared_ptr<Model> loadModelFromGLTF(const char* gltf_filepath);
+
 	std::shared_ptr<Mesh> loadMeshFromGLTF(const char* gltf_filepath);
 
 	std::shared_ptr<Texture> loadTextureFromFile(const char* filepath, ImageFormat format = { VK_FORMAT_R8G8B8A8_SRGB });

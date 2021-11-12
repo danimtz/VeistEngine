@@ -459,7 +459,7 @@ std::shared_ptr<Cubemap> AssetLoader::loadCubemapFromEquirectMap(const char* fil
 	ImageSize img_size;
 	ImageProperties properties;
 	Texture equirect;
-	int width, height, n_channels;
+	int width, height, n_channels, cubemap_length;
 	ImageFormat format;
 
 	//Load HDR map
@@ -473,7 +473,7 @@ std::shared_ptr<Cubemap> AssetLoader::loadCubemapFromEquirectMap(const char* fil
 		n_channels = 4;//rgb aplha format
 
 		img_size = { (uint32_t)width, (uint32_t)height, (uint32_t)n_channels };
-
+		cubemap_length = std::floor(height/2);
 		if (!data)
 		{
 			std::cout << "Error loading file: " << filepath << std::endl;
@@ -487,7 +487,7 @@ std::shared_ptr<Cubemap> AssetLoader::loadCubemapFromEquirectMap(const char* fil
 
 		//Create empty cubemap
 		format = { VK_FORMAT_R16G16B16A16_SFLOAT };
-		ImageProperties cubemap_properties = { {(uint32_t)height, (uint32_t)height, (uint32_t)n_channels }, format, getMaxMipLevels(height, height, mipmaps), 6 }; //set cubemap to max size of smallest side of equirect
+		ImageProperties cubemap_properties = { {(uint32_t)cubemap_length, (uint32_t)cubemap_length, (uint32_t)n_channels }, format, getMaxMipLevels(cubemap_length, cubemap_length, mipmaps), 6 }; //set cubemap to max size of smallest side of equirect
 		StorageCubemap cubemap = { cubemap_properties }; // add layers
 
 
@@ -523,7 +523,7 @@ std::shared_ptr<Cubemap> AssetLoader::loadCubemapFromEquirectMap(const char* fil
 		n_channels = 4;//rgb aplha format
 
 		img_size = { (uint32_t)width, (uint32_t)height, (uint32_t)n_channels };
-
+		cubemap_length = std::floor(height / 2);
 		if (!data)
 		{
 			std::cout << "Error loading file: " << filepath << std::endl;
@@ -537,7 +537,7 @@ std::shared_ptr<Cubemap> AssetLoader::loadCubemapFromEquirectMap(const char* fil
 		stbi_image_free(data);
 		
 		//Create empty cubemap
-		ImageProperties cubemap_properties = { {(uint32_t)height, (uint32_t)height, (uint32_t)n_channels }, format, getMaxMipLevels(height, height, mipmaps), 6 }; //set cubemap to max size of smallest side of equirect
+		ImageProperties cubemap_properties = { {(uint32_t)cubemap_length, (uint32_t)cubemap_length, (uint32_t)n_channels }, format, getMaxMipLevels(cubemap_length, cubemap_length, mipmaps), 6 }; //set cubemap to max size of smallest side of equirect
 		StorageCubemap cubemap = { cubemap_properties }; // add layers
 
 

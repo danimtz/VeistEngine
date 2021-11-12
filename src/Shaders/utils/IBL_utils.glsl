@@ -81,6 +81,33 @@ vec3 importanceSampleGGX(vec2 Xi, vec3 N, float roughness)
     return normalize(sampleVector);
 }
 
+
+// Importance sampling for irradaince map
+vec3 importanceSampleGGXDiffuse(vec2 Xi, vec3 N)
+{
+
+
+    float phi = 2.0 * PI * Xi.x;
+    float cosTheta = (1.0 - Xi.y) ;
+    float sinTheta = sqrt(1.0 - cosTheta*cosTheta);
+
+    // spherical coordinates to cartesian coordinates
+    vec3 H;
+    H.x = cos(phi) * sinTheta;
+    H.y = sin(phi) * sinTheta;
+    H.z = cosTheta;
+
+    //tangent-space vector to world-space sample vector
+    vec3 up        = abs(N.z) < 0.999 ? vec3(0.0, 0.0, 1.0) : vec3(1.0, 0.0, 0.0);
+    vec3 tangent   = normalize(cross(up, N));
+    vec3 bitangent = normalize(cross(N, tangent));
+	
+    vec3 sampleVector = tangent * H.x + bitangent * H.y + N * H.z;
+    return normalize(sampleVector);
+}
+
+
+
 //BRDF integration
 vec2 integrateBRDF(float NdotV, float roughness)
 {

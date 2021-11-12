@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <map>
 #include <deque>
+#include <queue>
 #include <functional>
 #include <filesystem>
 #include <set>

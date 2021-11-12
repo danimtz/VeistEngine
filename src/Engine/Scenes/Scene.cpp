@@ -2,10 +2,26 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
+
+#include "Engine/Scenes/Components/MeshComponent.h"
+
 Scene::Scene() {
 
+	//ECS tests
+	ecs::EntityId entity0 = m_registry.createEntity();
+	ecs::EntityId entity1 = m_registry.createEntity();
+	ecs::EntityId entity2 = m_registry.createEntity();
+	auto test =  m_registry.emplace<TestComponent>(entity0, 1, 2);
+	auto test2 = m_registry.emplace<MeshComponent>(entity1);
 
-	
+	auto test3 = m_registry.emplace<TestComponent>(entity2, 2, 3);
+	//auto test4 = m_registry.emplace<TestComponent>(entity2);
+	//End ECS tests
+
+
+
+
+
 	m_scene_camera = std::make_unique<Camera>();
 
 	m_scene_camera->setPosition(glm::vec3{ 0.0f, 0.0f, 3.5f });

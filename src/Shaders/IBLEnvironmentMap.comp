@@ -25,13 +25,14 @@ void main() {
 
         vec3 prefilter_color = vec3(0.0);
         float total_weight = 0; 
-        const uint sample_count = 1024;
+        const uint sample_count = 2048;
         for(uint i = 0; i < sample_count; i++)
         {
             vec2 Xi = hammersley2d(i, sample_count);
             vec3 H = importanceSampleGGX(Xi, N, PushConstants.roughness);
             vec3 L = normalize(2.0 * dot(V,H) * H - V);
 
+            // From Chapter 20.4 Mipmap filtered samples in GPU Gems 3.
             float NdotL = max(dot(N, L), 0.0);
             if (NdotL > 0.0)
             {
@@ -40,11 +41,11 @@ void main() {
                 float D = D_GGX(NdotH, PushConstants.roughness);
                 float pdf = (D * NdotH) / (4.0 * HdotV) + 0.0001;
 
-                float resolution = imageSize(environmentMap).x;
-                float saTexel = 4.0 * PI / (6.0 * resolution * resolution);
-                float saSample = 1.0 / (float(sample_count) * pdf + 0.0001);
+                float resolution = float(textureSize(HDRcubemap, 0).x);
+                float solidAngleTexel = 4.0 * PI / (6.0 * resolution * resolution);
+                float solidAngleSample = 1.0 / (float(sample_count) * pdf + 0.0001);
 
-                float mip_level = PushConstants.roughness == 0 ? 0.0 : 0.5 * log2(saSample/saTexel);
+                float mip_level = PushConstants.roughness == 0 ? 0.0 : 0.5 * log2(solidAngleSample/solidAngleTexel);
 
 
                 prefilter_color += textureLod(HDRcubemap, L, mip_level).rgb * NdotL;

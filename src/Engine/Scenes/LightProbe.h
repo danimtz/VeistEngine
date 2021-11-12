@@ -8,7 +8,7 @@ class LightProbe
 
 public:
 
-	LightProbe(const Cubemap& HDRcubemap, uint32_t irradiance_size = 32, uint32_t environment_size = 256, uint32_t brdf_size = 512);
+	LightProbe(const Cubemap& HDRcubemap, uint32_t irradiance_size = 64, uint32_t environment_size = 256, uint32_t brdf_size = 512);
 	Cubemap* irradianceMap() const { return m_irradiance.get(); };
 	Cubemap* prefilterMap() const { return m_environment_map.get(); };
 	Texture* brdfLUT() const { return m_brdf_LUT.get(); };

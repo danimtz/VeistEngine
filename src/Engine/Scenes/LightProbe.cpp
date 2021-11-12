@@ -30,7 +30,7 @@ static VkImageView getMipmapImageView(uint32_t mip_level, const ImageBase& image
 
 static std::unique_ptr<Cubemap> calculateIrradianceMap(const Cubemap& HDRcubemap, uint32_t map_size)
 {
-	ComputePipeline compute_irradiance = {"IrradianceMap"};
+	ComputePipeline compute_irradiance = {"IBLIrradianceMap"};
 
 	ImageProperties cubemap_properties = { {map_size, map_size}, HDRcubemap.properties().imageFormat(), 1, 6 }; //32x32 cubemap
 	StorageCubemap cubemap{cubemap_properties}; 
