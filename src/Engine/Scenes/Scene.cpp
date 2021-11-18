@@ -11,10 +11,16 @@ Scene::Scene() {
 	ecs::EntityId entity0 = m_registry.createEntity();
 	ecs::EntityId entity1 = m_registry.createEntity();
 	ecs::EntityId entity2 = m_registry.createEntity();
-	auto test =  m_registry.emplace<TestComponent>(entity0, 1, 2);
-	auto test2 = m_registry.emplace<MeshComponent>(entity1);
+	ecs::EntityId entity3 = m_registry.createEntity();
 
-	auto test3 = m_registry.emplace<TestComponent>(entity2, 2, 3);
+	auto test =  m_registry.emplaceComponent<TestComponent>(entity0, 1, 2);
+	auto test2 = m_registry.emplaceComponent<MeshComponent>(entity1);
+
+	auto test3 = m_registry.emplaceComponent<TestComponent>(entity2, 2, 3);
+	auto test31 = m_registry.emplaceComponent<TestComponent>(entity3, 3, 4);
+	m_registry.removeComponent<TestComponent>(entity2);
+
+	auto test4 = m_registry.emplaceComponent<TestComponent>(entity1, 4, 5);
 	//auto test4 = m_registry.emplace<TestComponent>(entity2);
 	//End ECS tests
 

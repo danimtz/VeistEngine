@@ -20,11 +20,16 @@ public:
 
 
 	template<typename T, typename... Args>
-	T& emplace(EntityId id, Args&&... args)//TODO fwd arguments typename... Args
+	T& emplaceComponent(EntityId id, Args&&... args)//TODO recursive default constructor emplaceComponents
 	{
 		return findOrCreateComponentPool<T>()->addComponent(id, std::forward<Args>(args)...);
 	}
 
+	template<typename T>
+	void removeComponent(EntityId id)//TODO recursive removeComponents
+	{
+		return findOrCreateComponentPool<T>()->removeComponent(id);
+	}
 
 private:
 	
