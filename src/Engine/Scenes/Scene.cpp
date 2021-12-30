@@ -39,8 +39,9 @@ Scene::Scene() {
 
 	m_scene_models.push_back({ "..\\..\\assets\\GLTF_models\\Bottle\\",  "PBRforward", "WaterBottle.gltf" }); //{ "..\\..\\assets\\Box\\Box With Spaces.gltf" }; //
 	
-	m_scene_models.push_back({ "..\\..\\assets\\GLTF_models\\DamagedHelmet\\",  "PBRforward", "DamagedHelmet.gltf" }); //{ "..\\..\\assets\\Box\\Box With Spaces.gltf" }; //
+	//m_scene_models.push_back({ "..\\..\\assets\\GLTF_models\\DamagedHelmet\\",  "PBRforward", "DamagedHelmet.gltf" }); //{ "..\\..\\assets\\Box\\Box With Spaces.gltf" }; //
 
+	//m_scene_models.push_back({ "..\\..\\assets\\GLTF_models\\Ernesto\\",  "PBRforward", "Ernesto.gltf" });
 
 	m_scene_models[0].modelMatrix() = glm::translate(m_scene_models[0].modelMatrix(), glm::vec3{ 2.0, 0.0, 0.0 });
 	m_scene_models[0].modelMatrix() = glm::rotate(m_scene_models[0].modelMatrix(), glm::radians(0.0f), glm::vec3{ 1.0f, 0.0f, .0f });
