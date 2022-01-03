@@ -5,16 +5,20 @@ Currently a work in progress, but the objective is to be able to set up forward 
 ## Current features:
 ### Engine:
 - Spir-V reflection of glsl shader to create descriptor set layouts.
+- Command buffer recording abstraction.
 - Free camera movement using quaternions.
 - GLTF2.0 model loading
 - Uses GLFW for window mangement
-- ImGUI integration
+- ImGUI integration (only demo for now)
+- Entity component system (Currently in progress)
+
 
 ### Renderer:
 - Forward renderer
 - Double buffering
 - Directional and Point lights
-- Physically Based Shading (Cook Torrance BRDF, no IBL for now)
+- Physically Based Rendering (Cook Torrance BRDF)
+- Image-Based Lighting (calculates diffuse irradince maps, BRDF LUTs and pre-filtered environment map using compute shaders)
 - Cubemapped skybox
 
 ## Example images:
