@@ -3,25 +3,29 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 
-#include "Engine/Scenes/Components/MeshComponent.h"
+#include "Engine/Scenes/ECS/Components/MeshComponent.h"
 
 Scene::Scene() {
 
 	//ECS tests
-	ecs::EntityId entity0 = m_registry.createEntity();
-	ecs::EntityId entity1 = m_registry.createEntity();
-	ecs::EntityId entity2 = m_registry.createEntity();
-	ecs::EntityId entity3 = m_registry.createEntity();
+	m_registry = std::make_unique<ecs::EntityRegistry>();
+	ecs::EntityId entity0 = m_registry->createEntity();
+	
+	ecs::EntityId entity1 = m_registry->createEntity();
+	ecs::EntityId entity2 = m_registry->createEntity();
+	ecs::EntityId entity3 = m_registry->createEntity();
 
-	auto test =  m_registry.emplaceComponent<TestComponent>(entity0, 1, 2);
-	auto test2 = m_registry.emplaceComponent<MeshComponent>(entity1);
+	m_registry->emplaceComponent<MeshComponent>(entity1);
+	m_registry->emplaceComponent<MeshComponent>(entity2);
 
-	auto test3 = m_registry.emplaceComponent<TestComponent>(entity2, 2, 3);
-	auto test31 = m_registry.emplaceComponent<TestComponent>(entity3, 3, 4);
-	m_registry.removeComponent<TestComponent>(entity2);
+	m_registry->emplaceComponent<TestComponent>(entity3, 3, 4);
+	m_registry->removeComponent<MeshComponent>(entity2);
 
-	auto test4 = m_registry.emplaceComponent<TestComponent>(entity1, 4, 5);
-	//auto test4 = m_registry.emplace<TestComponent>(entity2);
+	m_registry->emplaceComponent<TestComponent>(entity1, 4, 5);
+	//auto test4 = m_registry->emplaceComponent<TestComponent>(entity2);
+	
+	
+	
 	//End ECS tests
 
 
@@ -39,10 +43,9 @@ Scene::Scene() {
 
 	m_scene_models.push_back({ "..\\..\\assets\\GLTF_models\\Bottle\\",  "PBRforward", "WaterBottle.gltf" }); //{ "..\\..\\assets\\Box\\Box With Spaces.gltf" }; //
 	
-	//m_scene_models.push_back({ "..\\..\\assets\\GLTF_models\\DamagedHelmet\\",  "PBRforward", "DamagedHelmet.gltf" }); //{ "..\\..\\assets\\Box\\Box With Spaces.gltf" }; //
+	m_scene_models.push_back({ "..\\..\\assets\\GLTF_models\\DamagedHelmet\\",  "PBRforward", "DamagedHelmet.gltf" }); //{ "..\\..\\assets\\Box\\Box With Spaces.gltf" }; //
 
-	//m_scene_models.push_back({ "..\\..\\assets\\GLTF_models\\Ernesto\\",  "PBRforward", "Ernesto.gltf" });
-
+	
 	m_scene_models[0].modelMatrix() = glm::translate(m_scene_models[0].modelMatrix(), glm::vec3{ 2.0, 0.0, 0.0 });
 	m_scene_models[0].modelMatrix() = glm::rotate(m_scene_models[0].modelMatrix(), glm::radians(0.0f), glm::vec3{ 1.0f, 0.0f, .0f });
 	m_scene_models[0].modelMatrix() = glm::scale(m_scene_models[0].modelMatrix(), glm::vec3{ 8, 8, 8 });

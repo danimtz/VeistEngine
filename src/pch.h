@@ -16,7 +16,7 @@
 #include <vector>
 #include <unordered_map>
 #include <unordered_set>
-
+#include <bitset>
 
 #include "Engine/Logger.h"
 #include "Engine/VkCheck.h"
