@@ -2,11 +2,11 @@
 
 #include "Engine/Scenes/ECS/ECSTypes.h"
 #include "Engine/Scenes/ECS/ComponentPool.h"
+#include "Engine/Scenes/ECS/View.h"
 
 namespace ecs{
 
 
-uint32_t getNextComponentId();
 
 
 
@@ -20,7 +20,7 @@ public:
 	EntityRegistry(EntityRegistry&& other) 
 		: m_entity_count{ std::move(other.m_entity_count) },
 		m_free_entities{ std::move(other.m_free_entities) },
-		m_entity_masks{ std::move(other.m_entity_masks) },
+		m_entity_signatures{ std::move(other.m_entity_signatures) },
 		m_component_pools{ std::move(other.m_component_pools)/*TODO: Test this*/ }{}
 	
 	//Move assignment operator 
@@ -28,55 +28,92 @@ public:
 	{
 		m_entity_count =  std::move(other.m_entity_count);
 		m_free_entities = std::move(other.m_free_entities);
-		m_entity_masks = std::move(other.m_entity_masks);
+		m_entity_signatures = std::move(other.m_entity_signatures);
 		m_component_pools = std::move(other.m_component_pools); //TODO: Test this
 	}
 
-	
-	
-
 	~EntityRegistry() = default;
 
+
+
 	EntityId createEntity();
+
+
 	void destroyEntity(EntityId entity);
 
 
+
+	/*
+	/ 	emplaceComponent()
+	/ 	Adds a component to the entity given.
+	/
+	*/
 	template<typename T, typename... Args>
 	T& emplaceComponent(EntityId id, Args&&... args)//TODO recursive default constructor emplaceComponents <component1, component2, etc>
 	{
 		//Add and get component
-		auto component = findOrCreateComponentPool<T>()->addComponent(id, std::forward<Args>(args)...);
+		auto& component = findOrCreateComponentPool<T>()->addComponent(id, std::forward<Args>(args)...);
 
-		//Add component to entity mask
-		EntityMask& entity_mask = getEntityMask(id);
-		entity_mask.set( getComponentId<T>() ,true);
+		//Add component to entity signature
+		Signature& signature = getEntitySignature(id);
+		signature.set( getComponentId<T>() ,true);
 
 		return component;
 	}
 
+	/*
+	/ 	removeComponent()
+	/	Removes a component from the given entity
+	/
+	*/
 	template<typename T>
 	void removeComponent(EntityId id)//TODO recursive removeComponents <component1, component2, etc>
 	{
 		
 		findOrCreateComponentPool<T>()->removeComponent(id);
-		EntityMask& entity_mask = getEntityMask(id);
-		entity_mask.set(getComponentId<T>(), false);
+		Signature& signature = getEntitySignature(id);
+		signature.set(getComponentId<T>(), false);
 
 	}
+
+
+	/*
+	/ 	view()
+	/	Creates a view of the registry giving back an iteratable object containing all the entities 
+	/	that contain the components requested
+	/
+	*/
+	template<typename... ComponentTypes>
+	View view()
+	{
+		Signature signature;
+		if (sizeof...(ComponentTypes) == 0)
+		{
+			//Set entity signature to all true
+			signature.set();
+		}
+		else
+		{
+			//Unpack template parameters into an initializer list, 0 needed if empty
+			int component_ids[] = { 0, getComponentId<ComponentTypes>() ... };
+			for (int i = 1; i < (sizeof...(ComponentTypes) + 1 ); i++)
+			{
+				signature.set(component_ids[i]);
+			}
+		}
+
+		return {signature,  &m_entities, &m_entity_signatures, &m_component_pools };
+	}
+
 
 private:
 	
 	
-	template<typename T>
-	ComponentId getComponentId()
-	{
-		static ComponentId component_id = getNextComponentId();
-		return component_id;
-	}
+	
 
-	EntityMask& getEntityMask(EntityId id)
+	Signature& getEntitySignature(EntityId id)
 	{
-		return m_entity_masks[id];
+		return m_entity_signatures[id];
 	}
 
 	
@@ -100,16 +137,23 @@ private:
 	}
 
 
+	
+	
+
 
 private:
 
+	//number of live entities
 	uint32_t m_entity_count;
 
 	//queue of unused entity ids
 	std::queue<EntityId> m_free_entities;
 
-	//array of entity component masks. array index is the entity id
-	std::array<EntityMask, MAX_ENTITIES> m_entity_masks;
+	//active entities
+	std::vector<EntityId> m_entities;
+
+	//array of entity signatures. array index is the entity id
+	std::array<Signature, MAX_ENTITIES> m_entity_signatures;
 
 	std::vector<std::shared_ptr<ComponentPoolBase>> m_component_pools;
 
@@ -117,4 +161,4 @@ private:
 };
 
 
-}
+};

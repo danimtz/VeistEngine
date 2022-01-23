@@ -10,7 +10,7 @@ class ComponentPoolBase
 {
 public:
 	virtual ~ComponentPoolBase() = default;
-
+	virtual void entityDestroyed(EntityId entity) = 0;
 
 };
 
@@ -74,6 +74,29 @@ public:
 		m_idx_to_entity_map.erase(last_component_idx);
 
 		m_component_count--;
+	}
+
+
+	//Gets the component data of given entity
+	T& getComponent(EntityId entity)
+	{
+		//TODO: change these if statements to asserts maybe?
+		if (m_entity_to_idx_map.find(entity) == m_entity_to_idx_map.end())
+		{
+			CRITICAL_ERROR_LOG("Component to be removed could not be found");
+		}
+
+		return m_component_array[m_entity_to_idx_map[entity]];
+	}
+
+
+
+	void entityDestroyed(EntityId entity) override
+	{
+		if (m_entity_to_idx_map.find(entity) != m_entity_to_idx_map.end())
+		{
+			removeComponent(entity);
+		}
 	}
 
 private:

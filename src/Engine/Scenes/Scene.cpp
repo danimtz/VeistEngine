@@ -15,6 +15,8 @@ Scene::Scene() {
 	ecs::EntityId entity2 = m_registry->createEntity();
 	ecs::EntityId entity3 = m_registry->createEntity();
 
+	m_registry->emplaceComponent<TestComponent>(entity0, 1, 3);
+
 	m_registry->emplaceComponent<MeshComponent>(entity1);
 	m_registry->emplaceComponent<MeshComponent>(entity2);
 
@@ -24,7 +26,23 @@ Scene::Scene() {
 	m_registry->emplaceComponent<TestComponent>(entity1, 4, 5);
 	//auto test4 = m_registry->emplaceComponent<TestComponent>(entity2);
 	
+ 	m_registry->destroyEntity(entity0);
+
+	ecs::EntityId entity4 = m_registry->createEntity();
+	m_registry->emplaceComponent<MeshComponent>(entity4);
+	m_registry->emplaceComponent<TestComponent>(entity4,0,1);
+
+	ecs::EntityId entity5 = m_registry->createEntity();
+	m_registry->emplaceComponent<MeshComponent>(entity5);
+	m_registry->emplaceComponent<TestComponent>(entity5,0,5);
+
+	auto scene_view = m_registry->view<TestComponent>();
 	
+	for (ecs::EntityId entity : scene_view)
+	{
+		auto& testcomp = scene_view.get<TestComponent>(entity);
+		auto potato = 5;
+	}
 	
 	//End ECS tests
 

@@ -1,5 +1,8 @@
 #pragma once
 
+#include <atomic>
+
+
 namespace ecs
 {
 
@@ -8,7 +11,21 @@ namespace ecs
 
 	using ComponentId = std::uint8_t;
 	using EntityId = std::uint32_t;
-	using EntityMask = std::bitset<MAX_COMPONENTS>;
+	using Signature = std::bitset<MAX_COMPONENTS>;
 
+
+	inline bool isEntityIdValid(EntityId id)
+	{
+		return (id >> 32) != EntityId(-1);
+	}
+
+	uint32_t getNextComponentId();
+
+	template<typename T>
+	ComponentId getComponentId()
+	{
+		static ComponentId component_id = getNextComponentId();
+		return component_id;
+	}
 
 }
