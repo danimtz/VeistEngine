@@ -4,14 +4,15 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
 
-void CameraController::updateCamera(Camera& camera) 
+void CameraController::updateCamera(Camera& camera, glm::vec3& position) 
 {
 
 	const float speed = m_cam_speed; //Delta time here?
 	
 	if (InputModule::isKeyPressed(GLFW_KEY_R)) //reset camera
 	{
-		camera.setPosition(glm::vec3{ 0.0f, 0.0f, -3.5f });
+		position = glm::vec3{ 0.0f, 0.0f, -3.5f };
+		camera.setPosition(position);
 		camera.setViewMatrix(glm::lookAt(glm::vec3{ 0.0f, 0.0f, -3.5f }, glm::vec3{ 0.0f, 0.0f, 0.0f }, glm::vec3{ 0.0f, 1.0f, 0.0f }));
 		camera.setFoV(55);
 	}
@@ -19,34 +20,40 @@ void CameraController::updateCamera(Camera& camera)
 
 	if (InputModule::isKeyPressed(GLFW_KEY_W)) 
 	{
-		camera.setPosition( camera.position() + (speed * camera.front()));
+		position = position + (speed * camera.front());
+		camera.setPosition(position);
 	}
 
 	if (InputModule::isKeyPressed(GLFW_KEY_S))
 	{
-		camera.setPosition(camera.position() - (speed * camera.front()));
+		position = position - (speed * camera.front());
+		camera.setPosition(position);
 	}
 
 
 	if (InputModule::isKeyPressed(GLFW_KEY_A))
 	{
-		camera.setPosition(camera.position() - (speed * camera.right()));
+		position = position - (speed * camera.right());
+		camera.setPosition(position);
 	}
 
 	if (InputModule::isKeyPressed(GLFW_KEY_D))
 	{
-		camera.setPosition(camera.position() + (speed * camera.right()));
+		position = position + (speed * camera.right());
+		camera.setPosition(position);
 	}
 
 
 	if (InputModule::isKeyPressed(GLFW_KEY_SPACE))
-	{
-		camera.setPosition(camera.position() + (speed * camera.up()));
+	{	
+		position = position + (speed * camera.up());
+		camera.setPosition(position);
 	}
 
 	if (InputModule::isKeyPressed(GLFW_KEY_LEFT_SHIFT))
 	{
-		camera.setPosition(camera.position() - (speed * camera.up()));
+		position = position - (speed * camera.up());
+		camera.setPosition(position);
 	}
 
 
@@ -65,7 +72,7 @@ void CameraController::updateCamera(Camera& camera)
 		glm::vec3 cam_right = yaw_qt * camera.right();
 
 		if (glm::length(glm::cross(cam_front, world_up)) > 0.01f) {//limit 90 and -90 degrees
-			camera.setViewMatrix(glm::lookAt(camera.position(), camera.position() + cam_front, glm::cross(-cam_front, cam_right )));
+			camera.setViewMatrix(glm::lookAt(position, position + cam_front, glm::cross(-cam_front, cam_right )));
 		}
 
 		

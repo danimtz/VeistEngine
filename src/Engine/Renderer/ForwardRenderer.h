@@ -25,6 +25,7 @@ public:
 	virtual void onUpdate() override;
 	
 	void renderScene(CommandBuffer& cmd_buffer);
+	void renderSceneECS(CommandBuffer& cmd_buffer);
 
 private:
 

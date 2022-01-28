@@ -9,7 +9,7 @@ public:
 	
 	CameraController() = default;
 
-	void updateCamera(Camera& camera);
+	void updateCamera(Camera& camera, glm::vec3& position);
 
 private:
 	float m_sensitivity{0.003f};

@@ -28,7 +28,7 @@ static VkImageView getMipmapImageView(uint32_t mip_level, const ImageBase& image
 }
 
 
-static std::unique_ptr<Cubemap> calculateIrradianceMap(const Cubemap& HDRcubemap, uint32_t map_size)
+static std::shared_ptr<Cubemap> calculateIrradianceMap(const Cubemap& HDRcubemap, uint32_t map_size)
 {
 	ComputePipeline compute_irradiance = {"IBLIrradianceMap"};
 
@@ -54,7 +54,7 @@ static std::unique_ptr<Cubemap> calculateIrradianceMap(const Cubemap& HDRcubemap
 
 
 
-static std::unique_ptr<Cubemap> calculateEnvironmentMap(const Cubemap& HDRcubemap, uint32_t map_size)
+static std::shared_ptr<Cubemap> calculateEnvironmentMap(const Cubemap& HDRcubemap, uint32_t map_size)
 {
 	
 	uint32_t max_mips = std::floor(std::log2(HDRcubemap.properties().imageSize().width)) + 1;
@@ -111,7 +111,7 @@ static std::unique_ptr<Cubemap> calculateEnvironmentMap(const Cubemap& HDRcubema
 }
 
 
-static std::unique_ptr<Texture> calculateBRDF_LUT(const Cubemap& HDRcubemap, uint32_t map_size)
+static std::shared_ptr<Texture> calculateBRDF_LUT(const Cubemap& HDRcubemap, uint32_t map_size)
 {
 
 	ComputePipeline compute_BRDF = { "IntegrateBRDF" };

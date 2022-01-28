@@ -15,7 +15,11 @@ public:
 	//filepath must be path to filename without extension. asset loader adds the _negx.jpg etc etc. TODO: rework this at some point
 	
 	Skybox(const std::string& material_name, const std::string& file_path, bool isCubemap);
-	
+	Skybox(const Skybox& other) 
+	{ 
+		m_skybox_mesh = other.m_skybox_mesh; 
+		m_material = other.m_material; 
+	};
 
 	std::shared_ptr<Mesh>	mesh() const { return m_skybox_mesh; };
 	std::shared_ptr<SkyboxMaterial> material() const { return m_material; };

@@ -3,132 +3,77 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 
-#include "Engine/Scenes/ECS/Components/MeshComponent.h"
+#include "Engine/Scenes/ECS/Components/Components.h"
 
 Scene::Scene() {
 
-	//ECS tests
 	m_registry = std::make_unique<ecs::EntityRegistry>();
-	ecs::EntityId entity0 = m_registry->createEntity();
+
+	ecs::EntityId camera = m_registry->createEntity();
+	ecs::EntityId waterbottle = m_registry->createEntity();
+	ecs::EntityId helmet = m_registry->createEntity();
+	ecs::EntityId damagedhelmet = m_registry->createEntity();
+
+	ecs::EntityId point_light_1 = m_registry->createEntity();
+	ecs::EntityId sun_light = m_registry->createEntity();
+	ecs::EntityId skybox = m_registry->createEntity();
+
+
+	m_registry->emplaceComponent<CameraComponent>(camera);
+	m_registry->emplaceComponent<TransformComponent>(camera, glm::vec3{ 0.0f, 0.0f, 3.5f });
+
+
+	glm::vec3 pos = glm::vec3(3.0, 0.0, 0.0);
+	glm::vec3 col = glm::vec3(0.1, 0.13, 0.81);
+	m_registry->emplaceComponent<PointLightComponent>(point_light_1, col);
+	m_registry->emplaceComponent<TransformComponent>(point_light_1, pos);
 	
-	ecs::EntityId entity1 = m_registry->createEntity();
-	ecs::EntityId entity2 = m_registry->createEntity();
-	ecs::EntityId entity3 = m_registry->createEntity();
-
-	m_registry->emplaceComponent<TestComponent>(entity0, 1, 3);
-
-	m_registry->emplaceComponent<MeshComponent>(entity1);
-	m_registry->emplaceComponent<MeshComponent>(entity2);
-
-	m_registry->emplaceComponent<TestComponent>(entity3, 3, 4);
-	m_registry->removeComponent<MeshComponent>(entity2);
-
-	m_registry->emplaceComponent<TestComponent>(entity1, 4, 5);
-	//auto test4 = m_registry->emplaceComponent<TestComponent>(entity2);
 	
- 	m_registry->destroyEntity(entity0);
+	m_registry->emplaceComponent<DirectionalLightComponent>(sun_light, glm::normalize(glm::vec3(0.0, 1.0, -1.0)), glm::vec3(1.0), 1.0);
 
-	ecs::EntityId entity4 = m_registry->createEntity();
-	m_registry->emplaceComponent<MeshComponent>(entity4);
-	m_registry->emplaceComponent<TestComponent>(entity4,0,1);
-
-	ecs::EntityId entity5 = m_registry->createEntity();
-	m_registry->emplaceComponent<MeshComponent>(entity5);
-	m_registry->emplaceComponent<TestComponent>(entity5,0,5);
-
-	auto scene_view = m_registry->view<TestComponent>();
+	m_registry->emplaceComponent<MeshComponent>(waterbottle, Model("..\\..\\assets\\GLTF_models\\Bottle\\",  "PBRforward", "WaterBottle.gltf"));
+	m_registry->emplaceComponent<TransformComponent>(waterbottle, glm::vec3{ 2.0, 0.0, 0.0 }, glm::vec3{ 0.0, 0.0, 0.0}, glm::vec3{ 8.0, 8.0, 8.0 });
 	
-	for (ecs::EntityId entity : scene_view)
-	{
-		auto& testcomp = scene_view.get<TestComponent>(entity);
-		auto potato = 5;
-	}
-	
-	//End ECS tests
+	m_registry->emplaceComponent<MeshComponent>(helmet, Model("..\\..\\assets\\GLTF_models\\DamagedHelmet\\", "PBRforward", "DamagedHelmet.gltf"));
+	m_registry->emplaceComponent<TransformComponent>(helmet, glm::vec3{ -1.0, 0.0, 0.0 }, glm::vec3{ 0.0, 0.0, 0.0 }, glm::vec3{ 1.0, 1.0, 1.0 });
 
 
-
-
-
-	m_scene_camera = std::make_unique<Camera>();
-
-	m_scene_camera->setPosition(glm::vec3{ 0.0f, 0.0f, 3.5f });
-
-	//m_scene_models.push_back({ "..\\..\\assets\\DamagedHelmet\\DamagedHelmet.gltf",  "descriptortest",  "..\\..\\src\\Shaders\\" }); //{ "..\\..\\assets\\Box\\Box With Spaces.gltf" }; //
-	//m_scene_models.push_back({ "..\\..\\assets\\Bottle\\",  "normalOnly", "WaterBottle.gltf" });
-
-
-
-	m_scene_models.push_back({ "..\\..\\assets\\GLTF_models\\Bottle\\",  "PBRforward", "WaterBottle.gltf" }); //{ "..\\..\\assets\\Box\\Box With Spaces.gltf" }; //
-	
-	m_scene_models.push_back({ "..\\..\\assets\\GLTF_models\\DamagedHelmet\\",  "PBRforward", "DamagedHelmet.gltf" }); //{ "..\\..\\assets\\Box\\Box With Spaces.gltf" }; //
-
-	
-	m_scene_models[0].modelMatrix() = glm::translate(m_scene_models[0].modelMatrix(), glm::vec3{ 2.0, 0.0, 0.0 });
-	m_scene_models[0].modelMatrix() = glm::rotate(m_scene_models[0].modelMatrix(), glm::radians(0.0f), glm::vec3{ 1.0f, 0.0f, .0f });
-	m_scene_models[0].modelMatrix() = glm::scale(m_scene_models[0].modelMatrix(), glm::vec3{ 8, 8, 8 });
-
-
-
-	m_scene_models[1].modelMatrix() = glm::translate(m_scene_models[1].modelMatrix(), glm::vec3{-1.0, 0.0, 0.0 });
-	m_scene_models[1].modelMatrix() = glm::rotate(m_scene_models[1].modelMatrix(), glm::radians(180.0f), glm::vec3{ 0.0f, 1.0f, 0.0f });
-	m_scene_models[1].modelMatrix() = glm::rotate(m_scene_models[1].modelMatrix(), glm::radians(90.0f), glm::vec3{ 1.0f, 0.0f, 0.0f });
-	m_scene_models[1].modelMatrix() = glm::scale(m_scene_models[1].modelMatrix(), glm::vec3{ 1, 1, 1 });
-	
-
-
-	//Lights
-	
-	glm::vec3 sun_dir = glm::normalize(glm::vec3(0.0, 1.0, -1.0));
-	
-	m_directional_lights.push_back(DirectionalLight(sun_dir, glm::vec3(1.0), 1.0));//sun
-
-	glm::vec3 sky_dir = glm::vec3(0.0, 1.0, 0.0);
-	glm::vec3 col = glm::vec3(1.0, 0.83, 0.51);
-	//m_directional_lights.push_back(DirectionalLight());
-	//m_directional_lights.push_back(DirectionalLight(sky_dir, glm::vec3(0.5, 0.8, 0.6)));//sky
-
-	glm::vec3 pos = glm::vec3(-3.0, 1.0, 0.0);
-	col = glm::vec3(0.7, 0.13, 0.21);
-	//m_point_lights.push_back(PointLight(pos, col)); 
-
-	pos = glm::vec3(3.0, 0.0, 0.0);
-	col = glm::vec3(0.1, 0.13, 0.81);
-	//m_point_lights.push_back(PointLight(pos, col));
-
-	pos = glm::vec3(0.2, 0.4, -1.0);
-	col = glm::vec3(1.0);
-	//m_point_lights.push_back(PointLight(pos, col));
-
-
-
-	//Skybox
-
-	//m_skybox = Skybox::createFromEquirectMap("Skybox", "..\\..\\assets\\Skyboxes\\Equirect\\Ice_Lake\\Ice_Lake_Ref.hdr");
-	//m_skybox = Skybox::createFromEquirectMap("Skybox", "..\\..\\assets\\Skyboxes\\Equirect\\Winter_Forest\\WinterForest_Ref.hdr");
-	m_skybox = Skybox::createFromEquirectMap("Skybox", "..\\..\\assets\\Skyboxes\\Equirect\\Venice\\Venice.hdr");
+	m_registry->emplaceComponent<SkyboxComponent>(skybox, Skybox("Skybox", "..\\..\\assets\\Skyboxes\\Equirect\\Venice\\Venice.hdr", false));
 
 	//IBL probe
-
-
-	//std::shared_ptr<Cubemap> computed_cube = AssetLoader::loadCubemapFromEquirectMap("..\\..\\assets\\Skyboxes\\Equirect\\Ice_Lake\\Ice_Lake_Ref.hdr", true);
-	//std::shared_ptr<Cubemap> computed_cube = AssetLoader::loadCubemapFromEquirectMap("..\\..\\assets\\Skyboxes\\Equirect\\Winter_Forest\\WinterForest_Ref.hdr", true);
 	std::shared_ptr<Cubemap> computed_cube = AssetLoader::loadCubemapFromEquirectMap("..\\..\\assets\\Skyboxes\\Equirect\\Venice\\Venice.hdr", true);
-
-	m_global_probe = std::make_unique<LightProbe>(*computed_cube.get());
-
+	//TODO Creating LightProbes and LightProbe components needs to be waaaaaaay smoother and not include possible large copies of textures etc
+	ecs::EntityId light_probe = m_registry->createEntity();
+	m_registry->emplaceComponent<LightProbeComponent>(light_probe, LightProbe(*computed_cube.get()));
 }
 
 
 void Scene::onUpdate() 
 {
 
-	m_cam_control.updateCamera(*m_scene_camera.get());
+	
+	
+	
+	auto& scene_view = m_registry->view<CameraComponent>();
+	for (ecs::EntityId entity : scene_view)
+	{
+		auto& cam_comp = scene_view.get<CameraComponent>(entity);
+		auto& transform = scene_view.get<TransformComponent>(entity);
 
-	m_scene_camera->onUpdate();
+
+		m_cam_control.updateCamera(cam_comp.camera(), transform.translation()); 
+		cam_comp.camera().onUpdate();
 
 
-	//update lights, models etc
+		break;//Only first camera componenet being taken into consideration for now
+	}
+
+	
+
+
+	//Iterate ECS update transforms compoenents etc etc TODO
+	
+	
 
 
 }

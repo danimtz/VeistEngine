@@ -55,16 +55,10 @@ void Camera::updateViewProjection()
 
 void Camera::setPosition(const glm::vec3 new_pos) 
 {
-	m_position = new_pos;
 	setViewMatrix(glm::lookAt(new_pos, new_pos + front(), up()));
 }
 
 
-glm::vec3 Camera::position() const
-{
-	//Extract position from view matrix
-	return m_position;
-}
 
 glm::vec3 Camera::up() const
 {
