@@ -26,7 +26,7 @@ struct TransformComponent
 
 	glm::mat4 getTransform() const
 	{
-		glm::mat4 rotation = glm::mat4(glm::quat(m_rotation));
+		glm::mat4 rotation = glm::mat4(glm::quat(glm::radians(m_rotation)));
 		return glm::translate(glm::mat4(1.0f), m_translation) * rotation * glm::scale(glm::mat4(1.0f), m_scale);
 	}
 

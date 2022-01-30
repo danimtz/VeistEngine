@@ -21,7 +21,7 @@ public:
 
 	ecs::EntityRegistry* ecsRegistry() const { return m_registry.get();};
 
-	void onUpdate();
+	void onUpdate(Timestep dt);
 
 
 

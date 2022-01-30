@@ -4,7 +4,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
 
-void CameraController::updateCamera(Camera& camera, glm::vec3& position) 
+void CameraController::updateCamera(Camera& camera, glm::vec3& position, Timestep dt) 
 {
 
 	const float speed = m_cam_speed; //Delta time here?
@@ -20,39 +20,39 @@ void CameraController::updateCamera(Camera& camera, glm::vec3& position)
 
 	if (InputModule::isKeyPressed(GLFW_KEY_W)) 
 	{
-		position = position + (speed * camera.front());
+		position = position + (speed * camera.front() * dt.getSeconds());
 		camera.setPosition(position);
 	}
 
 	if (InputModule::isKeyPressed(GLFW_KEY_S))
 	{
-		position = position - (speed * camera.front());
+		position = position - (speed * camera.front() * dt.getSeconds());
 		camera.setPosition(position);
 	}
 
 
 	if (InputModule::isKeyPressed(GLFW_KEY_A))
 	{
-		position = position - (speed * camera.right());
+		position = position - (speed * camera.right() * dt.getSeconds());
 		camera.setPosition(position);
 	}
 
 	if (InputModule::isKeyPressed(GLFW_KEY_D))
 	{
-		position = position + (speed * camera.right());
+		position = position + (speed * camera.right() * dt.getSeconds());
 		camera.setPosition(position);
 	}
 
 
 	if (InputModule::isKeyPressed(GLFW_KEY_SPACE))
 	{	
-		position = position + (speed * camera.up());
+		position = position + (speed * camera.up() * dt.getSeconds());
 		camera.setPosition(position);
 	}
 
 	if (InputModule::isKeyPressed(GLFW_KEY_LEFT_SHIFT))
 	{
-		position = position - (speed * camera.up());
+		position = position - (speed * camera.up() * dt.getSeconds());
 		camera.setPosition(position);
 	}
 

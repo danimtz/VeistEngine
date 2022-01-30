@@ -7,23 +7,34 @@
 
 void GUIModule::init(RenderBackend* render_backend) 
 {
-    //Initialize context and link with vulkan/api
+
+	//Init context
+	ImGui::CreateContext();
+
+	//Config
+	ImGuiIO& io = ImGui::GetIO(); (void)io;
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
+	//io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
+	io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
+	//io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoTaskBarIcons;
+	//io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoMerge;
+
+	//io.Fonts->AddFontFromFileTTF("assets/fonts/opensans/OpenSans-Bold.ttf", 18.0f);
+	//io.FontDefault = io.Fonts->AddFontFromFileTTF("assets/fonts/opensans/OpenSans-Regular.ttf", 18.0f);
+	
+
+    //Initialize imgui with vulkan/api
     render_backend->initImGUI();
+
+	//IF IMGUI FAILS WHEN REBUILDING PROJECT I CHANGED LINE 1486 in impl_vulkan.cpp to allow a pipeline to be created for the new viewport and not use the default renderpasses avoiding validation layer errors
+	//ImGui_ImplVulkan_CreatePipeline(device, allocator, VK_NULL_HANDLE, wd->RenderPass, VK_SAMPLE_COUNT_1_BIT, &wd->Pipeline, 0 /*bd->Subpass*/); 
 
     // Setup style
     ImGui::StyleColorsDark();
 
 
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
-    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-    //io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
-    //io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
-    //io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoTaskBarIcons;
-    //io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoMerge;
-
-    //io.Fonts->AddFontFromFileTTF("assets/fonts/opensans/OpenSans-Bold.ttf", 18.0f);
-    //io.FontDefault = io.Fonts->AddFontFromFileTTF("assets/fonts/opensans/OpenSans-Regular.ttf", 18.0f);
+   
 
 
 	//Set dark theme colors
@@ -52,13 +63,25 @@ void GUIModule::beginFrame()
 
 void GUIModule::endFrame()
 {
-    
-	//I dont like this either. Vulkan stuff outside of platform folder bad
+
+	ImGuiIO& io = ImGui::GetIO();
+
     RenderBackend* backend = RenderModule::getRenderBackend().get();
 	
     ImGui::Render();
-    ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), backend->getCurrentCmdBuffer().vk_commandBuffer());
+	ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), backend->getCurrentCmdBuffer().vk_commandBuffer());
 
+	if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+	{
+		GLFWwindow* backup_current_context = glfwGetCurrentContext();
+		ImGui::UpdatePlatformWindows();
+		ImGui::RenderPlatformWindowsDefault();
+		glfwMakeContextCurrent(backup_current_context);
+	}
+
+    
+
+	
 }
 
 

@@ -2,7 +2,6 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
-
 #include "Engine/Scenes/ECS/Components/Components.h"
 
 Scene::Scene() {
@@ -11,8 +10,9 @@ Scene::Scene() {
 
 	ecs::EntityId camera = m_registry->createEntity();
 	ecs::EntityId waterbottle = m_registry->createEntity();
-	ecs::EntityId helmet = m_registry->createEntity();
+
 	ecs::EntityId damagedhelmet = m_registry->createEntity();
+	ecs::EntityId helmet = m_registry->createEntity();
 
 	ecs::EntityId point_light_1 = m_registry->createEntity();
 	ecs::EntityId sun_light = m_registry->createEntity();
@@ -35,7 +35,7 @@ Scene::Scene() {
 	m_registry->emplaceComponent<TransformComponent>(waterbottle, glm::vec3{ 2.0, 0.0, 0.0 }, glm::vec3{ 0.0, 0.0, 0.0}, glm::vec3{ 8.0, 8.0, 8.0 });
 	
 	m_registry->emplaceComponent<MeshComponent>(helmet, Model("..\\..\\assets\\GLTF_models\\DamagedHelmet\\", "PBRforward", "DamagedHelmet.gltf"));
-	m_registry->emplaceComponent<TransformComponent>(helmet, glm::vec3{ -1.0, 0.0, 0.0 }, glm::vec3{ 0.0, 0.0, 0.0 }, glm::vec3{ 1.0, 1.0, 1.0 });
+	m_registry->emplaceComponent<TransformComponent>(helmet, glm::vec3{ -1.0, 0.0, 0.0 }, glm::vec3{ 90.0, 90.0, 0.0 }, glm::vec3{ 1.0, 1.0, 1.0 });
 
 
 	m_registry->emplaceComponent<SkyboxComponent>(skybox, Skybox("Skybox", "..\\..\\assets\\Skyboxes\\Equirect\\Venice\\Venice.hdr", false));
@@ -48,32 +48,42 @@ Scene::Scene() {
 }
 
 
-void Scene::onUpdate() 
+void Scene::onUpdate(Timestep dt) 
 {
 
 	
 	
-	
-	auto& scene_view = m_registry->view<CameraComponent>();
-	for (ecs::EntityId entity : scene_view)
 	{
-		auto& cam_comp = scene_view.get<CameraComponent>(entity);
-		auto& transform = scene_view.get<TransformComponent>(entity);
+		auto& scene_view = m_registry->view<CameraComponent, TransformComponent>();
+		for (ecs::EntityId entity : scene_view)
+		{
+			auto& cam_comp = scene_view.get<CameraComponent>(entity);
+			auto& transform = scene_view.get<TransformComponent>(entity);
 
 
-		m_cam_control.updateCamera(cam_comp.camera(), transform.translation()); 
-		cam_comp.camera().onUpdate();
+			m_cam_control.updateCamera(cam_comp.camera(), transform.translation(), dt); 
+			cam_comp.camera().onUpdate();
 
 
-		break;//Only first camera componenet being taken into consideration for now
+			break;//Only first camera componenet being taken into consideration for now
+		}
 	}
-
 	
 
 
 	//Iterate ECS update transforms compoenents etc etc TODO
-	
-	
+	{
+		
 
+		auto& scene_view = m_registry->view<MeshComponent, TransformComponent>();
+		for (ecs::EntityId entity : scene_view)
+		{
+			auto& transform = scene_view.get<TransformComponent>(entity);
+
+			transform.rotation().x += 5.0f * dt.getSeconds();
+			break;
+		}
+	}
+	
 
 }

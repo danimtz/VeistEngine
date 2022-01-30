@@ -52,7 +52,7 @@ add_subdirectory(spirv-cross)
 # Add imgui library
 add_library(imgui STATIC)
 
-target_include_directories(imgui PUBLIC imgui)
+target_include_directories(imgui PUBLIC imgui imgui/backends)
 
 target_sources(imgui PRIVATE 
    
@@ -61,10 +61,16 @@ target_sources(imgui PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/imgui/imgui_demo.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/imgui/imgui_draw.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/imgui/imgui_widgets.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/imgui/imgui_impl_vulkan.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/imgui/imgui_impl_glfw.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/imgui/imgui_tables.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/imgui/imgui_internal.h"
     
+    "${CMAKE_CURRENT_SOURCE_DIR}/imgui/imconfig.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/imgui/imstb_rectpack.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/imgui/imstb_textedit.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/imgui/imstb_truetype.h"
+
+    "${CMAKE_CURRENT_SOURCE_DIR}/imgui/backends/imgui_impl_vulkan.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/imgui/backends/imgui_impl_glfw.cpp"
     )
 
 target_link_libraries(imgui PUBLIC Vulkan::Vulkan glfw)

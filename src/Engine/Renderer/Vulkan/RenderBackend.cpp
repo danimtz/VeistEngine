@@ -707,10 +707,8 @@ void RenderBackend::initImGUI()
 
 	// 2: initialize imgui library
 
-	//this initializes the core structures of imgui
-	ImGui::CreateContext();
-
-	//this initializes imgui for SDL
+	
+	//this initializes imgui for GLFW
 	ImGui_ImplGlfw_InitForVulkan(m_glfw_window, true);
 
 	//this initializes imgui for Vulkan
@@ -723,7 +721,7 @@ void RenderBackend::initImGUI()
 	init_info.MinImageCount = m_swapchain->imageCount(); 
 	init_info.ImageCount = m_swapchain->imageCount();
 	init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
-
+	
 	
 
 

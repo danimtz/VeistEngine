@@ -34,12 +34,32 @@ int main() {
     RenderModule::setScene(scene);
 
 //Mainloop
+    double previousTime = glfwGetTime();
+    int frameCount = 0;
+
+    float m_last_frame_time = 0.0f; 
     while (!glfwWindowShouldClose(window)) 
     {
+        float time = (float)glfwGetTime();
+        Timestep timestep = time - m_last_frame_time;
+        m_last_frame_time = time;
+
+        std::cout << timestep.getMilliseconds() << "ms" << std::endl;
+      
+      //FPS counter
+        /*double currentTime = glfwGetTime();
+        frameCount++;
+        if (currentTime - previousTime >= 1.0)
+        {
+            std::cout << frameCount << std::endl;
+            frameCount = 0;
+            previousTime = currentTime;
+        }*/
+
 
         InputModule::onUpdate();
 
-        scene->onUpdate();
+        scene->onUpdate(timestep);
 
         RenderModule::onUpdate();
 

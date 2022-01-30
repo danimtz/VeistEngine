@@ -1,3 +1,6 @@
 [submodule "vendor/spirv-cross"]
 	path = vendor/spirv-cross
 	url = https://github.com/KhronosGroup/SPIRV-Cross
+[submodule "vendor/imgui"]
+	path = vendor/imgui
+	url = https://github.com/danimtz/imgui.git
