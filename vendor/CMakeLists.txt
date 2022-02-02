@@ -24,12 +24,16 @@ target_sources(shaderc_file_includer PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/shaderc_file_includer/file_includer.cc"
     )
 
-target_link_libraries(shaderc_file_includer  "$ENV{VULKAN_SDK}/Lib/shaderc.lib")
-target_link_libraries(shaderc_file_includer  "$ENV{VULKAN_SDK}/Lib/shaderc_combined.lib")
-target_link_libraries(shaderc_file_includer  "$ENV{VULKAN_SDK}/Lib/shaderc_shared.lib")
-target_link_libraries(shaderc_file_includer  "$ENV{VULKAN_SDK}/Lib/shaderc_util.lib")
+target_link_libraries(shaderc_file_includer optimized "$ENV{VULKAN_SDK}/Lib/shaderc.lib")
+target_link_libraries(shaderc_file_includer optimized "$ENV{VULKAN_SDK}/Lib/shaderc_combined.lib")
+target_link_libraries(shaderc_file_includer optimized "$ENV{VULKAN_SDK}/Lib/shaderc_shared.lib")
+target_link_libraries(shaderc_file_includer optimized "$ENV{VULKAN_SDK}/Lib/shaderc_util.lib")
 
 
+target_link_libraries(shaderc_file_includer debug "$ENV{VULKAN_SDK}/Lib/shaderc_combinedd.lib")
+target_link_libraries(shaderc_file_includer debug "$ENV{VULKAN_SDK}/Lib/shaderc_sharedd.lib")
+target_link_libraries(shaderc_file_includer debug "$ENV{VULKAN_SDK}/Lib/shaderc_utild.lib")
+target_link_libraries(shaderc_file_includer debug "$ENV{VULKAN_SDK}/Lib/shadercd.lib")
 
 
 

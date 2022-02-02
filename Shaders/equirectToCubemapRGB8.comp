@@ -1,0 +1,22 @@
+#version 450
+
+#include "utils/IBL_utils.glsl"
+
+layout(local_size_x = 8, local_size_y = 8) in;
+
+layout(set = 0, binding = 0) uniform sampler2D in_envmap;
+
+layout(rgba8, set = 0, binding = 1) uniform writeonly imageCube out_cubemap;
+//layout(rgba32f, set = 0, binding = 1) uniform writeonly imageCube out_cubemap;
+
+
+void main() {
+    const vec2 coord = ivec2(gl_GlobalInvocationID.xy);
+    const vec2 uv = (gl_GlobalInvocationID.xy + vec2(0.5)) / vec2(imageSize(out_cubemap).xy);
+
+    for(uint i = 0; i < 6; i++) {
+        const vec3 cubemap_dir = normalize(cubemapDirection(uv, i));
+        vec3 conv = texture(in_envmap, sampleSphericalMap(cubemap_dir)).rgb;
+        imageStore(out_cubemap, ivec3(coord, i), vec4(conv, 0.0));
+    }
+}
