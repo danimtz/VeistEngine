@@ -1,2 +1,0 @@
-C:\dev\VulkanEngine\bin\Debug\VeistEngine.pdb
-C:\dev\VulkanEngine\Engine\VeistEngine.dir\Debug\VeistEngine.pdb
