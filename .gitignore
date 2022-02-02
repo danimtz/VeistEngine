@@ -37,7 +37,8 @@ src/VulkanEngine.dir
 /bin
 /out
 
-
+Engine/VeistEngine.dir/**
+Editor/Editor.dir/**
 
 
 # Visual Studio files and folder
