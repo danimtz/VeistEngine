@@ -16,24 +16,26 @@ namespace Veist
 	public:
 
 		Application(std::string name);
+		virtual ~Application();
 
-		void run();
-	
+		//Declare in client
+		virtual void runClient() = 0;
+		virtual void initClient() = 0;
+		virtual void shutdownClient() = 0;
+
 		static Application& get() {return *s_Instance;};
 
-	private:
+	protected:
 
+		
 		void shutdown();
 
 
 
-	private:
+	protected:
 		bool m_running = true;
 		GLFWwindow* m_window;
 		float m_last_frame_time = 0.0f;
-	
-		Scene* scene;//TEMPORARY replace with actual layer that runs the scene i.e editor or runtime
-
 
 	private:
 

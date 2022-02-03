@@ -10,12 +10,13 @@ extern Veist::Application* Veist::CreateApplication();
 int main()
 {
 
-
-    //Veist::Application app = { "vulkan" };
-    //app.run();
     auto app = Veist::CreateApplication();
 
-    app->run();
+    app->initClient();
+
+    app->runClient();
+
+    app->shutdownClient();
 
     delete app;
 
