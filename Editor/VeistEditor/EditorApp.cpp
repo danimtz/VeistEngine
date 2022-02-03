@@ -2,12 +2,22 @@
 
 #include "EditorApp.h"
 
-#include <Veist.h>
-#include <Veist/Core/EntryPoint.h> //TODO move engine into Veist folder
+#include <Veist/Core/EntryPoint.h> 
 
-
-namespace Veist
+//Add include "Panels.h" which shjould be a list of includes of all panels like components in ecs
+#include "Panels/EngineViewportPanel.h"
+namespace VeistEditor
 {
+
+    EditorApp::EditorApp() : Application("Editor")
+    {
+        m_ui_panels = std::make_unique<PanelManager>();
+
+        m_ui_panels->addPanel<EngineViewportPanel>();
+
+    }
+
+
 
 	void EditorApp::runClient()
 	{
@@ -44,7 +54,7 @@ namespace Veist
 
 
             //Renderer swapchain present()
-
+            m_ui_panels->onUpdate();
 
 
 
@@ -79,10 +89,17 @@ namespace Veist
     
 	
 
-	Application* CreateApplication()
-	{
-		return new EditorApp();
-	}
+  
+ }
 
-	
+ 
+namespace Veist
+{
+
+
+
+    Application* CreateApplication()
+    {
+        return new VeistEditor::EditorApp();
+    }
 }

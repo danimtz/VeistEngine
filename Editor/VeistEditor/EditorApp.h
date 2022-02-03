@@ -1,15 +1,20 @@
 #pragma once
-#include <Veist.h>
+
+#include <VeistEditor.h>
+
+#include "Panels/PanelManager.h"
 
 
-namespace Veist
+namespace VeistEditor
 {
+
+
 
 	class EditorApp : public Application
 	{
 	public:
 
-		EditorApp() : Application("Editor") {}
+		EditorApp();
 
 		~EditorApp() {}
 
@@ -23,9 +28,10 @@ namespace Veist
 
 	private:
 
+		std::unique_ptr<PanelManager> m_ui_panels;
 		Scene* scene;//TEMPORARY replace with actual layer that runs the scene i.e editor or runtime
 
 	};
 
 
-}
+};
