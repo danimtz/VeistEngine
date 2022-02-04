@@ -243,9 +243,9 @@ void ShaderProgram::createShaderModules()
 
 
 		VkShaderModule shader_module;
-		VkDevice device = RenderModule::getRenderBackend()->getDevice();
+		VkDevice device = RenderModule::getBackend()->getDevice();
 		VK_CHECK(vkCreateShaderModule(device, &create_info, nullptr, &shader_module));
-		RenderModule::getRenderBackend()->pushToDeletionQueue([=]() {vkDestroyShaderModule(device, shader_module, nullptr); });
+		RenderModule::getBackend()->pushToDeletionQueue([=]() {vkDestroyShaderModule(device, shader_module, nullptr); });
 		m_shader_module.push_back(shader_module);
 
 
@@ -435,10 +435,10 @@ void ShaderProgram::createDescriptorSetLayouts()
 		set_layout_info.pNext = nullptr;
 
 		
-		VkDevice device = RenderModule::getRenderBackend()->getDevice();
+		VkDevice device = RenderModule::getBackend()->getDevice();
 
 	
-		DescriptorSetLayoutCache* layout_cache = RenderModule::getRenderBackend()->getDescriptorAllocator()->layoutCache();
+		DescriptorSetLayoutCache* layout_cache = RenderModule::getBackend()->getDescriptorAllocator()->layoutCache();
 		VkDescriptorSetLayout layout = layout_cache->createDescriptorSetLayout(device, &set_layout_info);
 
 		

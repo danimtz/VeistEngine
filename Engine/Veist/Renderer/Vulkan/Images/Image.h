@@ -5,6 +5,7 @@
 
 #include "ImageFormat.h"
 #include "ImageProperties.h"
+#include "Sampler.h"
 
 #include <glm/glm.hpp>
 
@@ -19,7 +20,7 @@ enum class ImageUsage : uint32_t
 	DepthAttachment = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
 	ColorAttachment = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
 	Storage = VK_IMAGE_USAGE_STORAGE_BIT,
-
+	
 	SwapchainImage = 0x00000400, //1024 bit flag (custom made not a part of vulkan. used to find layout in renderpass.cpp)
 
 	TransferSrc = VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
@@ -134,6 +135,8 @@ using StorageCubemap = Image<ImageUsage::Texture | ImageUsage::Storage, ImageVie
 
 using ColorAttachment = Image<ImageUsage::ColorAttachment>;
 using DepthAttachment = Image<ImageUsage::DepthAttachment>;
+using ColorTextureAttachment = Image<ImageUsage::ColorAttachment | ImageUsage::Texture>;
+using DepthTextureAttachment = Image<ImageUsage::DepthAttachment | ImageUsage::Texture>;
 using SwapchainImage = Image<ImageUsage::ColorAttachment | ImageUsage::SwapchainImage>;
 using SwapchainDepthAttachment = Image<ImageUsage::DepthAttachment | ImageUsage::SwapchainImage>;
 

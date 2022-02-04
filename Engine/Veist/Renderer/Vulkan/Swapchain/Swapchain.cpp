@@ -65,7 +65,7 @@ Swapchain::Swapchain(const VkExtent2D& extent, std::shared_ptr<Swapchain> old_sw
 
 Swapchain::~Swapchain()
 {
-	VkDevice device = RenderModule::getRenderBackend()->getDevice();
+	VkDevice device = RenderModule::getBackend()->getDevice();
 	m_images.clear();
 	vkDestroySwapchainKHR(device, vk_swapchainKHR(), nullptr);
 }
@@ -86,19 +86,19 @@ void Swapchain::createSyncStructures()
 	semaphore_create_info.pNext = nullptr;
 	semaphore_create_info.flags = 0;
 
-	VkDevice device = RenderModule::getRenderBackend()->getDevice();
+	VkDevice device = RenderModule::getBackend()->getDevice();
 
 	for (int i = 0; i < m_images.size(); i++) {
 		
 		auto& sync_structs = m_sync_structs.emplace_back();
 
 		VK_CHECK(vkCreateFence(device, &fence_create_info, nullptr, &sync_structs.m_render_fence));
-		RenderModule::getRenderBackend()->pushToDeletionQueue([=]() { vkDestroyFence(device, sync_structs.m_render_fence, nullptr); });
+		RenderModule::getBackend()->pushToDeletionQueue([=]() { vkDestroyFence(device, sync_structs.m_render_fence, nullptr); });
 
 		VK_CHECK(vkCreateSemaphore(device, &semaphore_create_info, nullptr, &sync_structs.m_present_semaphore));
 		VK_CHECK(vkCreateSemaphore(device, &semaphore_create_info, nullptr, &sync_structs.m_render_semaphore));
-		RenderModule::getRenderBackend()->pushToDeletionQueue([=]() { vkDestroySemaphore(device, sync_structs.m_present_semaphore, nullptr); });
-		RenderModule::getRenderBackend()->pushToDeletionQueue([=]() { vkDestroySemaphore(device, sync_structs.m_render_semaphore, nullptr); });
+		RenderModule::getBackend()->pushToDeletionQueue([=]() { vkDestroySemaphore(device, sync_structs.m_present_semaphore, nullptr); });
+		RenderModule::getBackend()->pushToDeletionQueue([=]() { vkDestroySemaphore(device, sync_structs.m_render_semaphore, nullptr); });
 	}
 
 }
@@ -108,9 +108,9 @@ void Swapchain::createSyncStructures()
 void Swapchain::createSwapchain()
 {
 
-	VkSurfaceKHR surface = RenderModule::getRenderBackend()->getSurface();
-	GPUinfo_t gpu = RenderModule::getRenderBackend()->getGPUinfo();
-	GLFWwindow* window = RenderModule::getRenderBackend()->getWindow();
+	VkSurfaceKHR surface = RenderModule::getBackend()->getSurface();
+	GPUinfo_t gpu = RenderModule::getBackend()->getGPUinfo();
+	GLFWwindow* window = RenderModule::getBackend()->getWindow();
 
 	VkSurfaceFormatKHR surface_format = chooseSwapSurfaceFormat(gpu.surface_formats);
 	m_format = {surface_format.format};
@@ -148,7 +148,7 @@ void Swapchain::createSwapchain()
 	create_info.clipped = VK_TRUE;
 	create_info.oldSwapchain = (m_old_swapchain == nullptr) ? VK_NULL_HANDLE : m_old_swapchain->vk_swapchainKHR();
 
-	VkDevice device = RenderModule::getRenderBackend()->getDevice();
+	VkDevice device = RenderModule::getBackend()->getDevice();
 
 
 	VK_CHECK(vkCreateSwapchainKHR(device, &create_info, nullptr, &m_swapchain));
@@ -156,7 +156,7 @@ void Swapchain::createSwapchain()
 	VkSwapchainKHR swapchain = m_swapchain;
 
 	//Manually delete swapchain later in destructor
-	//RenderModule::getRenderBackend()->pushToSwapchainDeletionQueue([=]() {vkDestroySwapchainKHR(device, swapchain, nullptr); });
+	//RenderModule::getBackend()->pushToSwapchainDeletionQueue([=]() {vkDestroySwapchainKHR(device, swapchain, nullptr); });
 
 
 	//Get swapchain images
@@ -184,11 +184,11 @@ void Swapchain::createSwapchain()
 void Swapchain::beginNextFrame()
 {
 	//FROM RC_beginFrame
-	VkDevice device = RenderModule::getRenderBackend()->getDevice();
-	uint32_t frame_count = RenderModule::getRenderBackend()->getFrameNumber();
+	VkDevice device = RenderModule::getBackend()->getDevice();
+	uint32_t frame_count = RenderModule::getBackend()->getFrameNumber();
 
-	VK_CHECK(vkWaitForFences(device, 1, &RenderModule::getRenderBackend()->getCurrentCmdBuffer().fence(), true, 1000000000)); //1 second timeout 1000000000ns
-	VK_CHECK(vkResetFences(device, 1, &RenderModule::getRenderBackend()->getCurrentCmdBuffer().fence()));
+	VK_CHECK(vkWaitForFences(device, 1, &RenderModule::getBackend()->getCurrentCmdBuffer().fence(), true, 1000000000)); //1 second timeout 1000000000ns
+	VK_CHECK(vkResetFences(device, 1, &RenderModule::getBackend()->getCurrentCmdBuffer().fence()));
 
 	//request next image from swapchain, 1 second timeout
 	VK_CHECK(vkAcquireNextImageKHR(device, vk_swapchainKHR(), 1000000000, currentSyncStructures(frame_count).m_present_semaphore, nullptr, &m_img_idx));
@@ -199,7 +199,7 @@ void Swapchain::beginNextFrame()
 
 void Swapchain::present(const CommandBuffer& cmd_buffer)
 {
-	uint32_t frame_count = RenderModule::getRenderBackend()->getFrameNumber();//TODO: maybe frame counter should be kept inside swapchain not render backend?
+	uint32_t frame_count = RenderModule::getBackend()->getFrameNumber();//TODO: maybe frame counter should be kept inside swapchain not render backend?
 
 
 	VkCommandBuffer command_buffer = cmd_buffer.vk_commandBuffer();
@@ -225,7 +225,7 @@ void Swapchain::present(const CommandBuffer& cmd_buffer)
 	submit_info.pCommandBuffers = &command_buffer;
 
 	//Sumbit command buffer to queue and execute. m_render_fence will block until commands finish
-	VkQueue graphics_queue = RenderModule::getRenderBackend()->getGraphicsQueue();
+	VkQueue graphics_queue = RenderModule::getBackend()->getGraphicsQueue();
 	VK_CHECK(vkQueueSubmit(graphics_queue, 1, &submit_info, cmd_buffer.fence()));
 
 
@@ -246,12 +246,12 @@ void Swapchain::present(const CommandBuffer& cmd_buffer)
 
 	if (checkSwapchainOutOfDate(vkQueuePresentKHR(graphics_queue, &present_info)))
 	{
-		RenderModule::getRenderBackend()->rebuildSwapchain();
+		RenderModule::getBackend()->rebuildSwapchain();
 	}
 
 
 	//Increment frame counter
-	RenderModule::getRenderBackend()->incrementFrameCounter();
+	RenderModule::getBackend()->incrementFrameCounter();
 
 	
 }

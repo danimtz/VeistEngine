@@ -28,7 +28,7 @@ public:
 	virtual void setECSRegistry(ecs::EntityRegistry* ecsRegistry) override;
 	virtual void onUpdate() override;
 	
-	void renderSceneECS(CommandBuffer& cmd_buffer);
+	virtual void renderSceneECS(CommandBuffer& cmd_buffer) override;
 
 private:
 

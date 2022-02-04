@@ -69,8 +69,8 @@ void ForwardRenderer::onUpdate()
 
 
 	//GUI renderpass
-	ImageBase* color_attachment = m_render_backend->getSwapchain()->images()[m_render_backend->getSwapchainImageNumber()].get();
-	ImageBase* depth_attachment = m_render_backend->getSwapchainDepthAttachment();
+	//ImageBase* color_attachment = m_render_backend->getSwapchain()->images()[m_render_backend->getSwapchainImageNumber()].get();
+	//ImageBase* depth_attachment = m_render_backend->getSwapchainDepthAttachment();
 	//Framebuffer fb = { color_attachment , depth_attachment, RenderPass::LoadOp::Load };
 
 	//cmd_buffer.beginRenderPass(fb);
@@ -80,6 +80,8 @@ void ForwardRenderer::onUpdate()
 		ImGui::ShowDemoWindow();
 	}
 	GUIModule::endFrame();
+
+
 	cmd_buffer.endRenderPass();
 	
 

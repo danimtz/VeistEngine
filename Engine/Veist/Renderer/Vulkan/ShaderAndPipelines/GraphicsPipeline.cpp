@@ -19,7 +19,7 @@ GraphicsPipeline::GraphicsPipeline(const std::string& shader_name, const VertexD
 	m_pipeline_layout = m_pipeline_builder.m_pipeline_layout;
 	m_shader_program = m_pipeline_builder.m_shader_program;
 
-	m_pipeline = m_pipeline_builder.buildPipeline(RenderModule::getRenderBackend()->getRenderPass());
+	m_pipeline = m_pipeline_builder.buildPipeline(RenderModule::getBackend()->getRenderPass());
 	
 };
 
@@ -245,7 +245,7 @@ void GraphicsPipelineBuilder::createPipelineStates()
 	//Dynamic states	   //
 	/////////////////////////
 
-	/*VkExtent2D swapchain_extent = RenderModule::getRenderBackend()->getSwapchain()->extent();
+	/*VkExtent2D swapchain_extent = RenderModule::getBackend()->getSwapchain()->extent();
 
 	m_viewport.x = 0.0f;
 	m_viewport.y = 0.0f;
@@ -291,11 +291,11 @@ void GraphicsPipelineBuilder::createPipelineLayout()
 	create_info.pSetLayouts = m_shader_program->descriptorLayouts().data();
 	
 	
-	VkDevice device = RenderModule::getRenderBackend()->getDevice();
+	VkDevice device = RenderModule::getBackend()->getDevice();
 	VkPipelineLayout layout;
 	VK_CHECK(vkCreatePipelineLayout(device, &create_info, nullptr, &layout));
 	m_pipeline_layout = layout;
-	RenderModule::getRenderBackend()->pushToDeletionQueue([device, layout]() {vkDestroyPipelineLayout(device, layout, nullptr); });
+	RenderModule::getBackend()->pushToDeletionQueue([device, layout]() {vkDestroyPipelineLayout(device, layout, nullptr); });
 }
 
 
@@ -303,8 +303,8 @@ VkPipeline GraphicsPipelineBuilder::buildPipeline(const RenderPass& renderpass)
 {
 
 	m_renderpass = renderpass.vk_renderpass();
-	VkDevice device = RenderModule::getRenderBackend()->getDevice();
-	//VkRenderPass render_pass = RenderModule::getRenderBackend()->getRenderPass().vk_renderpass(); //TODO: oh boy pipelines depend on a renderpass. might need to have renderpass as an agrument when creating pipelines
+	VkDevice device = RenderModule::getBackend()->getDevice();
+	//VkRenderPass render_pass = RenderModule::getBackend()->getRenderPass().vk_renderpass(); //TODO: oh boy pipelines depend on a renderpass. might need to have renderpass as an agrument when creating pipelines
 
 	VkGraphicsPipelineCreateInfo pipeline_info = {};
 	pipeline_info.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -331,7 +331,7 @@ VkPipeline GraphicsPipelineBuilder::buildPipeline(const RenderPass& renderpass)
 		CONSOLE_LOG("Pipeline creation FAILED!");
 	}
 
-	RenderModule::getRenderBackend()->pushToDeletionQueue(	[device, pipeline](){ //TODO: if pipeline gets rebuilt this should be destroyed
+	RenderModule::getBackend()->pushToDeletionQueue(	[device, pipeline](){ //TODO: if pipeline gets rebuilt this should be destroyed
 		vkDestroyPipeline(device, pipeline, nullptr);  
 	});
 

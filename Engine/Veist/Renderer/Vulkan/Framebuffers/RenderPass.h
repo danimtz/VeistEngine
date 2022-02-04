@@ -6,6 +6,9 @@
 namespace Veist
 {
 
+VkImageLayout getImageLayout(ImageUsage usage);
+
+
 class RenderPass
 {
 public:

@@ -10,7 +10,7 @@ namespace Veist
 ShaderBuffer::ShaderBuffer(uint32_t subbuffer_size, uint32_t subbuffer_count, ShaderBufferUsage usage)
 {
 	uint32_t size = subbuffer_size;
-	uint32_t minUBOalignment = RenderModule::getRenderBackend()->getGPUinfo().properties.limits.minUniformBufferOffsetAlignment;
+	uint32_t minUBOalignment = RenderModule::getBackend()->getGPUinfo().properties.limits.minUniformBufferOffsetAlignment;
 	
 	if (minUBOalignment > 0) {
 		size = (size + minUBOalignment - 1) & ~(minUBOalignment - 1);
@@ -39,7 +39,7 @@ void ShaderBuffer::setData(const void* data, uint32_t size, uint32_t sub_allocat
 	//assert that size and offset is not greater than size of uniform buffer
 	if (((sub_allocation_num*m_offset)+size)>m_size) {CRITICAL_ERROR_LOG("Uniform suballocation larger than buffer size!!")}
 	
-	VmaAllocator allocator = RenderModule::getRenderBackend()->getAllocator();
+	VmaAllocator allocator = RenderModule::getBackend()->getAllocator();
 	
 	char* buffer_data;
 	vmaMapMemory(allocator, m_buffer.allocation(), (void**)&buffer_data);

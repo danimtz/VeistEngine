@@ -85,7 +85,7 @@ ImageBase::ImageBase(void* data, ImageProperties properties, ImageUsage usage, I
 
 
 	//Sumbit staging buffer copy TODO: change to use cmd buffer
-	auto cmd_buffer = RenderModule::getRenderBackend()->createDisposableCmdBuffer();
+	auto cmd_buffer = RenderModule::getBackend()->createDisposableCmdBuffer();
 	cmd_buffer.copyBufferToImage(stage_buff, m_image, regions, m_properties);
 	cmd_buffer.immediateSubmit();
 	
@@ -109,8 +109,8 @@ ImageBase::ImageBase(ImageProperties properties, ImageUsage usage, ImageViewType
 
 
 	//Allocate VkImage
-	VmaAllocator allocator = RenderModule::getRenderBackend()->getAllocator();
-	VkDevice device = RenderModule::getRenderBackend()->getDevice();
+	VmaAllocator allocator = RenderModule::getBackend()->getAllocator();
+	VkDevice device = RenderModule::getBackend()->getDevice();
 
 	VkImageCreateInfo img_info = getImageCreateInfo(m_properties, usage, view_type);
 
@@ -123,7 +123,7 @@ ImageBase::ImageBase(ImageProperties properties, ImageUsage usage, ImageViewType
 	m_image = image;
 	m_allocation = allocation;
 
-	//RenderModule::getRenderBackend()->pushToDeletionQueue([allocator, image, allocation]() { vmaDestroyImage(allocator, image, allocation); });
+	//RenderModule::getBackend()->pushToDeletionQueue([allocator, image, allocation]() { vmaDestroyImage(allocator, image, allocation); });
 
 
 
@@ -141,6 +141,10 @@ ImageBase::ImageBase(ImageProperties properties, ImageUsage usage, ImageViewType
 	{
 		transitionImageLayout(VK_IMAGE_LAYOUT_GENERAL);
 	}
+	else if((usage & ImageUsage::SwapchainImage) != ImageUsage::SwapchainImage)
+	{
+		transitionImageLayout(getImageLayout(usage));
+	}
 
 }
 
@@ -149,7 +153,7 @@ ImageBase::ImageBase(VkImage vk_image, ImageProperties properties, ImageUsage us
 {
 
 	//Create image view
-	VkDevice device = RenderModule::getRenderBackend()->getDevice();
+	VkDevice device = RenderModule::getBackend()->getDevice();
 
 	VkImageViewCreateInfo view_info = getImageViewCreateInfo(m_image, m_properties, view_type);
 	VkImageView image_view;
@@ -164,7 +168,7 @@ ImageBase::ImageBase(VkImage vk_image, ImageProperties properties, ImageUsage us
 
 void ImageBase::transitionImageLayout(VkImageLayout new_layout, VkImageLayout old_layout)
 {
-	CommandBuffer cmd = RenderModule::getRenderBackend()->createDisposableCmdBuffer();
+	CommandBuffer cmd = RenderModule::getBackend()->createDisposableCmdBuffer();
 
 	//TODO: move barrier functionality to CommandBuffer class
 	 //from vulkan-tutorial
@@ -207,7 +211,7 @@ void ImageBase::generateMipmaps() //https://vulkan-tutorial.com/Generating_Mipma
 		CONSOLE_LOG("Warning: Generate mipmaps called on an image with no mip levels")
 		return;
 	}
-	CommandBuffer cmd = RenderModule::getRenderBackend()->createDisposableCmdBuffer();
+	CommandBuffer cmd = RenderModule::getBackend()->createDisposableCmdBuffer();
 
 	VkImageMemoryBarrier barrier{};
 	barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -293,7 +297,7 @@ void ImageBase::generateMipmaps() //https://vulkan-tutorial.com/Generating_Mipma
 ImageBase::~ImageBase()
 {
 
-	VkDevice device = RenderModule::getRenderBackend()->getDevice();
+	VkDevice device = RenderModule::getBackend()->getDevice();
 
 	if (m_image_view != VK_NULL_HANDLE)
 	{
@@ -302,7 +306,7 @@ ImageBase::~ImageBase()
 	}
 	if (m_allocation != nullptr)
 	{
-		VmaAllocator allocator = RenderModule::getRenderBackend()->getAllocator();
+		VmaAllocator allocator = RenderModule::getBackend()->getAllocator();
 		vmaDestroyImage(allocator, m_image, m_allocation);
 	}
 
@@ -333,7 +337,7 @@ ImageBase& ImageBase::operator=(ImageBase&& other)
 	if (this != &other)
 	{
 		// Free the existing resource if it exists
-		VkDevice device = RenderModule::getRenderBackend()->getDevice();
+		VkDevice device = RenderModule::getBackend()->getDevice();
 		if (m_image_view != VK_NULL_HANDLE)
 		{
 
@@ -341,7 +345,7 @@ ImageBase& ImageBase::operator=(ImageBase&& other)
 		}
 		if (m_allocation != nullptr)
 		{
-			VmaAllocator allocator = RenderModule::getRenderBackend()->getAllocator();
+			VmaAllocator allocator = RenderModule::getBackend()->getAllocator();
 			vmaDestroyImage(allocator, m_image, m_allocation);
 		}
 	

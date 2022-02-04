@@ -25,6 +25,9 @@ namespace VeistEditor
         int frameCount = 0;
         float m_last_frame_time = 0.0f;
 
+
+        auto& render_backend = RenderModule::getBackend();
+
         while (m_running)
         {
             float time = (float)glfwGetTime();
@@ -45,17 +48,35 @@ namespace VeistEditor
 
 
             InputModule::onUpdate();
-
             scene->onUpdate(timestep);
 
-            RenderModule::onUpdate(); //TODO change this from onUpdate to more customaziable. have beginFrame Present at the end etc etc. must have choosable framebuffer
+            
+            
 
+            
+            //RenderModule::onUpdate(); //TODO change this from onUpdate to more customaziable. have beginFrame Present at the end etc etc. must have choosable framebuffer
+            
+            
+            render_backend->getSwapchain()->beginNextFrame(); //Swapchain should maybe belong to window but that would require changing the whole backend
+
+            CommandBuffer& cmd_buffer = render_backend->getCurrentCmdBuffer();
+            cmd_buffer.begin();
+
+            GUIModule::beginFrame();
 
 
 
             //Renderer swapchain present()
             m_ui_panels->onUpdate();
 
+            //ImGui::ShowDemoWindow();
+
+
+            GUIModule::endFrame();
+
+
+            cmd_buffer.end();
+            render_backend->getSwapchain()->present(cmd_buffer);
 
 
 
@@ -82,7 +103,7 @@ namespace VeistEditor
     void EditorApp::shutdownClient()
     {
         
-        RenderModule::getRenderBackend()->waitIdle(); //This is needed to make sure images are not in use. probably wont be necessary once asset system is implemented 
+        RenderModule::getBackend()->waitIdle(); //This is needed to make sure images are not in use. probably wont be necessary once asset system is implemented 
         delete scene; //Delete scene including vkDeleteImage in destructor of textures (will be done in asset/resource system later on since they are shared pointers)
 
     }

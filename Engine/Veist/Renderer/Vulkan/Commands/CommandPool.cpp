@@ -14,8 +14,8 @@ namespace Veist
 CommandPool::CommandPool(int thread_id) : m_thread_id(thread_id)
 {
 
-	uint32_t graphics_family_idx = RenderModule::getRenderBackend()->getGraphicsFamily();
-	VkDevice device = RenderModule::getRenderBackend()->getDevice();
+	uint32_t graphics_family_idx = RenderModule::getBackend()->getGraphicsFamily();
+	VkDevice device = RenderModule::getBackend()->getDevice();
 
 	VkCommandPoolCreateInfo pool_create_info = {};
 	pool_create_info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -27,7 +27,7 @@ CommandPool::CommandPool(int thread_id) : m_thread_id(thread_id)
 	VK_CHECK(vkCreateCommandPool(device, &pool_create_info, nullptr, &m_pool));
 
 	VkCommandPool pool = m_pool;
-	RenderModule::getRenderBackend()->pushToDeletionQueue([=]() { vkDestroyCommandPool(device, pool, nullptr);	});
+	RenderModule::getBackend()->pushToDeletionQueue([=]() { vkDestroyCommandPool(device, pool, nullptr);	});
 
 
 	
@@ -39,7 +39,7 @@ CommandPool::CommandPool(int thread_id) : m_thread_id(thread_id)
 CommandBuffer CommandPool::allocateCommandBuffer(bool begin_cmd_buffer)
 {
 
-	VkDevice device = RenderModule::getRenderBackend()->getDevice();
+	VkDevice device = RenderModule::getBackend()->getDevice();
 
 	//Create Fence
 	VkFence fence;
@@ -52,7 +52,7 @@ CommandBuffer CommandPool::allocateCommandBuffer(bool begin_cmd_buffer)
 
 	VK_CHECK(vkCreateFence(device, &fence_create_info, nullptr, &fence));
 	
-	RenderModule::getRenderBackend()->pushToDeletionQueue([=]() { vkDestroyFence(device, fence, nullptr); });
+	RenderModule::getBackend()->pushToDeletionQueue([=]() { vkDestroyFence(device, fence, nullptr); });
 
 	return CommandBuffer(this, fence, begin_cmd_buffer);
 }
@@ -60,7 +60,7 @@ CommandBuffer CommandPool::allocateCommandBuffer(bool begin_cmd_buffer)
 
 void CommandPool::resetPool()
 {
-	VkDevice device = RenderModule::getRenderBackend()->getDevice();
+	VkDevice device = RenderModule::getBackend()->getDevice();
 	vkResetCommandPool(device, m_pool, 0);
 }
 

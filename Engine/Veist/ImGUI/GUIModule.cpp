@@ -59,8 +59,6 @@ void GUIModule::beginFrame()
     ImGui::NewFrame();
 
 
-
-
 }
 
 
@@ -69,10 +67,16 @@ void GUIModule::endFrame()
 
 	ImGuiIO& io = ImGui::GetIO();
 
-    RenderBackend* backend = RenderModule::getRenderBackend().get();
+    RenderBackend* backend = RenderModule::getBackend().get();
 	
+	//GUI renderpass
+	CommandBuffer& cmd_buffer = backend->getCurrentCmdBuffer();
+	cmd_buffer.beginRenderPass(backend->getCurrentFramebuffer());
+
     ImGui::Render();
 	ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), backend->getCurrentCmdBuffer().vk_commandBuffer());
+
+	cmd_buffer.endRenderPass();
 
 	if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
 	{

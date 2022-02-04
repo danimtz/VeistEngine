@@ -24,7 +24,7 @@ static VkImageView getMipmapImageView(uint32_t mip_level, const ImageBase& image
 	img_view_info.subresourceRange.layerCount = 6;
 	img_view_info.subresourceRange.aspectMask = image.properties().imageFormat().imageAspectFlags();
 
-	VkDevice device = RenderModule::getRenderBackend()->getDevice();
+	VkDevice device = RenderModule::getBackend()->getDevice();
 
 	VkImageView view = {};
 	vkCreateImageView(device, &img_view_info, nullptr, &view);
@@ -45,7 +45,7 @@ static std::shared_ptr<Cubemap> calculateIrradianceMap(const Cubemap& HDRcubemap
 	compute_descriptor.bindStorageImage(1, &cubemap);
 	compute_descriptor.buildDescriptorSet();
 
-	CommandBuffer cmd_buff = RenderModule::getRenderBackend()->createDisposableCmdBuffer();
+	CommandBuffer cmd_buff = RenderModule::getBackend()->createDisposableCmdBuffer();
 	
 	cmd_buff.calcSizeAndDispatch(compute_irradiance, compute_descriptor, cubemap_properties.imageSize());
 	cmd_buff.immediateSubmit();
@@ -70,7 +70,7 @@ static std::shared_ptr<Cubemap> calculateEnvironmentMap(const Cubemap& HDRcubema
 	ImageProperties cubemap_properties = { {map_size, map_size}, HDRcubemap.properties().imageFormat(), mip_levels, 6 }; //32x32 cubemap
 	StorageCubemap cubemap{cubemap_properties};
 	
-	CommandBuffer cmd_buff = RenderModule::getRenderBackend()->createDisposableCmdBuffer();
+	CommandBuffer cmd_buff = RenderModule::getBackend()->createDisposableCmdBuffer();
 
 	glm::u32vec3 size;
 	size.x = cubemap_properties.imageSize().width;
@@ -105,7 +105,7 @@ static std::shared_ptr<Cubemap> calculateEnvironmentMap(const Cubemap& HDRcubema
 	cubemap.transitionImageLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_GENERAL);
 	
 
-	VkDevice device = RenderModule::getRenderBackend()->getDevice();
+	VkDevice device = RenderModule::getBackend()->getDevice();
 	for (auto view : mipmap_views)
 	{
 		vkDestroyImageView(device, view, nullptr);
@@ -128,7 +128,7 @@ static std::shared_ptr<Texture> calculateBRDF_LUT(const Cubemap& HDRcubemap, uin
 	compute_descriptor.bindStorageImage(0, &brdf_lut);
 	compute_descriptor.buildDescriptorSet();
 
-	CommandBuffer cmd_buff = RenderModule::getRenderBackend()->createDisposableCmdBuffer();
+	CommandBuffer cmd_buff = RenderModule::getBackend()->createDisposableCmdBuffer();
 
 	cmd_buff.calcSizeAndDispatch(compute_BRDF, compute_descriptor, texture_properties.imageSize());
 	cmd_buff.immediateSubmit();

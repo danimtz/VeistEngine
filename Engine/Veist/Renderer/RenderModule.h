@@ -19,7 +19,7 @@ public:
 
 	static void init(GLFWwindow* window);
 	static void shutdown();
-	static std::shared_ptr<RenderBackend> getRenderBackend(){return s_render_backend;};
+	static std::shared_ptr<RenderBackend> getBackend(){return s_render_backend;};
 	static void selectRenderArchitecture(RendererType renderer_type = RendererType::Forward); //default to forward renderer
 
 	static inline void onUpdate()
@@ -27,6 +27,10 @@ public:
 		s_renderer->onUpdate();
 	}
 	
+	static inline void renderScene(CommandBuffer& cmd)
+	{
+		s_renderer->renderSceneECS(cmd);
+	}
 
 	static inline void setECSRegistry(ecs::EntityRegistry* ecsRegistry)
 	{

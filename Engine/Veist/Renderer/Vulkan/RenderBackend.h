@@ -90,6 +90,7 @@ public:
     const GPUinfo_t& getGPUinfo() const { return m_gpu_info; };
     VkQueue getGraphicsQueue() const { return m_graphics_queue; }
     DescriptorSetAllocator* getDescriptorAllocator() const { return m_descriptor_allocator.get(); };
+    uint32_t getSwapchainImageCount() const { return (FRAME_OVERLAP_COUNT); };
     uint32_t getSwapchainImageNumber() const { return (m_frame_count % FRAME_OVERLAP_COUNT); };
     void pushToDeletionQueue(std::function<void()> function);
     void pushToSwapchainDeletionQueue(std::function<void()> function);

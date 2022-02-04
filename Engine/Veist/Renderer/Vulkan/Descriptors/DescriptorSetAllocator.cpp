@@ -33,7 +33,7 @@ bool DescriptorSetAllocator::allocateDescriptorSet(DescriptorSet& descriptor_set
 	alloc_info.descriptorSetCount = 1;
 
 	//attempt allocate descriptor set
-	VkDevice device = RenderModule::getRenderBackend()->getDevice();
+	VkDevice device = RenderModule::getBackend()->getDevice();
 	VkResult alloc_result = vkAllocateDescriptorSets(device, &alloc_info, &descriptor_set.descriptorSet());
 	bool reallocate_pool = false;
 
@@ -87,7 +87,7 @@ static VkDescriptorPool createPool(const DescriptorSetAllocator::PoolSizes& pool
 
 	VkDescriptorPool descriptorPool;
 	
-	VkDevice device = RenderModule::getRenderBackend()->getDevice();
+	VkDevice device = RenderModule::getBackend()->getDevice();
 	vkCreateDescriptorPool(device, &pool_info, nullptr, &descriptorPool);
 
 	return descriptorPool;
@@ -117,7 +117,7 @@ VkDescriptorPool DescriptorSetAllocator::getPool()
 void DescriptorSetAllocator::resetPools() {
 	
 	//reset every pool
-	VkDevice device = RenderModule::getRenderBackend()->getDevice();
+	VkDevice device = RenderModule::getBackend()->getDevice();
 	for (auto pool : m_used_pools) {
 		vkResetDescriptorPool(device, pool, 0);
 	}
@@ -134,7 +134,7 @@ void DescriptorSetAllocator::resetPools() {
 void DescriptorSetAllocator::cleanup()
 {
 
-	VkDevice device = RenderModule::getRenderBackend()->getDevice();
+	VkDevice device = RenderModule::getBackend()->getDevice();
 	for (auto pool : m_free_pools)
 	{
 		vkDestroyDescriptorPool(device, pool, nullptr);

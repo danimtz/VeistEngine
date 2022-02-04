@@ -33,7 +33,7 @@ void VulkanBuffer::allocateBuffer(uint32_t size, VkBufferUsageFlagBits buffer_us
 	vma_alloc_info.usage = memory_usage;
 
 	//allocate the buffer
-	VmaAllocator allocator = RenderModule::getRenderBackend()->getAllocator();
+	VmaAllocator allocator = RenderModule::getBackend()->getAllocator();
 
 	VkBuffer buffer;
 	VmaAllocation allocation;
@@ -44,7 +44,7 @@ void VulkanBuffer::allocateBuffer(uint32_t size, VkBufferUsageFlagBits buffer_us
 
 	//add the destruction of triangle mesh buffer to the deletion queue (Dont add for staging buffer as these will be deleted in destructor)
 	if (buffer_usage != VK_BUFFER_USAGE_TRANSFER_SRC_BIT){
-		RenderModule::getRenderBackend()->pushToDeletionQueue([allocator, buffer, allocation]() { vmaDestroyBuffer(allocator, buffer, allocation); });
+		RenderModule::getBackend()->pushToDeletionQueue([allocator, buffer, allocation]() { vmaDestroyBuffer(allocator, buffer, allocation); });
 	}
 	
 }

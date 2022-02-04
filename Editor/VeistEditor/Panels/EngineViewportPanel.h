@@ -20,10 +20,14 @@ namespace VeistEditor
 	private:
 	
 		//framebuffer image resources TODO: when i create a framegraph system have these be part of framegraph resources
-		std::vector<ColorAttachment> m_framebuffer_images;
-		DepthAttachment m_depth_image;
+		std::unique_ptr<ColorTextureAttachment> m_framebuffer_image;
+		std::unique_ptr<DepthTextureAttachment> m_depth_image;
 		Framebuffer m_target_framebuffer;
+		ImTextureID m_texture_id;
 
+		glm::vec2 m_viewport_size = {1920,1080};
+
+		float m_aspect_ratio = 16.0f/9.0f;
 
 
 	};

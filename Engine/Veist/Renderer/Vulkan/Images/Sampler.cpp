@@ -77,7 +77,7 @@ static VkSamplerCreateInfo createSamplerInfo(SamplerType type)
 }
 
 Sampler::Sampler(SamplerType type) {
-	VkDevice device = RenderModule::getRenderBackend()->getDevice();
+	VkDevice device = RenderModule::getBackend()->getDevice();
 	
 	VkSamplerCreateInfo sampler_info = createSamplerInfo(type);
 	
@@ -86,7 +86,7 @@ Sampler::Sampler(SamplerType type) {
 
 	m_sampler = sampler;
 
-	RenderModule::getRenderBackend()->pushToDeletionQueue([=]{vkDestroySampler(device, sampler, nullptr);});
+	RenderModule::getBackend()->pushToDeletionQueue([=]{vkDestroySampler(device, sampler, nullptr);});
 }
 
 }

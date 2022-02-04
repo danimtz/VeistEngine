@@ -45,19 +45,19 @@ void ComputePipeline::createPipelineLayout()
 	create_info.pSetLayouts = m_shader_program->descriptorLayouts().data();
 
 
-	VkDevice device = RenderModule::getRenderBackend()->getDevice();
+	VkDevice device = RenderModule::getBackend()->getDevice();
 	
 	VK_CHECK(vkCreatePipelineLayout(device, &create_info, nullptr, &m_pipeline_layout));
 
 	VkPipelineLayout layout = m_pipeline_layout;
-	RenderModule::getRenderBackend()->pushToDeletionQueue([device, layout]() { vkDestroyPipelineLayout(device, layout, nullptr); });
+	RenderModule::getBackend()->pushToDeletionQueue([device, layout]() { vkDestroyPipelineLayout(device, layout, nullptr); });
 
 }
 
 
 void ComputePipeline::createPipeline()
 {
-	VkDevice device = RenderModule::getRenderBackend()->getDevice();
+	VkDevice device = RenderModule::getBackend()->getDevice();
 
 	VkComputePipelineCreateInfo compute_create_info = {};
 	compute_create_info.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
@@ -79,7 +79,7 @@ void ComputePipeline::createPipeline()
 
 
 	VkPipeline pipeline = m_pipeline;
-	RenderModule::getRenderBackend()->pushToDeletionQueue([device, pipeline]() { //TODO: if pipeline gets rebuilt this should be destroyed
+	RenderModule::getBackend()->pushToDeletionQueue([device, pipeline]() { //TODO: if pipeline gets rebuilt this should be destroyed
 		vkDestroyPipeline(device, pipeline, nullptr);
 	});
 

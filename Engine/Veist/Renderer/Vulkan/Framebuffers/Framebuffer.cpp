@@ -72,17 +72,17 @@ static void createFramebuffer(std::vector<ImageBase*>& colors, ImageBase* depth,
 	framebuffer_info.pAttachments = attachments.data();
 
 
-	VkDevice device = RenderModule::getRenderBackend()->getDevice();
+	VkDevice device = RenderModule::getBackend()->getDevice();
 	VK_CHECK(vkCreateFramebuffer(device, &framebuffer_info, nullptr, &framebuffer));
 
 	
 	if ((colors[0]->imageUsage() & ImageUsage::SwapchainImage) != ImageUsage::None)
 	{
-		RenderModule::getRenderBackend()->pushToSwapchainDeletionQueue([=]() { vkDestroyFramebuffer(device, framebuffer, nullptr);	});
+		RenderModule::getBackend()->pushToSwapchainDeletionQueue([=]() { vkDestroyFramebuffer(device, framebuffer, nullptr);	});
 	}
 	else 
 	{
-		RenderModule::getRenderBackend()->pushToDeletionQueue([=]() { vkDestroyFramebuffer(device, framebuffer, nullptr);	});
+		RenderModule::getBackend()->pushToDeletionQueue([=]() { vkDestroyFramebuffer(device, framebuffer, nullptr);	});
 	}
 
 	

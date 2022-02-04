@@ -142,7 +142,7 @@ void DescriptorSet::bindCombinedSamplerCubemap(uint32_t binding, const Cubemap* 
 void DescriptorSet::updateDescriptorSet()
 {
 
-	VkDevice device = RenderModule::getRenderBackend()->getDevice();
+	VkDevice device = RenderModule::getBackend()->getDevice();
 	vkUpdateDescriptorSets(device, m_writes.size(), m_writes.data(), 0, nullptr);
 	m_writes.clear();
 	m_write_data.clear();
@@ -151,7 +151,7 @@ void DescriptorSet::updateDescriptorSet()
 void DescriptorSet::buildDescriptorSet()
 {
 	//Allocate descriptor set
-	DescriptorSetAllocator* set_allocator = RenderModule::getRenderBackend()->getDescriptorAllocator();
+	DescriptorSetAllocator* set_allocator = RenderModule::getBackend()->getDescriptorAllocator();
 
 	if (!set_allocator->allocateDescriptorSet(*this)) {
 		CRITICAL_ERROR_LOG("Could not allocate descriptor set!");

@@ -31,7 +31,7 @@ VkDescriptorSetLayout DescriptorSetLayoutCache::createDescriptorSetLayout(VkDevi
 
 		VkDescriptorSetLayout layout;
 		VK_CHECK(vkCreateDescriptorSetLayout(device, info, nullptr, &layout));
-		RenderModule::getRenderBackend()->pushToDeletionQueue([device, layout]() {vkDestroyDescriptorSetLayout(device, layout, nullptr); });
+		RenderModule::getBackend()->pushToDeletionQueue([device, layout]() {vkDestroyDescriptorSetLayout(device, layout, nullptr); });
 
 		m_layouts[layout_info] = layout; //add it to map
 		return layout;

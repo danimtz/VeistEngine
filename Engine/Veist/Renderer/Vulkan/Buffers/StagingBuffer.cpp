@@ -13,7 +13,7 @@ StagingBuffer::StagingBuffer(void* data, uint32_t size) : Buffer({ size, static_
 	
 
 	//allocate the buffer
-	VmaAllocator allocator = RenderModule::getRenderBackend()->getAllocator();
+	VmaAllocator allocator = RenderModule::getBackend()->getAllocator();
 
 	void* dst_data;
 	vmaMapMemory(allocator, m_buffer.allocation(), &dst_data);
@@ -26,7 +26,7 @@ StagingBuffer::StagingBuffer(void* data, uint32_t size) : Buffer({ size, static_
 
 StagingBuffer::~StagingBuffer()
 {
-	VmaAllocator allocator = RenderModule::getRenderBackend()->getAllocator();
+	VmaAllocator allocator = RenderModule::getBackend()->getAllocator();
 	vmaDestroyBuffer(allocator, m_buffer.buffer(), m_buffer.allocation());
 }
 

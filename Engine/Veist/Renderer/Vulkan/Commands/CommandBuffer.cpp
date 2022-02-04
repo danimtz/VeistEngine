@@ -19,7 +19,7 @@ CommandBuffer::CommandBuffer(CommandPool* pool, VkFence fence, bool begin_on_cre
 	buffer_create_info.commandBufferCount = 1;
 	buffer_create_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 
-	VkDevice device = RenderModule::getRenderBackend()->getDevice();
+	VkDevice device = RenderModule::getBackend()->getDevice();
 	VK_CHECK(vkAllocateCommandBuffers(device, &buffer_create_info, &m_cmd_buffer));
 
 	if (begin_on_creation)
@@ -63,8 +63,8 @@ void CommandBuffer::immediateSubmit()
 
 	//submit command buffer to queue and execute it.
 	//fence will block until the commands finish
-	VkDevice device = RenderModule::getRenderBackend()->getDevice();
-	VkQueue graphics_queue = RenderModule::getRenderBackend()->getGraphicsQueue();
+	VkDevice device = RenderModule::getBackend()->getDevice();
+	VkQueue graphics_queue = RenderModule::getBackend()->getGraphicsQueue();
 
 	vkResetFences(device, 1, &m_fence);//fence has create signalled flag
 	VK_CHECK(vkQueueSubmit(graphics_queue, 1, &submit_info, m_fence));

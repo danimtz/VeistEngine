@@ -15,6 +15,7 @@ namespace Veist
 
 struct ImageSize {
 	ImageSize() = default;
+	ImageSize(glm::vec2& size) : width(size.x), height(size.y), depth(1), n_channels(4) {};
 	ImageSize(uint32_t w, uint32_t h) : width(w), height(h), depth(1), n_channels(4) {};
 	ImageSize(uint32_t w, uint32_t h, uint32_t n_c) : width(w), height(h), depth(1), n_channels(n_c) {};
 	ImageSize(uint32_t w, uint32_t h, uint32_t d, uint32_t n_c) : width(w), height(h), depth(d), n_channels(n_c) {};

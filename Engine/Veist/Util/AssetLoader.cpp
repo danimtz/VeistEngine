@@ -503,7 +503,7 @@ std::shared_ptr<Cubemap> AssetLoader::loadCubemapFromEquirectMap(const char* fil
 		compute_descriptor.bindStorageImage(1, &cubemap);
 		compute_descriptor.buildDescriptorSet();
 
-		CommandBuffer cmd_buff = RenderModule::getRenderBackend()->createDisposableCmdBuffer();
+		CommandBuffer cmd_buff = RenderModule::getBackend()->createDisposableCmdBuffer();
 		cmd_buff.calcSizeAndDispatch(compute_program, compute_descriptor, img_size);
 		cmd_buff.immediateSubmit();
 
@@ -553,7 +553,7 @@ std::shared_ptr<Cubemap> AssetLoader::loadCubemapFromEquirectMap(const char* fil
 		compute_descriptor.bindStorageImage(1, &cubemap);
 		compute_descriptor.buildDescriptorSet();
 
-		CommandBuffer cmd_buff = RenderModule::getRenderBackend()->createDisposableCmdBuffer();
+		CommandBuffer cmd_buff = RenderModule::getBackend()->createDisposableCmdBuffer();
 		cmd_buff.calcSizeAndDispatch(compute_program, compute_descriptor, img_size);
 		cmd_buff.immediateSubmit();
 

@@ -8,6 +8,7 @@ namespace Veist
 {
 
 class RenderBackend;
+class CommandBuffer;
 class Scene;
 
 class Renderer //Effectively an abstract class, but not abstract due to need of preinitialization
@@ -23,6 +24,8 @@ public:
 	virtual void setScene(Scene* scene){};//TODO: Deprecate this function later on. for now just calls setECSRegistry 
 
 	virtual void setECSRegistry(ecs::EntityRegistry* ecsRegistry) {};
+
+	virtual void renderSceneECS(CommandBuffer& cmd_buffer) {}; //TODO: rework this. i dont like calling this from here
 
 protected:
 

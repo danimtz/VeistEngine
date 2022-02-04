@@ -10,7 +10,7 @@ namespace Veist
 {
 
 
-static VkImageLayout getImageLayout(ImageUsage usage) {
+	VkImageLayout getImageLayout(ImageUsage usage) {
 
 	switch (usage) //If usage only has one flag then use this
 	{
@@ -42,6 +42,11 @@ static VkImageLayout getImageLayout(ImageUsage usage) {
 		return VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 	}
 
+	if ((usage & ImageUsage::Texture) != ImageUsage::None)
+	{
+		return VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	}
+
 	if ((usage & ImageUsage::DepthAttachment) != ImageUsage::None) {
 		return VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 	}
@@ -50,9 +55,9 @@ static VkImageLayout getImageLayout(ImageUsage usage) {
 		return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 	}
 
-	if ((usage & ImageUsage::Texture) != ImageUsage::None) {
+	/*if ((usage & ImageUsage::Texture) != ImageUsage::None) {
 		return VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	}
+	}*/
 
 	
 
@@ -213,7 +218,7 @@ RenderPass::RenderPass(std::vector<AttachmentProperties>& color_properties, Atta
 	create_info.dependencyCount = 1;
 	create_info.pDependencies = &dependency;
 
-	VkDevice device = RenderModule::getRenderBackend()->getDevice();
+	VkDevice device = RenderModule::getBackend()->getDevice();
 	
 	VK_CHECK(vkCreateRenderPass(device, &create_info, nullptr, &m_render_pass));
 	
@@ -221,11 +226,11 @@ RenderPass::RenderPass(std::vector<AttachmentProperties>& color_properties, Atta
 
 	if ((color_properties[0].usage & ImageUsage::SwapchainImage) != ImageUsage::None)
 	{
-		RenderModule::getRenderBackend()->pushToSwapchainDeletionQueue([device, renderpass]() { vkDestroyRenderPass(device, renderpass, nullptr);	});
+		RenderModule::getBackend()->pushToSwapchainDeletionQueue([device, renderpass]() { vkDestroyRenderPass(device, renderpass, nullptr);	});
 	}
 	else 
 	{
-		RenderModule::getRenderBackend()->pushToDeletionQueue([device, renderpass]() { vkDestroyRenderPass(device, renderpass, nullptr);	});
+		RenderModule::getBackend()->pushToDeletionQueue([device, renderpass]() { vkDestroyRenderPass(device, renderpass, nullptr);	});
 
 	}
 	
