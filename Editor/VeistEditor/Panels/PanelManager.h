@@ -5,7 +5,7 @@
 
 namespace VeistEditor
 {
-
+	class EditorApp;
 	class PanelManager
 	{
 	public:
@@ -28,7 +28,7 @@ namespace VeistEditor
 
 		std::vector<std::unique_ptr<GUIPanel>> m_gui_panels;
 
-
+		EditorApp* m_editor_app;
 
 
 	};

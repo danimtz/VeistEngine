@@ -6,6 +6,7 @@
 
 //Add include "Panels.h" which shjould be a list of includes of all panels like components in ecs
 #include "Panels/EngineViewportPanel.h"
+#include "Panels/StatsPanel.h"
 namespace VeistEditor
 {
 
@@ -18,6 +19,7 @@ namespace VeistEditor
         m_ui_panels = std::make_unique<PanelManager>();
 
         m_ui_panels->addPanel<EngineViewportPanel>();
+        m_ui_panels->addPanel<StatsPanel>();
 
     }
 
@@ -35,8 +37,6 @@ namespace VeistEditor
 	{
         double previousTime = glfwGetTime();
         int frameCount = 0;
-        float m_last_frame_time = 0.0f;
-
 
         auto& render_backend = RenderModule::getBackend();
 
@@ -45,10 +45,10 @@ namespace VeistEditor
         while (m_running)
         {
             float time = (float)glfwGetTime();
-            Timestep timestep = time - m_last_frame_time;
+            m_frametime = time - m_last_frame_time;
             m_last_frame_time = time;
 
-            std::cout << timestep.getMilliseconds() << "ms" << std::endl;
+            //std::cout << m_frametime.getMilliseconds() << "ms" << std::endl;
 
             //FPS counter
                 /*double currentTime = glfwGetTime();
@@ -62,7 +62,7 @@ namespace VeistEditor
 
 
             InputModule::onUpdate();
-            scene->onUpdate(timestep);
+            scene->onUpdate(m_frametime);
 
             
             

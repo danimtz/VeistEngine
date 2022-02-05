@@ -17,5 +17,7 @@ foreach(editor_source IN ITEMS ${ENGINE_SRC_FILES})
     source_group("${editor_group_path}" FILES "${editor_source}")
 endforeach()
 
+target_precompile_headers(Editor PRIVATE "${PROJECT_SOURCE_DIR}/Engine/pch.h")
+
 
 set_property(TARGET Editor PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/bin")

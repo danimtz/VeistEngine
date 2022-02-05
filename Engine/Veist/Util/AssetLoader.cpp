@@ -503,9 +503,9 @@ std::shared_ptr<Cubemap> AssetLoader::loadCubemapFromEquirectMap(const char* fil
 		compute_descriptor.bindStorageImage(1, &cubemap);
 		compute_descriptor.buildDescriptorSet();
 
-		CommandBuffer cmd_buff = RenderModule::getBackend()->createDisposableCmdBuffer();
+		CommandBuffer cmd_buff = RenderModule::getBackend()->createComputeQueueCmdBuffer();
 		cmd_buff.calcSizeAndDispatch(compute_program, compute_descriptor, img_size);
-		cmd_buff.immediateSubmit(RenderModule::getBackend()->getGraphicsQueue());
+		cmd_buff.immediateSubmit(RenderModule::getBackend()->getComputeQueue());
 
 		if(mipmaps)
 		{
@@ -553,9 +553,9 @@ std::shared_ptr<Cubemap> AssetLoader::loadCubemapFromEquirectMap(const char* fil
 		compute_descriptor.bindStorageImage(1, &cubemap);
 		compute_descriptor.buildDescriptorSet();
 
-		CommandBuffer cmd_buff = RenderModule::getBackend()->createDisposableCmdBuffer();
+		CommandBuffer cmd_buff = RenderModule::getBackend()->createComputeQueueCmdBuffer();
 		cmd_buff.calcSizeAndDispatch(compute_program, compute_descriptor, img_size);
-		cmd_buff.immediateSubmit(RenderModule::getBackend()->getGraphicsQueue());
+		cmd_buff.immediateSubmit(RenderModule::getBackend()->getComputeQueue());
 
 		if (mipmaps)
 		{

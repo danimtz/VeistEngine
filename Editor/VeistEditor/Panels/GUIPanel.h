@@ -4,11 +4,12 @@
 
 namespace VeistEditor
 { 
+	class EditorApp;
 	class GUIPanel
 	{
 	public:
 		
-		GUIPanel(){};
+		GUIPanel();
 		virtual ~GUIPanel(){};
 
 
@@ -17,6 +18,7 @@ namespace VeistEditor
 
 	protected:
 
+		EditorApp* m_editor_app;
 
 
 	private:

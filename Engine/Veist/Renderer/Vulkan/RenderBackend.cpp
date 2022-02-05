@@ -214,9 +214,6 @@ void RenderBackend::initContext_VK()
 	//Create logical device and queues
 	createDeviceAndQueues();
 
-	//Create transfer queue
-	createTransferQueue();
-
 	//Create vma allocator
 	createVmaAllocator();
 
@@ -404,6 +401,7 @@ void RenderBackend::choosePhysicalDevice()
 		int graphics_idx = -1;
 		int present_idx = -1;
 		int transfer_idx = -1;
+		int compute_idx = -1;
 
 		if (!checkPhysDeviceExtensionSupport(gpu, m_device_extensions)) {
 			continue;
@@ -478,11 +476,40 @@ void RenderBackend::choosePhysicalDevice()
 
 		}
 
-		//Is gpu good for both graphics and present?
+
+
+		//Find compute queue family
+		for (int j = 0; j < gpu.queue_family_properties.size(); ++j)
+		{
+			VkQueueFamilyProperties& properties = gpu.queue_family_properties[j];
+
+			if (properties.queueCount == 0)
+			{
+				continue;
+			}
+
+			if ((properties.queueFlags & VK_QUEUE_COMPUTE_BIT) && !(properties.queueFlags & VK_QUEUE_GRAPHICS_BIT))
+			{
+				compute_idx = j;
+				break;
+			}
+
+		}
+
+		//Is gpu good for both graphics and present transfer
 		if (graphics_idx >= 0 && present_idx >= 0 && transfer_idx >= 0) {
 			m_graphics_family_idx = graphics_idx;
 			m_present_family_idx = present_idx;
 			m_transfer_family_idx = transfer_idx;
+
+			if (compute_idx == -1)
+			{
+				m_compute_family_idx = graphics_idx;
+			}
+			else
+			{
+				m_compute_family_idx = compute_idx;
+			}
 			m_gpu_info = gpu;
 
 			return;
@@ -505,6 +532,7 @@ void RenderBackend::createDeviceAndQueues()
 	unique_queue_families.insert(m_graphics_family_idx);
 	unique_queue_families.insert(m_present_family_idx);
 	unique_queue_families.insert(m_transfer_family_idx);
+	unique_queue_families.insert(m_compute_family_idx);
 
 	float queue_priority = 1.0f;
 	for (uint32_t queue_family : unique_queue_families) {
@@ -543,17 +571,12 @@ void RenderBackend::createDeviceAndQueues()
 
 	vkGetDeviceQueue(m_device, m_graphics_family_idx, 0, &m_graphics_queue);
 	vkGetDeviceQueue(m_device, m_present_family_idx, 0, &m_present_queue);
-
-
-}
-
-
-
-
-void RenderBackend::createTransferQueue()
-{
 	vkGetDeviceQueue(m_device, m_transfer_family_idx, 0, &m_transfer_queue);
+	vkGetDeviceQueue(m_device, m_compute_family_idx, 0, &m_compute_queue);
+
+
 }
+
 
 
 
@@ -637,6 +660,7 @@ void RenderBackend::createCommandPoolAndBuffers()
 	//Create command pool for upload context (staging buffers etc)
 	m_disposable_graphics_pool = std::make_shared<CommandPool>(m_graphics_family_idx);
 	m_disposable_transfer_pool = std::make_shared<CommandPool>(m_transfer_family_idx);
+	m_disposable_compute_pool = std::make_shared<CommandPool>(m_compute_family_idx);
 }
 
 
@@ -799,7 +823,10 @@ CommandBuffer RenderBackend::createTransferQueueCmdBuffer()
 	return m_disposable_transfer_pool->allocateCommandBuffer(true);
 }
 
-
+CommandBuffer RenderBackend::createComputeQueueCmdBuffer()
+{
+	return m_disposable_compute_pool->allocateCommandBuffer(true);
+}
 
 /*
 =====================================

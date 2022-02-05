@@ -6,7 +6,7 @@
 namespace VeistEditor
 {
 	
-	PanelManager::PanelManager()
+	PanelManager::PanelManager() : m_editor_app(&EditorApp::get())
 	{
 
 	}
@@ -80,7 +80,7 @@ namespace VeistEditor
 
 				if (ImGui::MenuItem("Open...", "Ctrl+O"))
 				{
-					EditorApp::get().loadScene(); //TODO: This should be a function not jsut calling Scene::LoadScene EXTREMELY TEMPORARY
+					m_editor_app->loadScene(); //TODO: This should be a function not jsut calling Scene::LoadScene EXTREMELY TEMPORARY
 				}
 
 				if (ImGui::MenuItem("Save As...", "Ctrl+Shift+S"))

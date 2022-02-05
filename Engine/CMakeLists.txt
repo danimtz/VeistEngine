@@ -47,7 +47,7 @@ target_link_libraries(VeistEngine debug "$ENV{VULKAN_SDK}/Lib/shadercd.lib")
 message(STATUS ${Vulkan_INCLUDE_DIRS})
 message(STATUS "${PROJECT_SOURCE_DIR}/Engine")
 
-#target_precompile_headers(VeistEngine PRIVATE "Engine/pch.h")
+target_precompile_headers(VeistEngine PRIVATE "${PROJECT_SOURCE_DIR}/Engine/pch.h")
 
 
 set_property(TARGET VeistEngine PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/bin")
