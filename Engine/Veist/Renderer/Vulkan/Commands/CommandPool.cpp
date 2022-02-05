@@ -11,15 +11,15 @@ namespace Veist
 {
 
 
-CommandPool::CommandPool(int thread_id) : m_thread_id(thread_id)
+CommandPool::CommandPool(int queue_idx, int thread_id) : m_thread_id(thread_id)
 {
 
-	uint32_t graphics_family_idx = RenderModule::getBackend()->getGraphicsFamily();
+	//uint32_t graphics_family_idx = RenderModule::getBackend()->getGraphicsFamily();
 	VkDevice device = RenderModule::getBackend()->getDevice();
 
 	VkCommandPoolCreateInfo pool_create_info = {};
 	pool_create_info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-	pool_create_info.queueFamilyIndex = graphics_family_idx;
+	pool_create_info.queueFamilyIndex = queue_idx;
 	pool_create_info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 	pool_create_info.pNext = nullptr;
 

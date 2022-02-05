@@ -9,12 +9,24 @@
 namespace VeistEditor
 {
 
+    EditorApp* EditorApp::s_Instance = nullptr;
+
     EditorApp::EditorApp() : Application("Editor")
     {
+        s_Instance = this;
+
         m_ui_panels = std::make_unique<PanelManager>();
 
         m_ui_panels->addPanel<EngineViewportPanel>();
 
+    }
+
+
+    void EditorApp::loadScene()
+    {
+    //TODO rework this. currently calling this twice just loads another identical scene in the same registry
+  
+        m_thread_pool->spawnThread( [=](){ Scene::loadScene(scene->ecsRegistry()); }  );
     }
 
 
@@ -27,6 +39,8 @@ namespace VeistEditor
 
 
         auto& render_backend = RenderModule::getBackend();
+
+        
 
         while (m_running)
         {
@@ -85,19 +99,29 @@ namespace VeistEditor
                 m_running = false;
             }
             //Rendering (rework this at some point RenderModule::onUpdate() should be called here only but then GUI module depends on render module etc etc) 
+
         }
+
 
 
 	}
 
 
+
     void EditorApp::initClient()
     {
 
+        
         scene = new Scene();//TEMPORARY
+
+        
+
+        //Scene::loadScene( scene->ecsRegistry() );
+        //Scene::loadScene(EditorApp::get().getActiveScene()->ecsRegistry());
 
         RenderModule::setECSRegistry(scene->ecsRegistry());
 
+        
     }
 
     void EditorApp::shutdownClient()

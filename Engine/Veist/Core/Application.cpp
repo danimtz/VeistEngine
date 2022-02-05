@@ -5,7 +5,7 @@
 namespace Veist
 {
 
-    Application* Application::s_Instance = nullptr;
+  
 
 
     Application::Application(std::string name)
@@ -13,7 +13,7 @@ namespace Veist
         glfwInit();
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
         glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
-        m_window = glfwCreateWindow(1920, 1080, name.c_str(), nullptr, nullptr);
+        m_window = glfwCreateWindow(1280, 720, name.c_str(), nullptr, nullptr);
         glfwSetWindowSizeLimits(m_window, 100, 100, GLFW_DONT_CARE, GLFW_DONT_CARE);
 
 
@@ -22,6 +22,9 @@ namespace Veist
         GUIModule::init(RenderModule::getBackend().get());
         InputModule::init(m_window);
 
+
+        m_thread_pool = new ThreadPool();
+
     }
 
 
@@ -29,7 +32,8 @@ namespace Veist
 
     Application::~Application()
     {
-        
+
+        delete m_thread_pool;
 
         GUIModule::shutdown();
 
@@ -37,6 +41,7 @@ namespace Veist
 
         glfwDestroyWindow(m_window);
         glfwTerminate();
+
 
     }
 

@@ -6,6 +6,8 @@
 namespace VeistEditor
 {
 	
+	float EngineViewportPanel::m_aspect_ratio = 16.0f/9.0f;
+
 	EngineViewportPanel::EngineViewportPanel()
 	{
 		//TODO: image props should be the size of the imgui window
@@ -36,31 +38,42 @@ namespace VeistEditor
 
 	void EngineViewportPanel::renderPanel()
 	{
+
+		struct PanelConstraint
+		{
+			static void Square(ImGuiSizeCallbackData* data) 
+			{ 
+				data->DesiredSize.x = data->DesiredSize.y * m_aspect_ratio;
+				//data->DesiredSize.y = data->DesiredSize.x * (1.0f/m_aspect_ratio);
+			}
+		};
+		ImGui::SetNextWindowSizeConstraints(ImVec2(0, 0), ImVec2(FLT_MAX, FLT_MAX), PanelConstraint::Square);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
 		ImGui::Begin("Viewport", nullptr);
 
 		
-
-		
-		CommandBuffer& cmd_buffer = RenderModule::getBackend()->getCurrentCmdBuffer();
-
-		cmd_buffer.beginRenderPass(m_target_framebuffer);
-
-		RenderModule::renderScene(cmd_buffer);
-
-		cmd_buffer.endRenderPass();
-
+		renderScene();
 	
-
+		
 		ImVec2 viewport_panel_size = ImGui::GetContentRegionAvail();
 		viewport_panel_size.x = viewport_panel_size.y * m_aspect_ratio;
-
-		ImGui::SetNextWindowSizeConstraints(viewport_panel_size, viewport_panel_size);
-
+		m_viewport_size = {viewport_panel_size.x, viewport_panel_size.y };
 		ImGui::Image(m_texture_id, viewport_panel_size);
-
 		ImGui::End();
-
+		ImGui::PopStyleVar();
 	}
 
+
+
+
+	void EngineViewportPanel::renderScene()
+	{
+
+		CommandBuffer& cmd_buffer = RenderModule::getBackend()->getCurrentCmdBuffer();
+		cmd_buffer.beginRenderPass(m_target_framebuffer);
+		RenderModule::renderScene(cmd_buffer);
+		cmd_buffer.endRenderPass();
+
+	}
 
 }

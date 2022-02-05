@@ -20,6 +20,8 @@ public:
 
 	Scene();
 
+	static void loadScene(ecs::EntityRegistry* registry);
+
 	ecs::EntityRegistry* ecsRegistry() const { return m_registry.get();};
 
 	void onUpdate(Timestep dt);

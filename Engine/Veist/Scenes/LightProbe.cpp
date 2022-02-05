@@ -48,7 +48,7 @@ static std::shared_ptr<Cubemap> calculateIrradianceMap(const Cubemap& HDRcubemap
 	CommandBuffer cmd_buff = RenderModule::getBackend()->createDisposableCmdBuffer();
 	
 	cmd_buff.calcSizeAndDispatch(compute_irradiance, compute_descriptor, cubemap_properties.imageSize());
-	cmd_buff.immediateSubmit();
+	cmd_buff.immediateSubmit(RenderModule::getBackend()->getGraphicsQueue());
 
 	cubemap.transitionImageLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_GENERAL);
 
@@ -100,7 +100,7 @@ static std::shared_ptr<Cubemap> calculateEnvironmentMap(const Cubemap& HDRcubema
 		size.y /= 2;
 	}
 
-	cmd_buff.immediateSubmit();
+	cmd_buff.immediateSubmit(RenderModule::getBackend()->getGraphicsQueue());
 
 	cubemap.transitionImageLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_GENERAL);
 	
@@ -131,7 +131,7 @@ static std::shared_ptr<Texture> calculateBRDF_LUT(const Cubemap& HDRcubemap, uin
 	CommandBuffer cmd_buff = RenderModule::getBackend()->createDisposableCmdBuffer();
 
 	cmd_buff.calcSizeAndDispatch(compute_BRDF, compute_descriptor, texture_properties.imageSize());
-	cmd_buff.immediateSubmit();
+	cmd_buff.immediateSubmit(RenderModule::getBackend()->getGraphicsQueue());
 
 	brdf_lut.transitionImageLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_GENERAL);
 

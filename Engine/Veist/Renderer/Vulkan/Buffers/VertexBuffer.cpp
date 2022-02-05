@@ -15,9 +15,9 @@ VertexBuffer::VertexBuffer(void* vertices, uint32_t size) :
 
 	StagingBuffer stage_buff = { vertices, size };//deleted in destructor
 	//sumbit to gpu buffer
-	auto cmd_buffer = RenderModule::getBackend()->createDisposableCmdBuffer();
+	auto cmd_buffer = RenderModule::getBackend()->createTransferQueueCmdBuffer();
 	cmd_buffer.copyBuffer(stage_buff, *this);
-	cmd_buffer.immediateSubmit();
+	cmd_buffer.immediateSubmit(RenderModule::getBackend()->getTransferQueue());
 
 	/*RenderModule::getBackend()->immediateSubmit([&](VkCommandBuffer cmd){
 		VkBufferCopy copy;

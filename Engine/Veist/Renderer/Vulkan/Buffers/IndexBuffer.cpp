@@ -19,9 +19,9 @@ IndexBuffer::IndexBuffer(void* indices, uint32_t idx_count, uint32_t index_size)
 	
 	//sumbit to gpu buffer
 
-	auto cmd_buffer = RenderModule::getBackend()->createDisposableCmdBuffer();
+	auto cmd_buffer = RenderModule::getBackend()->createTransferQueueCmdBuffer();
 	cmd_buffer.copyBuffer(stage_buff, *this);
-	cmd_buffer.immediateSubmit();
+	cmd_buffer.immediateSubmit(RenderModule::getBackend()->getTransferQueue());
 	/*RenderModule::getBackend()->immediateSubmit([&](VkCommandBuffer cmd) {
 		VkBufferCopy copy;
 		copy.dstOffset = 0;

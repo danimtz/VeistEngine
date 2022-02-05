@@ -53,7 +53,7 @@ void CommandBuffer::end()
 }
 
 
-void CommandBuffer::immediateSubmit()
+void CommandBuffer::immediateSubmit(VkQueue queue)
 {
 	VK_CHECK(vkEndCommandBuffer(m_cmd_buffer));
 	VkSubmitInfo submit_info = {};
@@ -64,10 +64,10 @@ void CommandBuffer::immediateSubmit()
 	//submit command buffer to queue and execute it.
 	//fence will block until the commands finish
 	VkDevice device = RenderModule::getBackend()->getDevice();
-	VkQueue graphics_queue = RenderModule::getBackend()->getGraphicsQueue();
+	//VkQueue transfer_queue = RenderModule::getBackend()->getTransferQueue();
 
 	vkResetFences(device, 1, &m_fence);//fence has create signalled flag
-	VK_CHECK(vkQueueSubmit(graphics_queue, 1, &submit_info, m_fence));
+	VK_CHECK(vkQueueSubmit(queue, 1, &submit_info, m_fence));
 
 
 	VK_CHECK(vkWaitForFences(device, 1, &m_fence, true, 9999999999));
@@ -118,6 +118,9 @@ void CommandBuffer::copyBufferToImage(const Buffer stage_buff, const VkImage ima
 	barrier_toTransfer.image = image;
 	barrier_toTransfer.subresourceRange = range;
 
+	barrier_toTransfer.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	barrier_toTransfer.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+
 	barrier_toTransfer.srcAccessMask = 0;
 	barrier_toTransfer.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 
@@ -135,10 +138,10 @@ void CommandBuffer::copyBufferToImage(const Buffer stage_buff, const VkImage ima
 	barrier_toReadable.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
 	barrier_toReadable.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-	barrier_toReadable.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+	barrier_toReadable.dstAccessMask = VK_ACCESS_HOST_READ_BIT;
 
 	//barrier the image into the shader readable layout
-	vkCmdPipelineBarrier(m_cmd_buffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier_toReadable);
+	vkCmdPipelineBarrier(m_cmd_buffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_HOST_BIT/*VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT*/, 0, 0, nullptr, 0, nullptr, 1, &barrier_toReadable);
 
 }
 

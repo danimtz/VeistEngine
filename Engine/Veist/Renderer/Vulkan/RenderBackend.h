@@ -89,6 +89,7 @@ public:
     VkSurfaceKHR getSurface() const { return m_surface; };
     const GPUinfo_t& getGPUinfo() const { return m_gpu_info; };
     VkQueue getGraphicsQueue() const { return m_graphics_queue; }
+    VkQueue getTransferQueue() const { return m_transfer_queue; }
     DescriptorSetAllocator* getDescriptorAllocator() const { return m_descriptor_allocator.get(); };
     uint32_t getSwapchainImageCount() const { return (FRAME_OVERLAP_COUNT); };
     uint32_t getSwapchainImageNumber() const { return (m_frame_count % FRAME_OVERLAP_COUNT); };
@@ -99,11 +100,15 @@ public:
     Swapchain* getSwapchain() const {return m_swapchain.get();};
     ImageBase* getSwapchainDepthAttachment() const {return m_swapchain_depth_image.get();};
     VmaAllocator getAllocator() const { return m_allocator; }; //CONSIDER MOVING ALLOCATOR TO SEPARATE CLASS
-    CommandBuffer createDisposableCmdBuffer();
+    
     uint32_t getGraphicsFamily() const { return m_graphics_family_idx; };
+    uint32_t getTransferFamily() const { return m_transfer_family_idx; };
     const RenderPass& getRenderPass() const { return m_render_pass; };
     uint32_t getFrameNumber() const { return m_frame_count; };
     void incrementFrameCounter() { m_frame_count++; };
+
+    CommandBuffer createDisposableCmdBuffer();
+    CommandBuffer createTransferQueueCmdBuffer();
 
     void waitIdle();
 
@@ -117,6 +122,7 @@ private://main vulkan setup
     void createSurface();
     void choosePhysicalDevice();
     void createDeviceAndQueues();
+    void createTransferQueue();
     void createVmaAllocator();
 
     void createSwapchainAndImages();
@@ -141,7 +147,9 @@ private:
     VkDevice                        m_device;
     uint32_t                        m_present_family_idx;
     uint32_t                        m_graphics_family_idx;
+    uint32_t                        m_transfer_family_idx;
     VkQueue                         m_graphics_queue;
+    VkQueue                         m_transfer_queue;
     VkQueue                         m_present_queue;
     VkSurfaceKHR                    m_surface;
 
@@ -164,8 +172,8 @@ private:
     //VulkanFrameData                 m_frame_data[FRAME_OVERLAP_COUNT];
 
 //Immediate sumbit 
-    std::shared_ptr<CommandPool>    m_disposable_pool;         
-
+    std::shared_ptr<CommandPool>    m_disposable_graphics_pool;         
+    std::shared_ptr<CommandPool>    m_disposable_transfer_pool;
 
 // Other
     uint32_t                    m_frame_count{0};

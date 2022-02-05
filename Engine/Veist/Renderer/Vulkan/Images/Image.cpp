@@ -15,7 +15,7 @@ namespace Veist
 
 
 
-static VkImageCreateInfo getImageCreateInfo( ImageProperties properties, ImageUsage usage, ImageViewType view_type) {
+static VkImageCreateInfo getImageCreateInfo( ImageProperties properties, ImageUsage usage, ImageViewType view_type, std::vector<uint32_t>& indices) {
 	
 	VkImageCreateInfo img_info = {};
 	img_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -28,7 +28,11 @@ static VkImageCreateInfo getImageCreateInfo( ImageProperties properties, ImageUs
 	img_info.tiling = VK_IMAGE_TILING_OPTIMAL;
 	img_info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 	img_info.usage = VkImageUsageFlags(usage);
-	img_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+	img_info.sharingMode = VK_SHARING_MODE_CONCURRENT;
+
+	
+	img_info.pQueueFamilyIndices = indices.data();
+	img_info.queueFamilyIndexCount = indices.size();
 	img_info.samples = VK_SAMPLE_COUNT_1_BIT;
 
 	img_info.flags = (view_type == ImageViewType::Cube) ? VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT : 0;
@@ -85,9 +89,9 @@ ImageBase::ImageBase(void* data, ImageProperties properties, ImageUsage usage, I
 
 
 	//Sumbit staging buffer copy TODO: change to use cmd buffer
-	auto cmd_buffer = RenderModule::getBackend()->createDisposableCmdBuffer();
+	auto cmd_buffer = RenderModule::getBackend()->createTransferQueueCmdBuffer();
 	cmd_buffer.copyBufferToImage(stage_buff, m_image, regions, m_properties);
-	cmd_buffer.immediateSubmit();
+	cmd_buffer.immediateSubmit(RenderModule::getBackend()->getTransferQueue());
 	
 
 	
@@ -112,7 +116,10 @@ ImageBase::ImageBase(ImageProperties properties, ImageUsage usage, ImageViewType
 	VmaAllocator allocator = RenderModule::getBackend()->getAllocator();
 	VkDevice device = RenderModule::getBackend()->getDevice();
 
-	VkImageCreateInfo img_info = getImageCreateInfo(m_properties, usage, view_type);
+	std::vector<uint32_t> queue_indices;
+	queue_indices.push_back(RenderModule::getBackend()->getGraphicsFamily());
+	queue_indices.push_back(RenderModule::getBackend()->getTransferFamily());
+	VkImageCreateInfo img_info = getImageCreateInfo(m_properties, usage, view_type, queue_indices);
 
 	VmaAllocationCreateInfo img_alloc_info = {};
 	img_alloc_info.usage = VMA_MEMORY_USAGE_GPU_ONLY;
@@ -168,7 +175,7 @@ ImageBase::ImageBase(VkImage vk_image, ImageProperties properties, ImageUsage us
 
 void ImageBase::transitionImageLayout(VkImageLayout new_layout, VkImageLayout old_layout)
 {
-	CommandBuffer cmd = RenderModule::getBackend()->createDisposableCmdBuffer();
+	CommandBuffer cmd = RenderModule::getBackend()->createTransferQueueCmdBuffer();
 
 	//TODO: move barrier functionality to CommandBuffer class
 	 //from vulkan-tutorial
@@ -200,7 +207,7 @@ void ImageBase::transitionImageLayout(VkImageLayout new_layout, VkImageLayout ol
 		1, &barrier
 	);
 
-	cmd.immediateSubmit();
+	cmd.immediateSubmit(RenderModule::getBackend()->getTransferQueue());
 }
 
 
@@ -288,7 +295,7 @@ void ImageBase::generateMipmaps() //https://vulkan-tutorial.com/Generating_Mipma
 		0, nullptr,
 		1, &barrier);
 
-	cmd.immediateSubmit();
+	cmd.immediateSubmit(RenderModule::getBackend()->getGraphicsQueue());
 }
 
 

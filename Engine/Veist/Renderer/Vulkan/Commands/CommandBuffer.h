@@ -36,7 +36,7 @@ public:
 //Command buffer recording functions
 	void begin();
 	void end();
-	void immediateSubmit();
+	void immediateSubmit(VkQueue queue);
 	void copyBuffer(const Buffer& src, const Buffer& dst);
 	void copyBufferToImage(const Buffer stage_buff, const VkImage image, const std::vector<VkBufferImageCopy>& regions,  const ImageProperties& properties );
 	//void pipelineBarrier(); TODO: Pipeline barriers inside copyBufferToImage, extract them into functions

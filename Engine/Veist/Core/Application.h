@@ -6,6 +6,7 @@
 #include "Veist/ImGUI/GUIModule.h"
 #include "Veist/Input/InputModule.h"
 #include "Veist/Scenes/Scene.h"
+#include "Veist/Concurrency/ThreadPool.h"
 
 
 namespace Veist
@@ -23,7 +24,9 @@ namespace Veist
 		virtual void initClient() = 0;
 		virtual void shutdownClient() = 0;
 
-		static Application& get() {return *s_Instance;};
+		void close() { m_running = false; };
+
+		
 
 	protected:
 
@@ -33,13 +36,13 @@ namespace Veist
 
 
 	protected:
+
 		bool m_running = true;
 		GLFWwindow* m_window;
+		ThreadPool* m_thread_pool;
 		float m_last_frame_time = 0.0f;
 
-	private:
 
-		static Application* s_Instance;
 
 	};
 

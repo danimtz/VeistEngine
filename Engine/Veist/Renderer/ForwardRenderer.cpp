@@ -42,6 +42,7 @@ ForwardRenderer::~ForwardRenderer()
 }
 
 
+
 void ForwardRenderer::setECSRegistry(ecs::EntityRegistry* ecsRegistry)
 {
 	m_ecs_registry = ecsRegistry;
@@ -100,6 +101,11 @@ void ForwardRenderer::renderSceneECS(CommandBuffer& cmd_buffer)
 	if (m_ecs_registry == nullptr)
 	{
 		CRITICAL_ERROR_LOG("ECS REGISTRY NOT SET BEFORE ATTEMPTING TO RENDER IT");
+	}
+
+	if (!m_ecs_registry->isSceneLoaded())
+	{
+		return;
 	}
 
 	uint32_t frame_num = m_render_backend->getSwapchainImageNumber();

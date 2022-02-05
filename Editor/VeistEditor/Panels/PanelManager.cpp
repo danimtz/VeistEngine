@@ -1,7 +1,7 @@
 #include <pch.h>
 
 #include "PanelManager.h"
-
+#include "VeistEditor/EditorApp.h"
 
 namespace VeistEditor
 {
@@ -65,6 +65,34 @@ namespace VeistEditor
 		{
 			ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
 			ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
+		}
+
+
+		//TODO make this a panel maybe
+		if (ImGui::BeginMenuBar())
+		{
+			if (ImGui::BeginMenu("File"))
+			{
+				if (ImGui::MenuItem("New", "Ctrl+N"))
+				{
+					//NewScene();
+				}
+
+				if (ImGui::MenuItem("Open...", "Ctrl+O"))
+				{
+					EditorApp::get().loadScene(); //TODO: This should be a function not jsut calling Scene::LoadScene EXTREMELY TEMPORARY
+				}
+
+				if (ImGui::MenuItem("Save As...", "Ctrl+Shift+S"))
+				{
+					//SaveSceneAs();
+				}
+
+				if (ImGui::MenuItem("Exit")) EditorApp::get().close();
+				ImGui::EndMenu();
+			}
+
+			ImGui::EndMenuBar();
 		}
 
 

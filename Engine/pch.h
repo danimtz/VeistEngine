@@ -1,5 +1,8 @@
 #pragma once
 
+#include <thread> 
+#include <future> 
+
 #include <iostream>
 #include <memory>
 #include <algorithm>

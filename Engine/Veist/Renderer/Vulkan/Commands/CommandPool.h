@@ -13,7 +13,7 @@ class CommandPool
 
 public:
 
-	CommandPool(int thread_id = 0);
+	CommandPool(int queue_idx, int thread_id = 0);
 
 	void resetPool();
 

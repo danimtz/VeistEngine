@@ -48,6 +48,18 @@ public:
 
 
 
+	//Temporary
+	void setSceneLoaded(bool flag)
+	{
+		m_registry_loaded = flag;
+	}
+	bool isSceneLoaded()
+	{
+		return m_registry_loaded;
+	}
+
+
+
 	/*
 	/ 	emplaceComponent()
 	/ 	Adds a component to the entity given.
@@ -130,9 +142,22 @@ private:
 		ComponentId component_id = getComponentId<T>();
 		if (component_id >= m_component_pools.size())
 		{
-			m_component_pools.push_back(std::make_shared<ComponentPool<T>>() );
-			assert(component_id == (m_component_pools.size()-1));
+			
+			
+			//If a component ID has been registered but is of higher id and has not had a component pool created yet create an empty slot for it
+			while (component_id > (m_component_pools.size()) && component_id != 0)
+			{
+				m_component_pools.push_back(nullptr);
+			}
 
+			m_component_pools.push_back(std::make_shared<ComponentPool<T>>());
+
+			return static_cast<ComponentPool<T>*>(m_component_pools[component_id].get());
+		}
+		else if (m_component_pools[component_id] == nullptr)
+		{
+			//If component id has been registered but has no pool yet and a larger component id has a pool, this component id will have nullptr in the array. create the pool for it.
+			m_component_pools[component_id] = std::make_shared<ComponentPool<T>>();
 			return static_cast<ComponentPool<T>*>(m_component_pools[component_id].get());
 		}
 		else
@@ -162,6 +187,7 @@ private:
 
 	std::vector<std::shared_ptr<ComponentPoolBase>> m_component_pools;
 
+	bool m_registry_loaded = false;
 	
 };
 

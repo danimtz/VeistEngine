@@ -22,6 +22,8 @@ namespace VeistEditor
 		
 		};
 
+		
+
 	private:
 
 		std::vector<std::unique_ptr<GUIPanel>> m_gui_panels;

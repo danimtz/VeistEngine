@@ -19,6 +19,9 @@ namespace VeistEditor
 
 	private:
 	
+		void renderScene();
+
+
 		//framebuffer image resources TODO: when i create a framegraph system have these be part of framegraph resources
 		std::unique_ptr<ColorTextureAttachment> m_framebuffer_image;
 		std::unique_ptr<DepthTextureAttachment> m_depth_image;
@@ -27,7 +30,7 @@ namespace VeistEditor
 
 		glm::vec2 m_viewport_size = {1920,1080};
 
-		float m_aspect_ratio = 16.0f/9.0f;
+		static float m_aspect_ratio;
 
 
 	};
