@@ -163,8 +163,8 @@ void main()
 	
 
 	vec3 color = Lo + ambient + emmissive;
-	//color = color / (color + vec3(1.0));
-	//color = pow(color, vec3(0.4545)); //GAMMA CORRECTION not needed
+	//color = color / (color + vec3(1.0)); //reindhardt tone map
+	color = pow(color, vec3(0.4545)); //GAMMA CORRECTION
 	vec3 final_color = clamp(color, 0.0, 1.0);
 	outFragColor = vec4(final_color, 1.0);
 
