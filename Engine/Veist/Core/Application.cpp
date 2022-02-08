@@ -2,25 +2,26 @@
 
 #include "Application.h"
 
+#include "Veist/Events/Event.h"
+
 namespace Veist
 {
 
   
 
-
     Application::Application(std::string name)
     {
-        glfwInit();
-        glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-        glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
-        m_window = glfwCreateWindow(1280, 720, name.c_str(), nullptr, nullptr);
-        glfwSetWindowSizeLimits(m_window, 100, 100, GLFW_DONT_CARE, GLFW_DONT_CARE);
+
+        
+        
 
 
         //Initialize main engine modules
-        RenderModule::init(m_window);
+        m_window = new Window(1920, 1080, name);
+        m_window->setEventCallback(VEIST_EVENT_BIND_FUNCTION(Application::processEvent));
+        RenderModule::init(m_window->windowHandle());
         GUIModule::init(RenderModule::getBackend().get());
-        InputModule::init(m_window);
+        InputModule::init(m_window->windowHandle());
 
 
         m_thread_pool = new ThreadPool();
@@ -39,9 +40,43 @@ namespace Veist
 
         RenderModule::shutdown();
 
-        glfwDestroyWindow(m_window);
-        glfwTerminate();
+        
 
+
+    }
+
+
+
+
+    void Application::processEvent(Event& event)
+    {   
+
+        EventHandler handler(event);
+        handler.handleEvent<WindowCloseEvent>(VEIST_EVENT_BIND_FUNCTION(Application::onWindowClose));
+        handler.handleEvent<WindowResizeEvent>(VEIST_EVENT_BIND_FUNCTION(Application::onWindowResize));
+
+        onEvent(event);
+
+    }
+
+
+
+
+    void Application::onWindowClose(WindowCloseEvent& event)
+    {
+        m_running = false;
+    }
+
+
+    void Application::onWindowResize(WindowResizeEvent& event)
+    {
+
+        if (event.getHeight() == 0 || event.getWidth() == 0)
+        {
+            m_minimized = true;
+            return;
+        }
+        m_minimized = false;
 
     }
 

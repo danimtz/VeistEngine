@@ -5,9 +5,10 @@
 #include "Veist/Renderer/RenderModule.h"
 #include "Veist/ImGUI/GUIModule.h"
 #include "Veist/Input/InputModule.h"
+#include "Veist/Core/Window.h"
 #include "Veist/Scenes/Scene.h"
 #include "Veist/Concurrency/ThreadPool.h"
-
+#include "Veist/Events/WindowEvents.h"
 
 namespace Veist
 {
@@ -23,6 +24,13 @@ namespace Veist
 		virtual void runClient() = 0;
 		virtual void initClient() = 0;
 		virtual void shutdownClient() = 0;
+		virtual void onEvent(Event& event) = 0;
+
+
+		void processEvent(Event& event);
+
+		void onWindowClose(WindowCloseEvent& event);
+		void onWindowResize(WindowResizeEvent& event);
 
 		void close() { m_running = false; };
 
@@ -31,14 +39,15 @@ namespace Veist
 	protected:
 
 		
-		void shutdown();
-
+		
 
 
 	protected:
 
+
 		bool m_running = true;
-		GLFWwindow* m_window;
+		bool m_minimized = false;
+		Window* m_window;
 		ThreadPool* m_thread_pool;
 		float m_last_frame_time = 0.0f;
 

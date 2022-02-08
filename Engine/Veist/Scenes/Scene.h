@@ -2,11 +2,9 @@
 
 #define GLM_DEPTH_ZERO_TO_ONE
 #include "Veist/Scenes/Model.h"
-#include "Veist/Camera/Camera.h"
-#include "Veist/Camera/CameraController.h"
 #include "Veist/Scenes/Skybox.h"
+#include "Veist/Camera/Camera.h"
 #include "Veist/Scenes/LightProbe.h"
-
 #include "Veist/Scenes/ECS/EntityRegistry.h"
 
 
@@ -26,14 +24,14 @@ public:
 
 	void onUpdate(Timestep dt);
 
-
+	Camera* getMainCamera();
 
 private:
 
 
 	std::unique_ptr<ecs::EntityRegistry> m_registry;
 
-	CameraController m_cam_control;
+	
 
 
 };

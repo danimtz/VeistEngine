@@ -64,26 +64,14 @@ namespace Veist
 
 	void Scene::onUpdate(Timestep dt) 
 	{
-
-	
-	
+		
+		auto& scene_view = m_registry->view<CameraComponent, TransformComponent>();
+		for (ecs::EntityId entity : scene_view)
 		{
-			auto& scene_view = m_registry->view<CameraComponent, TransformComponent>();
-			for (ecs::EntityId entity : scene_view)
-			{
-				auto& cam_comp = scene_view.get<CameraComponent>(entity);
-				auto& transform = scene_view.get<TransformComponent>(entity);
+			auto& cam_comp = scene_view.get<CameraComponent>(entity);
+			cam_comp.camera().onUpdate();
 
-
-				m_cam_control.updateCamera(cam_comp.camera(), transform.translation(), dt); 
-				cam_comp.camera().onUpdate();
-
-
-				break;//Only first camera componenet being taken into consideration for now
-			}
 		}
-	
-
 
 		//Iterate ECS update transforms compoenents etc etc TODO
 		{
@@ -101,4 +89,23 @@ namespace Veist
 	
 
 	}
+
+
+
+	Camera* Scene::getMainCamera() 
+	{
+
+		auto& scene_view = m_registry->view<CameraComponent, TransformComponent>();
+		for (ecs::EntityId entity : scene_view)
+		{
+			auto& cam_comp = scene_view.get<CameraComponent>(entity);
+			return &cam_comp.camera();
+			
+		}
+
+	}
+
+
+
+	
 }

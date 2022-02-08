@@ -21,6 +21,8 @@ namespace VeistEditor
         m_ui_panels->addPanel<EngineViewportPanel>();
         m_ui_panels->addPanel<StatsPanel>();
 
+
+
     }
 
 
@@ -28,7 +30,13 @@ namespace VeistEditor
     {
     //TODO rework this. currently calling this twice just loads another identical scene in the same registry
   
-        m_thread_pool->spawnThread( [=](){ Scene::loadScene(scene->ecsRegistry()); }  );
+        m_thread_pool->spawnThread( [=]()
+        { 
+            m_scene_loaded = false; //TODO add lock here since changing variable on another thread might data race;
+            Scene::loadScene(scene->ecsRegistry()); 
+            m_editor_camera = std::make_shared<CameraController>(scene->getMainCamera());
+            m_scene_loaded = true;
+        });
     }
 
 
@@ -48,63 +56,61 @@ namespace VeistEditor
             m_frametime = time - m_last_frame_time;
             m_last_frame_time = time;
 
-            //std::cout << m_frametime.getMilliseconds() << "ms" << std::endl;
+           
+            if(!m_minimized){
+            
+                InputModule::onUpdate();
 
-            //FPS counter
-                /*double currentTime = glfwGetTime();
-                frameCount++;
-                if (currentTime - previousTime >= 1.0)
+                //Update Scenes and scene related items
                 {
-                    std::cout << frameCount << std::endl;
-                    frameCount = 0;
-                    previousTime = currentTime;
-                }*/
+                    if(m_scene_loaded)
+                    {
+                        m_editor_camera->onUpdate(m_frametime);
+                    }
+                    scene->onUpdate(m_frametime);
+                }
+           
+
+                //Rendering
+                {
+                    render_backend->getSwapchain()->beginNextFrame(); //Swapchain should maybe belong to window but that would require changing the whole backend
+                    CommandBuffer& cmd_buffer = render_backend->getCurrentCmdBuffer();
+                    cmd_buffer.begin();
+                    GUIModule::beginFrame();
 
 
-            InputModule::onUpdate();
-            scene->onUpdate(m_frametime);
-
-            
-            
-
-            
-            //RenderModule::onUpdate(); //TODO change this from onUpdate to more customaziable. have beginFrame Present at the end etc etc. must have choosable framebuffer
-            
-            
-            render_backend->getSwapchain()->beginNextFrame(); //Swapchain should maybe belong to window but that would require changing the whole backend
-
-            CommandBuffer& cmd_buffer = render_backend->getCurrentCmdBuffer();
-            cmd_buffer.begin();
-
-            GUIModule::beginFrame();
+                    m_ui_panels->onUpdate();
+                    ImGui::ShowDemoWindow();
 
 
-
-            //Renderer swapchain present()
-            m_ui_panels->onUpdate();
-
-            //ImGui::ShowDemoWindow();
+                    GUIModule::endFrame();
 
 
-            GUIModule::endFrame();
+                    cmd_buffer.end();
+                    render_backend->getSwapchain()->present(cmd_buffer);
+                }
+               
 
-
-            cmd_buffer.end();
-            render_backend->getSwapchain()->present(cmd_buffer);
-
-
-
-            if (glfwWindowShouldClose(m_window))
-            {
-                m_running = false;
             }
-            //Rendering (rework this at some point RenderModule::onUpdate() should be called here only but then GUI module depends on render module etc etc) 
 
+            m_window->onUpdate();
+            
+           
         }
-
-
-
 	}
+
+
+
+    //Process events
+    void EditorApp::onEvent(Event& event)
+    {
+        if (m_scene_loaded)
+        {
+            m_editor_camera->onEvent(event);
+        }
+        
+
+    }
 
 
 
@@ -123,6 +129,8 @@ namespace VeistEditor
 
         
     }
+
+
 
     void EditorApp::shutdownClient()
     {
