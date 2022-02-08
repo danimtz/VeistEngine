@@ -18,19 +18,20 @@ public:
 
 	Scene();
 
-	static void loadScene(ecs::EntityRegistry* registry);
+	//TEMPORARY
+	void loadScene(ecs::EntityRegistry* registry);
 
 	ecs::EntityRegistry* ecsRegistry() const { return m_registry.get();};
 
 	void onUpdate(Timestep dt);
 
-	Camera* getMainCamera();
+	Camera* getMainCamera() {return m_main_camera.get();};
 
 private:
 
 
 	std::unique_ptr<ecs::EntityRegistry> m_registry;
-
+	std::shared_ptr<Camera> m_main_camera; //Shares with CameraComponent
 	
 
 

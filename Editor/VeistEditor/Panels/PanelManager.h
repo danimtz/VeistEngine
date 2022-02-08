@@ -14,6 +14,8 @@ namespace VeistEditor
 
 		void onUpdate();
 
+		void onEvent(Event& event);
+
 		template<typename PanelType>
 		void addPanel()
 		{

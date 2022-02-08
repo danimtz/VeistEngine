@@ -1,6 +1,7 @@
 #include <pch.h>
 #include "EngineViewportPanel.h"
 
+#include "VeistEditor/EditorApp.h"
 
 
 namespace VeistEditor
@@ -14,11 +15,7 @@ namespace VeistEditor
 		ImageProperties img_props = ImageProperties({ m_viewport_size }, {VK_FORMAT_R8G8B8A8_SRGB});
 		ImageProperties depth_img_props = ImageProperties({ m_viewport_size }, { VK_FORMAT_D32_SFLOAT });
 
-		//Create images
-		/*for (int i = 0; i < RenderModule::getBackend()->getSwapchainImageCount(); i++)
-		{
-			m_framebuffer_images.emplace_back( std::make_unique<ColorTextureAttachment>(img_props) );
-		}*/
+		
 		m_framebuffer_image = std::make_unique<ColorTextureAttachment>(img_props);
 		m_depth_image = std::make_unique<DepthTextureAttachment>(depth_img_props);
 
@@ -28,6 +25,12 @@ namespace VeistEditor
 
 
 		m_texture_id = ImGui_ImplVulkan_AddTexture(Sampler(SamplerType::RepeatLinear).sampler(), m_framebuffer_image.get()->imageView(), getImageLayout(m_framebuffer_image.get()->imageUsage()));
+	
+		
+		m_active_scene = EditorApp::get().getActiveScene();
+
+		m_editor_camera = std::make_unique<CameraController>(m_active_scene->getMainCamera());
+	
 	}
 
 	EngineViewportPanel::~EngineViewportPanel()
@@ -36,13 +39,42 @@ namespace VeistEditor
 	}
 
 
-	void EngineViewportPanel::renderPanel()
+	void EngineViewportPanel::onEvent(Event& event)
+	{
+		EventHandler handler(event);
+
+		handler.handleEvent<EditorSceneChangedEvent>(VEIST_EVENT_BIND_FUNCTION(EngineViewportPanel::changeScene));
+		
+		m_editor_camera->onEvent(event);
+	}
+
+
+	void EngineViewportPanel::onDrawPanel()
 	{
 
+		update();
+
+		renderPanel();
+
+	}
+
+
+	void EngineViewportPanel::update()
+	{
+		if(m_viewport_focused)
+		{
+			m_editor_camera->onUpdate(EditorApp::get().getFrametime());
+		}
+	}
+
+
+	void EngineViewportPanel::renderPanel()
+	{
+	
 		struct PanelConstraint
 		{
-			static void Square(ImGuiSizeCallbackData* data) 
-			{ 
+			static void Square(ImGuiSizeCallbackData* data)
+			{
 				data->DesiredSize.x = data->DesiredSize.y * m_aspect_ratio;
 				//data->DesiredSize.y = data->DesiredSize.x * (1.0f/m_aspect_ratio);
 			}
@@ -51,20 +83,22 @@ namespace VeistEditor
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
 		ImGui::Begin("Viewport", nullptr);
 
-		
+
 		renderScene();
-	
-		
+
+
+		//Check viewport is focused
+		//TODO
+
+
 		ImVec2 viewport_panel_size = ImGui::GetContentRegionAvail();
 		viewport_panel_size.x = viewport_panel_size.y * m_aspect_ratio;
-		m_viewport_size = {viewport_panel_size.x, viewport_panel_size.y };
+		m_viewport_size = { viewport_panel_size.x, viewport_panel_size.y };
 		ImGui::Image(m_texture_id, viewport_panel_size);
 		ImGui::End();
 		ImGui::PopStyleVar();
+	
 	}
-
-
-
 
 	void EngineViewportPanel::renderScene()
 	{
@@ -76,4 +110,13 @@ namespace VeistEditor
 
 	}
 
+
+
+
+	void EngineViewportPanel::changeScene(EditorSceneChangedEvent& event)
+	{
+		m_active_scene = event.getNewScene();
+		m_editor_camera = std::make_unique<CameraController>(m_active_scene->getMainCamera());
+
+	}
 }

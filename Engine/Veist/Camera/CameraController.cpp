@@ -93,7 +93,7 @@ namespace Veist
 		EventHandler handler(event);
 
 		handler.handleEvent<MouseScrolledEvent>(VEIST_EVENT_BIND_FUNCTION(CameraController::updateFoV));
-
+		
 	}
 	
 	void CameraController::updateFoV(MouseScrolledEvent& event)

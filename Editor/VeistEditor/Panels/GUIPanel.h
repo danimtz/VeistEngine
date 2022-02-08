@@ -1,6 +1,6 @@
 #pragma once
 
-
+#include "Veist/Events/Event.h"
 
 namespace VeistEditor
 { 
@@ -13,8 +13,8 @@ namespace VeistEditor
 		virtual ~GUIPanel(){};
 
 
-		virtual void renderPanel() = 0;
-
+		virtual void onDrawPanel() = 0;
+		virtual void onEvent(Veist::Event& event) = 0;
 
 	protected:
 

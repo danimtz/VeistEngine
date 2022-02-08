@@ -11,17 +11,17 @@ namespace Veist
 struct CameraComponent
 {
 
-	CameraComponent() = default;
+	CameraComponent() : m_camera(std::make_shared<Camera>()) {};
 	CameraComponent(const CameraComponent&) = default;
-	CameraComponent(Camera camera) : m_camera(camera) {};
+	CameraComponent(std::shared_ptr<Camera> camera_ptr) : m_camera(camera_ptr) {}; //not owning. used for main camera. scene class own unique pointer
 
 
-	Camera& camera() { return m_camera; };
-	const Camera& camera() const { return m_camera; };
+	Camera* camera() { return m_camera.get(); };
+	const Camera* camera() const { return m_camera.get(); };
 
 private:
 
-	Camera m_camera;
+	std::shared_ptr<Camera> m_camera;
 
 };
 

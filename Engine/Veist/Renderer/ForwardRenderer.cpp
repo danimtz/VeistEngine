@@ -125,7 +125,7 @@ void ForwardRenderer::renderSceneECS(CommandBuffer& cmd_buffer)
 		for (ecs::EntityId entity : scene_view)
 		{
 			auto& cam_comp = scene_view.get<CameraComponent>(entity);
-			main_cam = &cam_comp.camera();
+			main_cam = cam_comp.camera();
 			break;//Only first camera componenet being taken into consideration for now
 		}
 		

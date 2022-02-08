@@ -11,6 +11,18 @@ namespace VeistEditor
 
 	}
 
+	
+	void PanelManager::onEvent(Event& event)
+	{
+		
+		for (auto& gui_panel : m_gui_panels)
+		{
+			gui_panel.get()->onEvent(event);
+		}
+
+
+	}
+
 
 	void PanelManager::onUpdate()
 	{
@@ -100,7 +112,7 @@ namespace VeistEditor
 
 		for (auto& gui_panel : m_gui_panels)
 		{
-			gui_panel.get()->renderPanel();
+			gui_panel.get()->onDrawPanel();
 		}
 		
 

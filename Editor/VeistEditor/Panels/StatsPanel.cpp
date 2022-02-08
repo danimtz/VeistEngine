@@ -15,7 +15,7 @@ namespace VeistEditor
 
 
 
-	void StatsPanel::renderPanel()
+	void StatsPanel::onDrawPanel()
 	{
 
 		ImGui::Begin("Stats");

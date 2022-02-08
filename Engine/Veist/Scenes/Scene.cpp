@@ -11,10 +11,12 @@ namespace Veist
 	Scene::Scene() {
 
 		m_registry = std::make_unique<ecs::EntityRegistry>();
-
+		m_main_camera = std::make_shared<Camera>();
 	
 	}
 
+
+	//TEMPORARY FUNCTION, USED TO BE STATIC
 	void Scene::loadScene(ecs::EntityRegistry* registry)
 	{
 		if (!registry->isSceneLoaded())
@@ -30,7 +32,7 @@ namespace Veist
 			ecs::EntityId skybox = registry->createEntity();
 
 
-			registry->emplaceComponent<CameraComponent>(camera);
+			registry->emplaceComponent<CameraComponent>(camera, m_main_camera);
 			registry->emplaceComponent<TransformComponent>(camera, glm::vec3{ 0.0f, 0.0f, 3.5f });
 
 
@@ -69,7 +71,7 @@ namespace Veist
 		for (ecs::EntityId entity : scene_view)
 		{
 			auto& cam_comp = scene_view.get<CameraComponent>(entity);
-			cam_comp.camera().onUpdate();
+			cam_comp.camera()->onUpdate();
 
 		}
 
@@ -87,11 +89,10 @@ namespace Veist
 			}
 		}
 	
-
 	}
 
 
-
+	/*
 	Camera* Scene::getMainCamera() 
 	{
 
@@ -103,7 +104,7 @@ namespace Veist
 			
 		}
 
-	}
+	}*/
 
 
 

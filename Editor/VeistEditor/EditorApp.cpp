@@ -4,6 +4,8 @@
 
 #include <Veist/Core/EntryPoint.h> 
 
+#include "Veist/Events/EditorEvents.h"
+
 //Add include "Panels.h" which shjould be a list of includes of all panels like components in ecs
 #include "Panels/EngineViewportPanel.h"
 #include "Panels/StatsPanel.h"
@@ -16,26 +18,24 @@ namespace VeistEditor
     {
         s_Instance = this;
 
-        m_ui_panels = std::make_unique<PanelManager>();
-
-        m_ui_panels->addPanel<EngineViewportPanel>();
-        m_ui_panels->addPanel<StatsPanel>();
-
-
-
     }
 
 
     void EditorApp::loadScene()
     {
     //TODO rework this. currently calling this twice just loads another identical scene in the same registry
-  
+        m_scene_loaded = false;
         m_thread_pool->spawnThread( [=]()
         { 
-            m_scene_loaded = false; //TODO add lock here since changing variable on another thread might data race;
-            Scene::loadScene(scene->ecsRegistry()); 
-            m_editor_camera = std::make_shared<CameraController>(scene->getMainCamera());
-            m_scene_loaded = true;
+            //DONT USE SCENE CLASS FUNCITON LATEER. USE SCENE SERIALIZER. This is simulating creating a new scene
+            m_active_scene = std::make_unique<Scene>();
+            m_active_scene->loadScene(m_active_scene->ecsRegistry()); 
+
+            //Send event
+            EditorSceneChangedEvent event(m_active_scene.get());
+            EditorApp::get().processEvent(event);
+            RenderModule::setECSRegistry(m_active_scene->ecsRegistry());//TOOD Change the need to use this function when renderer reworked into framegraph
+            m_scene_loaded = true; //Might need a lock for concurrency
         });
     }
 
@@ -57,19 +57,15 @@ namespace VeistEditor
             m_last_frame_time = time;
 
            
-            if(!m_minimized){
+            if(!m_minimized && m_scene_loaded){
             
                 InputModule::onUpdate();
 
-                //Update Scenes and scene related items
+                //Update Scene and scene related items (game simulation)
                 {
-                    if(m_scene_loaded)
-                    {
-                        m_editor_camera->onUpdate(m_frametime);
-                    }
-                    scene->onUpdate(m_frametime);
+                    m_active_scene->onUpdate(m_frametime);
                 }
-           
+
 
                 //Rendering
                 {
@@ -89,8 +85,8 @@ namespace VeistEditor
                     cmd_buffer.end();
                     render_backend->getSwapchain()->present(cmd_buffer);
                 }
-               
 
+                
             }
 
             m_window->onUpdate();
@@ -104,12 +100,9 @@ namespace VeistEditor
     //Process events
     void EditorApp::onEvent(Event& event)
     {
-        if (m_scene_loaded)
-        {
-            m_editor_camera->onEvent(event);
-        }
-        
 
+        m_ui_panels->onEvent(event);
+        
     }
 
 
@@ -117,17 +110,17 @@ namespace VeistEditor
     void EditorApp::initClient()
     {
 
-        
-        scene = new Scene();//TEMPORARY
+        m_active_scene = std::make_unique<Scene>();//TEMPORARY
 
         
+        RenderModule::setECSRegistry(m_active_scene->ecsRegistry());
 
-        //Scene::loadScene( scene->ecsRegistry() );
-        //Scene::loadScene(EditorApp::get().getActiveScene()->ecsRegistry());
+        m_ui_panels = std::make_unique<PanelManager>();
 
-        RenderModule::setECSRegistry(scene->ecsRegistry());
+        m_ui_panels->addPanel<EngineViewportPanel>();
+        m_ui_panels->addPanel<StatsPanel>();
 
-        
+
     }
 
 
@@ -136,7 +129,7 @@ namespace VeistEditor
     {
         
         RenderModule::getBackend()->waitIdle(); //This is needed to make sure images are not in use. probably wont be necessary once asset system is implemented 
-        delete scene; //Delete scene including vkDeleteImage in destructor of textures (will be done in asset/resource system later on since they are shared pointers)
+        //delete scene; //Delete scene including vkDeleteImage in destructor of textures (will be done in asset/resource system later on since they are shared pointers)
 
     }
     

@@ -2,6 +2,7 @@
 
 #include "Veist/Input/InputModule.h"
 #include "Veist/Camera/Camera.h"
+
 namespace Veist
 {
 
@@ -18,6 +19,7 @@ public:
 private:
 	
 	void updateFoV(MouseScrolledEvent& event);
+
 
 	Camera* m_camera;
 

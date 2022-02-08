@@ -15,8 +15,8 @@ namespace VeistEditor
 		StatsPanel();
 		~StatsPanel(){};
 
-		void renderPanel() override;
-
+		void onDrawPanel() override;
+		void onEvent(Event& event) override {};
 
 	private:
 
