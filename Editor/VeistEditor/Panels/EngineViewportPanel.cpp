@@ -88,7 +88,8 @@ namespace VeistEditor
 
 
 		//Check viewport is focused
-		//TODO
+		m_viewport_focused = ImGui::IsWindowFocused();
+		m_viewport_hovered = ImGui::IsWindowHovered();
 
 
 		ImVec2 viewport_panel_size = ImGui::GetContentRegionAvail();

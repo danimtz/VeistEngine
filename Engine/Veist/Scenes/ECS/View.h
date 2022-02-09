@@ -106,7 +106,6 @@ public:
     *
     */
 
-
     template<typename ComponentType>
     ComponentType& get(EntityId entity)
     {

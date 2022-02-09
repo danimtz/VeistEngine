@@ -21,15 +21,14 @@ namespace Veist
 	{
 		if (!registry->isSceneLoaded())
 		{
-			ecs::EntityId camera = registry->createEntity();
-			ecs::EntityId waterbottle = registry->createEntity();
+			ecs::EntityId camera = registry->createEntity("camera");
+			ecs::EntityId waterbottle = registry->createEntity("waterbottle");
 
-			ecs::EntityId damagedhelmet = registry->createEntity();
-			ecs::EntityId helmet = registry->createEntity();
+			ecs::EntityId helmet = registry->createEntity("helmet");
 
-			ecs::EntityId point_light_1 = registry->createEntity();
-			ecs::EntityId sun_light = registry->createEntity();
-			ecs::EntityId skybox = registry->createEntity();
+			ecs::EntityId point_light_1 = registry->createEntity("pointlight1");
+			ecs::EntityId sun_light = registry->createEntity("sun directional light");
+			ecs::EntityId skybox = registry->createEntity("skybox");
 
 
 			registry->emplaceComponent<CameraComponent>(camera, m_main_camera);
@@ -56,7 +55,7 @@ namespace Veist
 			//IBL probe
 			std::shared_ptr<Cubemap> computed_cube = AssetLoader::loadCubemapFromEquirectMap("..\\assets\\Skyboxes\\Equirect\\Venice\\Venice.hdr", true);
 			//TODO Creating LightProbes and LightProbe components needs to be waaaaaaay smoother and not include possible large copies of textures etc
-			ecs::EntityId light_probe = registry->createEntity();
+			ecs::EntityId light_probe = registry->createEntity("light probe");
 			registry->emplaceComponent<LightProbeComponent>(light_probe, LightProbe(*computed_cube.get()));
 
 			registry->setSceneLoaded(true);

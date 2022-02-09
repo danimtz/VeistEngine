@@ -7,3 +7,4 @@
 #include "Veist/Scenes/ECS/Components/DirectionalLightComponent.h"
 #include "Veist/Scenes/ECS/Components/LightProbeComponent.h"
 #include "Veist/Scenes/ECS/Components/SkyboxComponent.h"
+#include "Veist/Scenes/ECS/Components/NametagComponent.h"

@@ -39,6 +39,7 @@ namespace VeistEditor
 		glm::vec2 m_viewport_size = {1920,1080};
 
 		bool m_viewport_focused = true;
+		bool m_viewport_hovered = true;
 
 		std::unique_ptr<CameraController> m_editor_camera;
 		Scene* m_active_scene = nullptr;

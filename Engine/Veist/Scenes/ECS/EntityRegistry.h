@@ -42,7 +42,7 @@ public:
 
 
 	EntityId createEntity();
-
+	EntityId createEntity(std::string nametag);
 
 	void destroyEntity(EntityId entity);
 
@@ -57,6 +57,14 @@ public:
 	{
 		return m_registry_loaded;
 	}
+
+
+	/*
+	/ 	entityList()
+	/ 	Returns vector of active entities;
+	/
+	*/
+	std::vector<EntityId>* entityList() { return &m_entities; };
 
 
 
@@ -92,6 +100,24 @@ public:
 		signature.set(getComponentId<T>(), false);
 
 	}
+
+
+	/*
+	/ 	getComponent()
+	/	returns a single component form a given entity
+	/
+	*/
+	
+	template<typename ComponentType>
+	ComponentType& getComponent(EntityId entity)
+	{
+		ComponentId comp_id = getComponentId<ComponentType>();//get component id
+
+		ComponentPool<ComponentType>* pool = static_cast<ComponentPool<ComponentType>*>(m_component_pools.at(comp_id).get()); //find component pool
+
+		return pool->getComponent(entity); //get component from that pool
+	}
+	
 
 
 	/*
@@ -142,7 +168,6 @@ private:
 		ComponentId component_id = getComponentId<T>();
 		if (component_id >= m_component_pools.size())
 		{
-			
 			
 			//If a component ID has been registered but is of higher id and has not had a component pool created yet create an empty slot for it
 			while (component_id > (m_component_pools.size()) && component_id != 0)
