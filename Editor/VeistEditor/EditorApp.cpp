@@ -7,9 +7,9 @@
 #include "Veist/Events/EditorEvents.h"
 
 //Add include "Panels.h" which shjould be a list of includes of all panels like components in ecs
-#include "Panels/EngineViewportPanel.h"
-#include "Panels/StatsPanel.h"
-#include "Panels/HierarchyPanel.h"
+#include "Panels/Panels.h"
+
+
 namespace VeistEditor
 {
 
@@ -73,12 +73,10 @@ namespace VeistEditor
                     render_backend->getSwapchain()->beginNextFrame(); //Swapchain should maybe belong to window but that would require changing the whole backend
                     CommandBuffer& cmd_buffer = render_backend->getCurrentCmdBuffer();
                     cmd_buffer.begin();
-                    GUIModule::beginFrame();
+                    GUIModule::beginFrame();//why do i need guimodule then?
 
-
-                    m_ui_panels->onUpdate();
+                    m_ui_panels->onUpdate();//dockspace set up here
                     ImGui::ShowDemoWindow();
-
 
                     GUIModule::endFrame();
 
@@ -121,7 +119,7 @@ namespace VeistEditor
         m_ui_panels->addPanel<EngineViewportPanel>();
         m_ui_panels->addPanel<StatsPanel>();
         m_ui_panels->addPanel<HierarchyPanel>();
-
+        m_ui_panels->addPanel<EntityPropertiesPanel>();
     }
 
 

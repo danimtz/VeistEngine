@@ -42,6 +42,8 @@ namespace VeistEditor
 
 		std::unique_ptr<Scene> m_active_scene;
 		
+
+
 		bool m_scene_loaded = true;
 		float m_last_frame_time = 0.0f;
 		Timestep m_frametime = 0.0f;

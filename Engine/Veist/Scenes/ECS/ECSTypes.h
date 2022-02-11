@@ -13,13 +13,14 @@ namespace ecs
 	constexpr uint32_t MAX_COMPONENTS = 32;
 
 	using ComponentId = std::uint8_t;
-	using EntityId = std::uint32_t;
+	using EntityId = std::int32_t;
 	using Signature = std::bitset<MAX_COMPONENTS>;
 
 
 	inline bool isEntityIdValid(EntityId id)
 	{
-		return (id >> 32) != EntityId(-1);
+		//return (id >> 32) != EntityId(-1);
+		return (id>=0);
 	}
 
 	uint32_t getNextComponentId();

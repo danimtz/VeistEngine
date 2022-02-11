@@ -7,26 +7,27 @@
 namespace VeistEditor
 {
 
-	class HierarchyPanel : public GUIPanel
+	class EntityPropertiesPanel : public GUIPanel
 	{
 	public:
 
-		HierarchyPanel();
+		EntityPropertiesPanel();
 
 		void onDrawPanel() override;
 		void onEvent(Event& event) override;
 
 
 	private:
-		
-		void drawEntity(ecs::EntityId& entity);
 
+		void drawComponents();
+
+		void setSelectedEntity(EditorEntitySelectedChangedEvent& event);
 		void changeScene(EditorSceneChangedEvent& event);
 
 		ecs::EntityId m_selected_entity = -1;
-
-		ecs::EntityRegistry* m_active_registry;
 	
+		ecs::EntityRegistry* m_active_registry;
+
 	};
 
 

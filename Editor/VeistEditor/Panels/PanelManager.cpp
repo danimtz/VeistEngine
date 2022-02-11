@@ -57,7 +57,7 @@ namespace VeistEditor
 		// We cannot preserve the docking relationship between an active window and an inactive docking, otherwise 
 		// any change of dockspace/settings would lead to windows being stuck in limbo and never being visible.
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-		ImGui::Begin("DockSpace Demo", &dockspace_open, window_flags);
+		ImGui::Begin("DockSpace", &dockspace_open, window_flags);
 		ImGui::PopStyleVar();
 
 

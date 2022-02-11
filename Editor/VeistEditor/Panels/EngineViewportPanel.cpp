@@ -45,7 +45,10 @@ namespace VeistEditor
 
 		handler.handleEvent<EditorSceneChangedEvent>(VEIST_EVENT_BIND_FUNCTION(EngineViewportPanel::changeScene));
 		
-		m_editor_camera->onEvent(event);
+		if (m_viewport_focused)
+		{
+			m_editor_camera->onEvent(event);
+		}
 	}
 
 
@@ -61,10 +64,12 @@ namespace VeistEditor
 
 	void EngineViewportPanel::update()
 	{
+
 		if(m_viewport_focused)
 		{
 			m_editor_camera->onUpdate(EditorApp::get().getFrametime());
 		}
+
 	}
 
 
@@ -88,9 +93,13 @@ namespace VeistEditor
 
 
 		//Check viewport is focused
+		if (m_viewport_hovered && !m_viewport_focused && ImGui::IsMouseDown(1))
+		{
+			ImGui::SetWindowFocus();
+		}
 		m_viewport_focused = ImGui::IsWindowFocused();
 		m_viewport_hovered = ImGui::IsWindowHovered();
-
+		
 
 		ImVec2 viewport_panel_size = ImGui::GetContentRegionAvail();
 		viewport_panel_size.x = viewport_panel_size.y * m_aspect_ratio;

@@ -17,14 +17,12 @@ void ForwardRenderer::init(std::shared_ptr<RenderBackend> backend)
 {
 	setRenderBackend(backend);
 	
+	/*
 	std::unique_ptr<ShaderBuffer> test_buff = std::make_unique<ShaderBuffer>(10,2, ShaderBufferUsage::Uniform); //test buffer suballocations
-
-	
-	
 
 	test_buff->setData("1234567890", 10, 0);
 	test_buff->setData("11681", 3, 1);
-
+	*/
 
 
 	m_camera_buffer = std::make_unique<ShaderBuffer>(sizeof(CameraData), m_render_backend->getSwapchain()->imageCount(), ShaderBufferUsage::Uniform);

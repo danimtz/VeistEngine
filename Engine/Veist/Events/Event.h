@@ -13,7 +13,7 @@ namespace Veist
 		EventFlagMouse = 0x02,
 		EventFlagKeyboard = 0x04,
 		EventFlagApp = 0x08,
-		EventFlagExternal = 0x16
+		EventFlagEditor = 0x16
 	};
 
 	enum class EventType
@@ -22,7 +22,7 @@ namespace Veist
 		WindowClose, WindowResize, WindowFocus, WindowLostFocus, WindowMoved,
 		KeyPressed, KeyReleased, KeyTyped,
 		MouseButtonPressed, MouseButtonReleased, MouseMoved, MouseScrolled,
-		EditorSceneChanged/*Maybe the editor event shouldnt be here*/
+		EditorSceneChanged, EditorEntitySelectedChanged/*Maybe the editor event shouldnt be here*/
 	};
 
 	#define VEIST_EVENT_DECLARE_FLAGS(flags) virtual int getEventFlags() const {return flags;};

@@ -60,6 +60,22 @@ public:
 
 
 	/*
+	/ 	hasComponent()
+	/ 	Checks if entity has a component;
+	/
+	*/
+	template<typename ComponentType>
+	bool hasComponent(EntityId entity)
+	{
+		ComponentId comp_id = getComponentId<ComponentType>();//get component id
+
+		auto& signature = getEntitySignature(entity);
+
+		return signature.test(comp_id);
+	}
+
+
+	/*
 	/ 	entityList()
 	/ 	Returns vector of active entities;
 	/
@@ -81,7 +97,7 @@ public:
 
 		//Add component to entity signature
 		Signature& signature = getEntitySignature(id);
-		signature.set( getComponentId<T>() ,true);
+		signature.set( getComponentId<T>(), true);
 
 		return component;
 	}
@@ -107,11 +123,12 @@ public:
 	/	returns a single component form a given entity
 	/
 	*/
-	
 	template<typename ComponentType>
 	ComponentType& getComponent(EntityId entity)
 	{
 		ComponentId comp_id = getComponentId<ComponentType>();//get component id
+
+		//TODO Check entity has that component??
 
 		ComponentPool<ComponentType>* pool = static_cast<ComponentPool<ComponentType>*>(m_component_pools.at(comp_id).get()); //find component pool
 

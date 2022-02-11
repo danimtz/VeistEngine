@@ -6,9 +6,22 @@
 #include "Veist/Scenes/ECS/EntityRegistry.h"
 #include "Veist/Scenes/ECS/Components/Components.h"
 
+
 namespace VeistEditor
 {
 	
+	//TODO make this faster probably
+	static std::string getImGuiEntityLabel(ecs::EntityId& entity, std::string& display_name)
+	{
+
+		std::string label;
+
+		label.append(display_name).append("##").append(std::to_string(entity));
+
+		return label;
+	}
+
+
 
 	HierarchyPanel::HierarchyPanel() 
 	{
@@ -53,28 +66,31 @@ namespace VeistEditor
 	void HierarchyPanel::drawEntity(ecs::EntityId& entity)
 	{
 		
-		//ImGuiTreeNodeFlags flags = ((m_SelectionContext == entity) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
+		ImGuiTreeNodeFlags flags = ((m_selected_entity == entity) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
 
 		auto& name = m_active_registry->getComponent<NametagComponent>(entity);
-
 		
-		bool opened = ImGui::TreeNodeEx(name.nametag()->c_str(), 0);
-		
-
-		if (opened)
+		//Deselect entity
+		if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
 		{
-			/*ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
-			bool opened = ImGui::TreeNodeEx((void*)9817239, flags, "TEST");
-			if (opened)
-				ImGui::TreePop();*/
-			ImGui::TreePop();
+			if (m_selected_entity != -1)
+			{
+				m_selected_entity = -1;
+				EditorApp::get().processEvent(EditorEntitySelectedChangedEvent(m_selected_entity));
+			}
 		}
 
-	}
+		if (ImGui::Selectable( getImGuiEntityLabel(entity, *name.nametag()).c_str(), m_selected_entity == entity))
+		{
+			
+			if (entity != m_selected_entity)
+			{
+				m_selected_entity = entity;
+				EditorApp::get().processEvent(EditorEntitySelectedChangedEvent(entity));
+			}
 
 
-	void HierarchyPanel::drawComponents(ecs::EntityId& entity)
-	{
+		}
 
 	}
 
@@ -84,6 +100,7 @@ namespace VeistEditor
 		EventHandler handler(event);
 
 		handler.handleEvent<EditorSceneChangedEvent>(VEIST_EVENT_BIND_FUNCTION(HierarchyPanel::changeScene));
+		
 	}
 
 
@@ -94,5 +111,7 @@ namespace VeistEditor
 		m_active_registry = event.getNewScene()->ecsRegistry();
 		
 	}
+
+
 
 }

@@ -26,7 +26,7 @@ public:
 	static void endFrame();
 
 private:
-	static void setDarkThemeColors();
+	static void setImGuiStyle();
 
 	
 
