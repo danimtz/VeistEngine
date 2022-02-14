@@ -41,7 +41,7 @@ public:
 
 
 
-	EntityId createEntity();
+	EntityId createEntity();//TODO maybe private this, as all antities should have a nametagcomponents which is a special type of component that should never be removed
 	EntityId createEntity(std::string nametag);
 
 	void destroyEntity(EntityId entity);
@@ -111,6 +111,10 @@ public:
 	void removeComponent(EntityId id)//TODO recursive removeComponents <component1, component2, etc>
 	{
 		
+		if (getComponentId<T>() == getComponentId<NametagComponent>())
+		{
+			CRITICAL_ERROR_LOG("Cannot remove Nametag component");
+		}
 		findOrCreateComponentPool<T>()->removeComponent(id);
 		Signature& signature = getEntitySignature(id);
 		signature.set(getComponentId<T>(), false);

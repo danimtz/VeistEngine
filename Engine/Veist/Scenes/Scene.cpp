@@ -26,8 +26,8 @@ namespace Veist
 
 			ecs::EntityId helmet = registry->createEntity("helmet");
 
-			//ecs::EntityId point_light_1 = registry->createEntity("pointlight1");
-			//ecs::EntityId sun_light = registry->createEntity("sun directional light");
+			ecs::EntityId point_light_1 = registry->createEntity("pointlight1");
+			ecs::EntityId sun_light = registry->createEntity("sun directional light");
 			ecs::EntityId skybox = registry->createEntity("skybox");
 
 
@@ -37,11 +37,11 @@ namespace Veist
 
 			glm::vec3 pos = glm::vec3(3.0, 0.0, 0.0);
 			glm::vec3 col = glm::vec3(0.1, 0.13, 0.81);
-			//registry->emplaceComponent<PointLightComponent>(point_light_1, col);
-			//registry->emplaceComponent<TransformComponent>(point_light_1, pos);
+			registry->emplaceComponent<PointLightComponent>(point_light_1, col);
+			registry->emplaceComponent<TransformComponent>(point_light_1, pos);
 
 
-			//registry->emplaceComponent<DirectionalLightComponent>(sun_light, glm::normalize(glm::vec3(0.0, 1.0, -1.0)), glm::vec3(1.0), 1.0);
+			registry->emplaceComponent<DirectionalLightComponent>(sun_light, glm::normalize(glm::vec3(0.0, 1.0, -1.0)), glm::vec3(1.0), 1.0);
 
 			registry->emplaceComponent<MeshComponent>(waterbottle, Model("..\\assets\\GLTF_models\\Bottle\\", "PBRforward", "WaterBottle.gltf"));
 			registry->emplaceComponent<TransformComponent>(waterbottle, glm::vec3{ 2.0, 0.0, 0.0 }, glm::vec3{ 0.0, 0.0, 0.0 }, glm::vec3{ 8.0, 8.0, 8.0 });

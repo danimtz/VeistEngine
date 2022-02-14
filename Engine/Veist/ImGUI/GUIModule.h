@@ -4,6 +4,7 @@
 #include "Veist/Renderer/RenderModule.h"
 
 #include "imgui.h"
+#include "imgui_internal.h""
 
 //TODO: replace vulkan backend of imgui with my own custom one that uses my engines renderbackend. far future for now
 #include "imgui_impl_vulkan.h"

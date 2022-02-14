@@ -50,11 +50,15 @@ void CommandBuffer::end()
 	//TODO: add check that end renderpass was called
 
 	VK_CHECK(vkEndCommandBuffer(m_cmd_buffer));
+
+	m_bound_pipeline = nullptr;
+
 }
 
 
 void CommandBuffer::immediateSubmit(VkQueue queue)
 {
+
 	VK_CHECK(vkEndCommandBuffer(m_cmd_buffer));
 	VkSubmitInfo submit_info = {};
 	submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -75,6 +79,8 @@ void CommandBuffer::immediateSubmit(VkQueue queue)
 
 	//clear the command pool
 	m_command_pool->resetPool();
+
+	m_bound_pipeline = nullptr;
 
 	CONSOLE_LOG("cmd IMMEDIATE SUBMIT: Data sumbitted to GPU");
 }

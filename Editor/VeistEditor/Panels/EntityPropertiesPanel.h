@@ -20,6 +20,7 @@ namespace VeistEditor
 	private:
 
 		void drawComponents();
+		void drawComponentHeader();
 
 		void setSelectedEntity(EditorEntitySelectedChangedEvent& event);
 		void changeScene(EditorSceneChangedEvent& event);

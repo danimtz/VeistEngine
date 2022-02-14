@@ -156,7 +156,7 @@ void ForwardRenderer::renderSceneECS(CommandBuffer& cmd_buffer)
 		GPUPointLight point_lights[MAX_POINT_LIGHTS];
 	
 		uint32_t light_count = 0;
-		auto& scene_view = m_ecs_registry->view<PointLightComponent>();
+		auto& scene_view = m_ecs_registry->view<PointLightComponent, TransformComponent>();
 		for (ecs::EntityId entity : scene_view)
 		{
 			auto& light_comp = scene_view.get<PointLightComponent>(entity);
@@ -204,7 +204,7 @@ void ForwardRenderer::renderSceneECS(CommandBuffer& cmd_buffer)
 
 
 	//Render each entity
-	auto& scene_view = m_ecs_registry->view<MeshComponent>();
+	auto& scene_view = m_ecs_registry->view<MeshComponent, TransformComponent>();
 	for (ecs::EntityId entity : scene_view)
 	{
 		auto& mesh_comp = scene_view.get<MeshComponent>(entity);

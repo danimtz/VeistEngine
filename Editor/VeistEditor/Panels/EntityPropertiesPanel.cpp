@@ -35,9 +35,17 @@ namespace VeistEditor
 	{
 		
 		auto flags = ImGuiWindowFlags_NoCollapse;
+		//ImGui::SetWindowSize();
 		ImGui::Begin("Properties", (bool*)true, flags);
+
+
 		if (ecs::isEntityIdValid(m_selected_entity)) //Selected entity
 		{
+			
+			drawComponentHeader();
+
+			ImGui::Separator();
+
 			drawComponents();
 		}
 
@@ -54,7 +62,7 @@ namespace VeistEditor
 		ImVec2 button_size = {20, 0};
 
 		ImGui::PushID(label.c_str());
-		ImGui::PushItemWidth(40);
+		ImGui::PushMultiItemsWidths(3, ImGui::CalcItemWidth());
 
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
 		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.57f, 0.00f, 0.00f, 1.00f));
@@ -68,6 +76,7 @@ namespace VeistEditor
 		ImGui::SameLine();
 		ImGui::PopStyleVar();
 		ImGui::DragFloat("##Xval", &values.x, speed, 0.0f, 0.0f, "%.2f");
+		ImGui::PopItemWidth();
 		ImGui::SameLine();
 
 
@@ -83,6 +92,7 @@ namespace VeistEditor
 		ImGui::SameLine();
 		ImGui::PopStyleVar();
 		ImGui::DragFloat("##Yval", &values.y, speed, 0.0f, 0.0f, "%.2f");
+		ImGui::PopItemWidth();
 		ImGui::SameLine();
 		
 
@@ -98,9 +108,8 @@ namespace VeistEditor
 		ImGui::SameLine();
 		ImGui::PopStyleVar();
 		ImGui::DragFloat("##Zval", &values.z, speed, 0.0f, 0.0f, "%.2f");
-		
-		
 		ImGui::PopItemWidth();
+
 		ImGui::PopID();
 
 	}
@@ -110,18 +119,59 @@ namespace VeistEditor
 	template<typename CompType, typename F>
 	static void drawComponent(std::string name, ecs::EntityRegistry* registry, ecs::EntityId& entity, F drawComponentUI)
 	{
-		auto tree_node_flags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_SpanAvailWidth;
+		auto tree_node_flags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_SpanAvailWidth;
 
 		if (registry->hasComponent<CompType>(entity))//TODO danger if active registry not set this can crash
 		{
-			
+			bool component_deleted = false;
+			ImGui::PushID((void*)typeid(CompType).hash_code());
+
+			ImVec2 content_region = ImGui::GetContentRegionAvail();
+
+			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 4, 4 });
+			float line_height = ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2.0f;
 			bool opened = ImGui::TreeNodeEx((void*)typeid(CompType).hash_code(), tree_node_flags, name.c_str());
-			auto& component = registry->getComponent<CompType>(entity);
+			ImGui::PopStyleVar();
+			
+			ImVec2 button_size = { line_height, line_height };
+			ImGui::SameLine(content_region.x - line_height * 0.5f);
+			if (ImGui::Button("x", button_size))
+			{
+				ImGui::OpenPopup("Delete component?");
+			}
+			
+			if (ImGui::BeginPopupModal("Delete component?", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+			{
+				ImGui::Text("Delete component?");
+				ImGui::Separator();
+
+				if (ImGui::Button("OK", ImVec2(120, 0)))
+				{
+					//TODO: some components from some entites should not be able to be removed
+					component_deleted = true;
+					registry->removeComponent<CompType>(entity);
+					ImGui::CloseCurrentPopup();
+				}
+				ImGui::SetItemDefaultFocus();
+				ImGui::SameLine();
+				if (ImGui::Button("Cancel", ImVec2(120, 0)))
+				{
+					ImGui::CloseCurrentPopup();
+				}
+				ImGui::EndPopup();
+			}
+			
 			if (opened)
 			{
-				drawComponentUI(component);
+				if (!component_deleted)
+				{
+					auto& component = registry->getComponent<CompType>(entity);
+					drawComponentUI(component);
+				}
 				ImGui::TreePop();
 			}
+
+			ImGui::PopID();
 		}
 	}
 
@@ -130,36 +180,19 @@ namespace VeistEditor
 	void EntityPropertiesPanel::drawComponents()
 	{
 
-		drawComponent<NametagComponent>("Nametag", m_active_registry, m_selected_entity, [](auto& component)
-			{
-				auto table_flags = ImGuiTableFlags_NoHostExtendX | ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_BordersInnerV;
-				if (ImGui::BeginTable("nametag_table", 2, table_flags))
-				{
-					ImGui::TableNextRow();
-					ImGui::TableNextColumn();
-					ImGui::Text("Variable name: ");
-					ImGui::TableNextColumn();
-					char buffer[256];
-					memset(buffer, 0, sizeof(buffer));
-					std::strncpy(buffer, component.nametag()->c_str(), sizeof(buffer));
-					ImGui::SetNextItemWidth(150.0f);
-					if (ImGui::InputText("##t", buffer, sizeof(buffer)))
-					{
-						component = std::string(buffer);
-					}
-					ImGui::EndTable();
-				}
-			});
+		
 
 		drawComponent<TransformComponent>("Transform", m_active_registry, m_selected_entity, [](auto& component)
 			{
-				auto table_flags = ImGuiTableFlags_NoHostExtendX | ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_BordersInnerV;
+				auto table_flags = ImGuiTableFlags_NoHostExtendX | ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_BordersOuterV;
 				if (ImGui::BeginTable("transform_table", 2, table_flags))
 				{
 					
 					for (int rows = 0; rows < 3; rows++)
 					{
 						ImGui::TableNextRow();
+						//ImGui::TableSetupColumn("Transform titles", ImGuiTableColumnFlags);
+						//ImGui::TableSetupColumn("Vec3 controls");
 						ImGui::TableNextColumn();
 						switch (rows)
 						{
@@ -187,6 +220,62 @@ namespace VeistEditor
 			});
 
 	}
+
+
+
+	void EntityPropertiesPanel::drawComponentHeader()
+	{
+		auto& nametag = m_active_registry->getComponent<NametagComponent>(m_selected_entity);
+		
+		ImGui::Text("Name: ");
+
+		ImGui::SameLine();
+		char buffer[256];
+		memset(buffer, 0, sizeof(buffer));
+
+		std::strncpy(buffer, nametag.nametag()->c_str(), sizeof(buffer));
+		ImGui::PushItemWidth(ImGui::GetFontSize() * 8.0f);
+		if (ImGui::InputText("##t", buffer, sizeof(buffer)))
+		{
+			nametag = std::string(buffer);
+		}
+		ImGui::PopItemWidth();
+
+		ImGui::SameLine();
+		ImGui::PushItemWidth(-FLT_MIN);
+		if (ImGui::Button(" + Add Component"))
+		{
+			ImGui::OpenPopup("AddComponentsMenu");
+		}
+
+		if (ImGui::BeginPopup("AddComponentsMenu"))
+		{
+			if (!m_active_registry->hasComponent<CameraComponent>(m_selected_entity))
+			{
+				if (ImGui::MenuItem("Camera"))
+				{
+					m_active_registry->emplaceComponent<CameraComponent>(m_selected_entity);
+					ImGui::CloseCurrentPopup();
+				}
+			}
+
+			if (!m_active_registry->hasComponent<TransformComponent>(m_selected_entity))
+			{
+				if (ImGui::MenuItem("Transform"))
+				{
+					m_active_registry->emplaceComponent<TransformComponent>(m_selected_entity);
+					ImGui::CloseCurrentPopup();
+				}
+			}
+
+			ImGui::EndPopup();
+		}
+
+		ImGui::PopItemWidth();
+
+
+	}
+
 
 
 
