@@ -2,11 +2,11 @@
 
 #include "Logger.h"
 
-#include "Veist/Renderer/Vulkan/Buffers/VertexDescription.h"
+#include "Veist/Graphics/Vulkan/Buffers/VertexDescription.h"
 #include "Veist/Mesh/Mesh.h"
 
-#include "Veist/Renderer/Vulkan/Images/Image.h"
-#include "Veist/Renderer/Vulkan/Images/ImageProperties.h"
+#include "Veist/Graphics/Vulkan/Images/Image.h"
+#include "Veist/Graphics/Vulkan/Images/ImageProperties.h"
 
 namespace Veist
 {

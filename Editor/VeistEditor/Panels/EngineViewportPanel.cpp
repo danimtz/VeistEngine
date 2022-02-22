@@ -3,6 +3,9 @@
 
 #include "VeistEditor/EditorApp.h"
 
+//TEMPORARY, replace with renderer alter that uses the rendergraph
+#include "Veist/RenderGraph/RenderGraph.h"
+//#include "Veist/RenderGraph/RenderGraphPassBuilder.h"
 
 namespace VeistEditor
 {
@@ -112,6 +115,12 @@ namespace VeistEditor
 
 	void EngineViewportPanel::renderScene()
 	{
+
+		//RenderGraph Tests TODO: move declaring rendergraph passes etc to a renderer class or pre declared structure
+		RenderGraph render_graph;
+
+		auto builder = render_graph.addPass("ForwardPass");
+		auto builder2 = render_graph.addPass("ForwardPass2");
 
 		CommandBuffer& cmd_buffer = RenderModule::getBackend()->getCurrentCmdBuffer();
 		cmd_buffer.beginRenderPass(m_target_framebuffer);

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Veist/Renderer/Vulkan/ShaderAndPipelines/GraphicsPipeline.h"
-#include "Veist/Renderer/Vulkan/Images/Image.h"
-#include "Veist/Renderer/Vulkan/Descriptors/DescriptorSet.h"
+#include "Veist/Graphics/Vulkan/ShaderAndPipelines/GraphicsPipeline.h"
+#include "Veist/Graphics/Vulkan/Images/Image.h"
+#include "Veist/Graphics/Vulkan/Descriptors/DescriptorSet.h"
 
 #include "Veist/Util/AssetLoader.h"
 

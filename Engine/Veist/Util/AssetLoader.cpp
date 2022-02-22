@@ -15,7 +15,7 @@
 #include "Veist/Material/PBRMaterial.h"
 #include "Veist/Material/SkyboxMaterial.h"
 
-#include "Veist/Renderer/RenderModule.h"
+#include "Veist/Graphics/RenderModule.h"
 
 namespace Veist
 {

@@ -2,7 +2,7 @@
 #include "Model.h"
 
 
-#include "Veist/Renderer/Vulkan/Buffers/VertexBuffer.h"
+#include "Veist/Graphics/Vulkan/Buffers/VertexBuffer.h"
 
 namespace Veist
 {

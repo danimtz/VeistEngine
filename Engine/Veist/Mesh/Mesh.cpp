@@ -1,8 +1,8 @@
 #include "pch.h"
 #include "Mesh.h"
 
-#include "Veist/Renderer/Vulkan/Buffers/VertexBuffer.h"
-#include "Veist/Renderer/Vulkan/Buffers/IndexBuffer.h"
+#include "Veist/Graphics/Vulkan/Buffers/VertexBuffer.h"
+#include "Veist/Graphics/Vulkan/Buffers/IndexBuffer.h"
 
 namespace Veist
 {

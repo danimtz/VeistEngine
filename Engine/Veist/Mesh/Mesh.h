@@ -2,7 +2,7 @@
 
 //Will be rewritten later on into ECS/component system
 
-#include "Veist/Renderer/Vulkan/Buffers/VertexDescription.h"
+#include "Veist/Graphics/Vulkan/Buffers/VertexDescription.h"
 
 
 
