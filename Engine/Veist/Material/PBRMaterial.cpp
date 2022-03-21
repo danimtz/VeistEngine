@@ -25,10 +25,10 @@ void PBRMaterial::setUpDescriptorSet()
 	m_descriptor_set.setDescriptorSetLayout(MATERIAL_DESCRIPTOR_SET_NUMBER, m_pipeline.get());
 
 	
-	m_descriptor_set.bindCombinedSamplerTexture(PBRTextures::Albedo, m_albedo.get());
-	m_descriptor_set.bindCombinedSamplerTexture(PBRTextures::Normal, m_normal.get());
-	m_descriptor_set.bindCombinedSamplerTexture(PBRTextures::OcclusionRoughnessMetallic, m_occlusion_roughness_metallic.get());
-	m_descriptor_set.bindCombinedSamplerTexture(PBRTextures::Emmissive, m_emmissive.get());
+	m_descriptor_set.bindCombinedSamplerImage(PBRTextures::Albedo, m_albedo.get(), { SamplerType::RepeatLinear });
+	m_descriptor_set.bindCombinedSamplerImage(PBRTextures::Normal, m_normal.get(), { SamplerType::RepeatLinear });
+	m_descriptor_set.bindCombinedSamplerImage(PBRTextures::OcclusionRoughnessMetallic, m_occlusion_roughness_metallic.get(), { SamplerType::RepeatLinear });
+	m_descriptor_set.bindCombinedSamplerImage(PBRTextures::Emmissive, m_emmissive.get(), { SamplerType::RepeatLinear });
 	
 
 	m_descriptor_set.buildDescriptorSet();

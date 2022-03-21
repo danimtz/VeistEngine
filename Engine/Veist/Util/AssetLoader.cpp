@@ -499,7 +499,7 @@ std::shared_ptr<Cubemap> AssetLoader::loadCubemapFromEquirectMap(const char* fil
 		ComputePipeline compute_program = { "equirectToCubemapHDR" };
 		DescriptorSet compute_descriptor;
 		compute_descriptor.setDescriptorSetLayout(0, &compute_program);
-		compute_descriptor.bindCombinedSamplerTexture(0, &equirect);
+		compute_descriptor.bindCombinedSamplerImage(0, &equirect, { SamplerType::RepeatLinear });
 		compute_descriptor.bindStorageImage(1, &cubemap);
 		compute_descriptor.buildDescriptorSet();
 
@@ -549,7 +549,7 @@ std::shared_ptr<Cubemap> AssetLoader::loadCubemapFromEquirectMap(const char* fil
 		ComputePipeline compute_program = { "equirectToCubemapRGB8" };
 		DescriptorSet compute_descriptor;
 		compute_descriptor.setDescriptorSetLayout(0, &compute_program);
-		compute_descriptor.bindCombinedSamplerTexture(0, &equirect);
+		compute_descriptor.bindCombinedSamplerImage(0, &equirect, { SamplerType::RepeatLinear });
 		compute_descriptor.bindStorageImage(1, &cubemap);
 		compute_descriptor.buildDescriptorSet();
 

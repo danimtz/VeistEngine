@@ -7,6 +7,8 @@
 #include "Veist/Camera/CameraController.h"
 #include "Veist/Events/EditorEvents.h"
 
+#include "Veist/RenderGraph/RenderGraph.h"
+
 namespace VeistEditor
 {
 
@@ -30,6 +32,8 @@ namespace VeistEditor
 
 		void changeScene(EditorSceneChangedEvent& event);
 
+
+		std::shared_ptr<RenderGraphResourcePool> m_resource_pool;
 		//framebuffer image resources TODO: when i create a framegraph system have these be part of framegraph resources
 		std::unique_ptr<ColorTextureAttachment> m_framebuffer_image;
 		std::unique_ptr<DepthTextureAttachment> m_depth_image;

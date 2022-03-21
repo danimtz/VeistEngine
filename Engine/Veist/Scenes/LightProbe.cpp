@@ -41,7 +41,7 @@ static std::shared_ptr<Cubemap> calculateIrradianceMap(const Cubemap& HDRcubemap
 	
 	DescriptorSet compute_descriptor;
 	compute_descriptor.setDescriptorSetLayout(0, &compute_irradiance);
-	compute_descriptor.bindCombinedSamplerCubemap(0, &HDRcubemap);
+	compute_descriptor.bindCombinedSamplerImage(0, &HDRcubemap, { SamplerType::RepeatLinear });
 	compute_descriptor.bindStorageImage(1, &cubemap);
 	compute_descriptor.buildDescriptorSet();
 
@@ -86,7 +86,7 @@ static std::shared_ptr<Cubemap> calculateEnvironmentMap(const Cubemap& HDRcubema
 		
 		DescriptorSet compute_descriptor;
 		compute_descriptor.setDescriptorSetLayout(0, &compute_IBLenvironment);
-		compute_descriptor.bindCombinedSamplerCubemap(0, &HDRcubemap);
+		compute_descriptor.bindCombinedSamplerImage(0, &HDRcubemap, { SamplerType::RepeatLinear });
 		compute_descriptor.bindStorageImage(1, mipmap_views.back());
 		compute_descriptor.buildDescriptorSet();
 

@@ -11,7 +11,15 @@ namespace Veist
 
 
 
+	/*ShaderBuffer* RenderGraphPass::getPhysicalBuffer(RenderGraphBufferResource* resource) const
+	{
+		return nullptr;
+	}
 
+	ImageBase* RenderGraphPass::getPhysicalImage(RenderGraphImageResource* resource) const
+	{
+		return nullptr;
+	}*/
 
 
 

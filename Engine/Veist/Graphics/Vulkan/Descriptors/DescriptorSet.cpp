@@ -35,12 +35,30 @@ void DescriptorSet::setDescriptorSetLayout(uint32_t set, const ComputePipeline* 
 
 
 
+
+void DescriptorSet::bindDescriptor(uint32_t binding, const Descriptor desc)
+{
+	
+	m_write_data.push_back({ desc.info() });
+
+	VkWriteDescriptorSet set_write = {};
+	set_write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+	set_write.pNext = nullptr;
+	set_write.dstBinding = binding;
+	set_write.descriptorCount = 1;
+	set_write.descriptorType = desc.type();
+
+
+	m_writes.push_back(set_write);
+}
+
+
 void DescriptorSet::bindSampledImage(uint32_t binding, VkImageView image_view, VkDescriptorType type, VkSampler sampler/*sampler view etc?*/)
 {
-	DescriptorInfo desc_info;
-	desc_info.image_info.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	desc_info.image_info.imageView = image_view;
-	desc_info.image_info.sampler = sampler;
+	VkDescriptorImageInfo desc_info;
+	desc_info.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	desc_info.imageView = image_view;
+	desc_info.sampler = sampler;
 
 
 	m_write_data.push_back({ desc_info });
@@ -61,9 +79,9 @@ void DescriptorSet::bindStorageImage(uint32_t binding, const VkImageView image_v
 {
 
 
-	DescriptorInfo desc_info;
-	desc_info.image_info.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-	desc_info.image_info.imageView = image_view;
+	VkDescriptorImageInfo desc_info; desc_info;
+	desc_info.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+	desc_info.imageView = image_view;
 
 
 	m_write_data.push_back({ desc_info });
@@ -80,24 +98,24 @@ void DescriptorSet::bindStorageImage(uint32_t binding, const VkImageView image_v
 }
 
 
+
+
+
 void DescriptorSet::bindStorageImage(uint32_t binding, const ImageBase* image)
 {
 	bindStorageImage(binding, image->imageView());
 }
 
 
-
-
-
+/*
 void DescriptorSet::bindBuffer(uint32_t binding, const ShaderBuffer* buffer, uint32_t range, VkDescriptorType type)
 {
-	DescriptorInfo desc_info;
-	desc_info.buffer_info.buffer = buffer->buffer();
-	desc_info.buffer_info.offset = 0;
-	desc_info.buffer_info.range = range;
+	VkDescriptorBufferInfo desc_info;
+	desc_info.buffer = buffer->buffer();
+	desc_info.offset = 0;
+	desc_info.range = range;
 
 	m_write_data.push_back({desc_info});
-	//m_buffer_infos.push_back({desc_info});
 
 	VkWriteDescriptorSet set_write = {};
 	set_write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -108,35 +126,51 @@ void DescriptorSet::bindBuffer(uint32_t binding, const ShaderBuffer* buffer, uin
 
 	
 	m_writes.push_back(set_write);
-}
+}*/
 
 void DescriptorSet::bindUniformBuffer(uint32_t binding, const ShaderBuffer* buffer, uint32_t range)
 {
-	bindBuffer(binding, buffer, range, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC);
+	//bindBuffer(binding, buffer, range, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC);
+	VkDescriptorBufferInfo desc_info;
+	desc_info.buffer = buffer->buffer();
+	desc_info.offset = 0;
+	desc_info.range = range;
+	bindDescriptor(binding, Descriptor(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, desc_info));
 }
+
+
 
 void DescriptorSet::bindStorageBuffer(uint32_t binding, const ShaderBuffer* buffer, uint32_t range)
 {
-	bindBuffer(binding, buffer, range, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC);
+	VkDescriptorBufferInfo desc_info;
+	desc_info.buffer = buffer->buffer();
+	desc_info.offset = 0;
+	desc_info.range = range;
+	bindDescriptor(binding, Descriptor(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, desc_info));
 }
 
 
 
-void DescriptorSet::bindCombinedSamplerTexture(uint32_t binding, const Texture* texture/*sampler view etc?*/)
+void DescriptorSet::bindCombinedSamplerImage(uint32_t binding, const Texture* texture, const Sampler sampler)
 {
 	
-	Sampler sampler = Sampler{ SamplerType::RepeatLinear };
+	
 
 	bindSampledImage(binding, texture->imageView(), VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, sampler.sampler());
 }
 
-void DescriptorSet::bindCombinedSamplerCubemap(uint32_t binding, const Cubemap* cubemap/*sampler view etc?*/)
+void DescriptorSet::bindCombinedSamplerImage(uint32_t binding, const Cubemap* cubemap, const Sampler sampler)
 {
 	
-	Sampler sampler = Sampler{ SamplerType::RepeatLinear };
+	
 
 	bindSampledImage(binding, cubemap->imageView(), VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, sampler.sampler());
 }
+
+
+
+
+
 
 
 void DescriptorSet::updateDescriptorSet()

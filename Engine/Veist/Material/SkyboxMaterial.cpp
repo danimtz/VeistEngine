@@ -22,7 +22,7 @@ void SkyboxMaterial::setUpDescriptorSet()
 	m_descriptor_set.setDescriptorSetLayout(SKYBOX_MATERIAL_DESCRIPTOR_SET_NUMBER, m_pipeline.get());
 
 
-	m_descriptor_set.bindCombinedSamplerCubemap(0, m_cubemap.get());
+	m_descriptor_set.bindCombinedSamplerImage(0, m_cubemap.get(), { SamplerType::RepeatLinear });
 	
 
 	m_descriptor_set.buildDescriptorSet();

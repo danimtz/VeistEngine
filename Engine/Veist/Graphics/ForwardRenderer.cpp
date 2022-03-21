@@ -171,7 +171,7 @@ void ForwardRenderer::renderSceneECS(CommandBuffer& cmd_buffer)
 			light_count++;
 		}
 
-		m_point_lights_buffer->setData(&point_lights, sizeof(GPUPointLight) * MAX_DIR_LIGHTS, frame_num);
+		m_point_lights_buffer->setData(&point_lights, sizeof(GPUPointLight) * MAX_POINT_LIGHTS, frame_num);
 		m_scene_info.point_lights_count = light_count;
 	}
 
@@ -232,9 +232,13 @@ void ForwardRenderer::renderSceneECS(CommandBuffer& cmd_buffer)
 			m_global_descriptor[frame_num].bindUniformBuffer(2, m_dir_lights_buffer.get(), sizeof(GPUDirLight) * MAX_DIR_LIGHTS);
 			m_global_descriptor[frame_num].bindStorageBuffer(3, m_point_lights_buffer.get(), sizeof(GPUPointLight) * MAX_POINT_LIGHTS);
 
-			m_global_descriptor[frame_num].bindCombinedSamplerCubemap(4, global_light_probe->irradianceMap());
-			m_global_descriptor[frame_num].bindCombinedSamplerCubemap(5, global_light_probe->prefilterMap());
-			m_global_descriptor[frame_num].bindCombinedSamplerTexture(6, global_light_probe->brdfLUT());
+			m_global_descriptor[frame_num].bindCombinedSamplerImage(4, global_light_probe->irradianceMap(), {SamplerType::RepeatLinear});
+			m_global_descriptor[frame_num].bindCombinedSamplerImage(5, global_light_probe->prefilterMap(), {SamplerType::RepeatLinear});
+			m_global_descriptor[frame_num].bindCombinedSamplerImage(6, global_light_probe->brdfLUT(), { SamplerType::RepeatLinear });
+
+			//m_global_descriptor[frame_num].bindDescriptor(4, Descriptor(*global_light_probe->irradianceMap(), { SamplerType::RepeatLinear }));
+			//m_global_descriptor[frame_num].bindDescriptor(5, Descriptor(*global_light_probe->prefilterMap(), { SamplerType::RepeatLinear }));
+			//m_global_descriptor[frame_num].bindDescriptor(6, Descriptor(*global_light_probe->brdfLUT(), { SamplerType::RepeatLinear }));
 
 
 			m_global_descriptor[frame_num].buildDescriptorSet();

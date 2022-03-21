@@ -19,20 +19,22 @@ namespace Veist
 		//Pass reads
 
 		//TODO: each of these functions needs to add name and rendergraphresource to RenderGraphPass->RenderGraph resource_to_index map and save the resource in the resource vector if it doenst exists yet
-		void addUniformInput(const std::string &name, const RenderGraphBufferInfo& info);
-		void addStorageInput(const std::string& name, const RenderGraphBufferInfo& info);
-		void addAttachmentInput(const std::string& name, const RenderGraphImageInfo& info);
-		void addTextureInput(const std::string& name, const RenderGraphImageInfo& info);
-		void addDepthAttachmentInput(const std::string& name, const RenderGraphImageInfo& info);
+		RenderGraphBufferResource* addUniformInput(const std::string &name, const RenderGraphBufferInfo& info, const uint32_t d_set_index = 0);
+		RenderGraphBufferResource* addStorageInput(const std::string& name, const RenderGraphBufferInfo& info, const uint32_t d_set_index = 0);
+		RenderGraphImageResource* addAttachmentInput(const std::string& name, const RenderGraphImageInfo& info, const uint32_t d_set_index = 0);
+		RenderGraphImageResource* addTextureInput(const std::string& name, const RenderGraphImageInfo& info, const uint32_t d_set_index = 0);
+		RenderGraphImageResource* addDepthInput(const std::string& name, const RenderGraphImageInfo& info, const uint32_t d_set_index = 0);
+
+		void addExternalInput(const std::string& name, Descriptor descriptor, const uint32_t d_set_index = 0); //Adds input from a resource external to the rendergraph environement.
 		//todo add more
 
 
 		//Pass writes:
 
-		void addColorOutput(const std::string& name, const RenderGraphImageInfo& info);
-		void addDepthOutput(const std::string& name, const RenderGraphImageInfo& info);
-		void addStorageTextureOutput(const std::string& name, const RenderGraphImageInfo& info);
-		void addStorageOutput(const std::string& name, const RenderGraphBufferInfo& info);
+		RenderGraphImageResource* addColorOutput(const std::string& name, const RenderGraphImageInfo& info);
+		RenderGraphImageResource* addDepthOutput(const std::string& name, const RenderGraphImageInfo& info);
+		RenderGraphImageResource* addStorageTextureOutput(const std::string& name, const RenderGraphImageInfo& info);
+		RenderGraphBufferResource* addStorageOutput(const std::string& name, const RenderGraphBufferInfo& info);
 		//todo add more
 
 
