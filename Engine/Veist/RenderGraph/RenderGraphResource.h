@@ -15,24 +15,40 @@ namespace Veist
 
 	struct RenderGraphImageInfo
 	{
-
 		ImageProperties properties;
-		ImageUsage usage_flags;
-
 	};
+
 
 	
 	class RenderGraphResource
 	{
 	public:
 
+		RenderGraphResource(uint32_t index) : m_index(index) {};
+
+		uint32_t index() const { return m_index; }
+
+		void setResourceName(const std::string& name)
+		{
+			m_name = name;
+		}
 
 
+		void setWrittenInPass(uint32_t pass_index)
+		{
+			m_written_in_passes.emplace(pass_index);
+		}
 
+		void setReadInPass(uint32_t pass_index)
+		{
+			m_read_in_passes.emplace(pass_index);
+		}
 
 	private:
 
 		uint32_t m_index;
+		std::unordered_set<uint32_t> m_written_in_passes;
+		std::unordered_set<uint32_t> m_read_in_passes;
 		std::string m_name;
 		//add more here
 	};
@@ -43,26 +59,47 @@ namespace Veist
 	{
 	public:
 
+		RenderGraphImageResource(uint32_t index) : RenderGraphResource(index) {}
 
+		void setImageInfo(const RenderGraphImageInfo& info)
+		{
+			m_info = info;
+		}
 
+		void setImageUsage(ImageUsage usage)
+		{
+			m_usage = usage;
+		}
 
 	private:
 
 		RenderGraphImageInfo m_info;
-		//add more here
+		ImageUsage m_usage;
 	};
+
+
 
 
 	class RenderGraphBufferResource : public RenderGraphResource
 	{
 	public:
 
+		RenderGraphBufferResource(uint32_t index) : RenderGraphResource(index) {}
 
+		void setBufferInfo(const RenderGraphBufferInfo& info)
+		{
+			m_info = info;
+		}
+
+		void setBufferUsage(ShaderBufferUsage usage)
+		{
+			m_usage = usage;
+		}
 
 	private:
 
 		RenderGraphBufferInfo m_info;
-		//add more here
+		ShaderBufferUsage m_usage;
 
 	};
 

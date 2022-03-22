@@ -22,9 +22,10 @@ namespace Veist
 		}
 		else
 		{
-			m_pass_to_idx_map.emplace(pass->name(), m_passes.size());
+			uint32_t index = m_passes.size();
+			m_pass_to_idx_map.emplace(pass->name(), index);
+			pass->m_pass_index = index;
 		}
-
 
 
 		return RenderGraphPassBuilder(pass);
@@ -32,7 +33,51 @@ namespace Veist
 	}
 
 
+	RenderGraphBufferResource* RenderGraph::getOrAddBufferResource(const std::string& name)
+	{
+		auto it = m_resource_to_idx_map.find(name);
+		if (it != m_resource_to_idx_map.end())
+		{
+			//todo? assert if its the correct type of resource
+			uint32_t index = it->second;
 
+			return static_cast<RenderGraphBufferResource*>(m_resources[index].get());
+		}
+		else
+		{
+			uint32_t index = m_resources.size();
+
+			m_resource_to_idx_map.emplace(name, index);
+
+			auto& resource = m_resources.emplace_back(std::make_unique<RenderGraphBufferResource>(RenderGraphBufferResource(index)));
+			
+			return static_cast<RenderGraphBufferResource*>(resource.get());
+		}
+	}
+	
+
+
+	RenderGraphImageResource* RenderGraph::getOrAddImageResource(const std::string& name)
+	{
+		auto it = m_resource_to_idx_map.find(name);
+		if (it != m_resource_to_idx_map.end())
+		{
+			//todo? assert if its the correct type of resource
+			uint32_t index = it->second;
+
+			return static_cast<RenderGraphImageResource*>(m_resources[index].get());
+		}
+		else
+		{
+			uint32_t index = m_resources.size();
+
+			m_resource_to_idx_map.emplace(name, index);
+
+			auto& resource = m_resources.emplace_back(std::make_unique<RenderGraphImageResource>(RenderGraphImageResource(index)));
+
+			return static_cast<RenderGraphImageResource*>(resource.get());
+		}
+	}
 
 
 

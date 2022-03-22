@@ -16,9 +16,7 @@ namespace Veist
 		using RenderFunction = std::function<void(CommandBuffer&, const RenderGraphPass*)>;
 
 
-		//Pass reads
-
-		//TODO: each of these functions needs to add name and rendergraphresource to RenderGraphPass->RenderGraph resource_to_index map and save the resource in the resource vector if it doenst exists yet
+		//Pass reads. Read resources must be declared respecting binding order inside the shader
 		RenderGraphBufferResource* addUniformInput(const std::string &name, const RenderGraphBufferInfo& info, const uint32_t d_set_index = 0);
 		RenderGraphBufferResource* addStorageInput(const std::string& name, const RenderGraphBufferInfo& info, const uint32_t d_set_index = 0);
 		RenderGraphImageResource* addAttachmentInput(const std::string& name, const RenderGraphImageInfo& info, const uint32_t d_set_index = 0);

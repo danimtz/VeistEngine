@@ -17,8 +17,12 @@ namespace Veist
 		
 		RenderGraphPassBuilder addPass(std::string_view name);
 
+		
+
 		bool setOutputBuffer(const std::string& name);
 
+		RenderGraphBufferResource* getOrAddBufferResource(const std::string& name);
+		RenderGraphImageResource* getOrAddImageResource(const std::string& name);
 	
 	private:
 

@@ -18,7 +18,7 @@ namespace VeistEditor
 	//TODO: move to renderer when rendergraph tests finished
 	static LightProbeComponent* getLightProbe(ecs::EntityRegistry* registry)
 	{
-		LightProbeComponent* light_probe;
+		LightProbeComponent* light_probe{nullptr};
 		{
 			auto& scene_view = registry->view<LightProbeComponent>();
 			for (ecs::EntityId entity : scene_view)
@@ -166,10 +166,7 @@ namespace VeistEditor
 		
 		RenderGraphImageInfo output_image_info, depth_attachment_info;
 
-		output_image_info.usage_flags = ImageUsage::ColorAttachment;
 		output_image_info.properties = ImageProperties({ m_viewport_size }, { VK_FORMAT_R8G8B8A8_SRGB });
-		
-		depth_attachment_info.usage_flags = ImageUsage::DepthAttachment;
 		depth_attachment_info.properties = ImageProperties({ m_viewport_size }, { VK_FORMAT_D32_SFLOAT });
 
 
@@ -185,6 +182,7 @@ namespace VeistEditor
 		auto camera_buffer = builder.addUniformInput("CameraBuffer", camera_buffer_info);
 		auto scene_info_buffer = builder.addUniformInput("SceneInfo", scene_info_buffer_info);
 		auto dir_lights_buffer = builder.addUniformInput("DirLights", dir_lights_buffer_info);
+		
 		auto point_lights_buffer = builder.addStorageInput("PointLights", point_lights_buffer_info);
 
 		builder.addExternalInput("IBLProbe_irrmap", Descriptor(*light_probe->prefilterMap(), { SamplerType::RepeatLinear }));
@@ -193,7 +191,8 @@ namespace VeistEditor
 		
 		auto output_image = builder.addColorOutput("FinalImage", output_image_info);
 		auto depth_output = builder.addDepthOutput("DepthAttachment", depth_attachment_info);
-
+		
+		/*
 
 		render_graph.setOutputBuffer("FinalImage");
 		//End rendergraph tests
@@ -338,7 +337,7 @@ namespace VeistEditor
 
 					m_global_descriptor[frame_num].buildDescriptorSet();
 				}
-
+				
 
 
 				//Check if pipeline changed
@@ -358,7 +357,7 @@ namespace VeistEditor
 					offset[2] = pass->getPhysicalBuffer(dir_lights_buffer)->offset() * frame_num;
 					offset[3] = pass->getPhysicalBuffer(point_lights_buffer)->offset() * frame_num;
 
-					cmd.bindDescriptorSet(*curr_material->pipeline(), m_global_descriptor[frame_num], offset_count, offset);
+					//cmd.bindDescriptorSet(*curr_material->pipeline(), m_global_descriptor[frame_num], offset_count, offset);
 
 					//Check if material changed  
 					if (curr_material != last_material)
@@ -401,7 +400,7 @@ namespace VeistEditor
 			}
 
 		});
-
+		*/
 
 		CommandBuffer& cmd_buffer = RenderModule::getBackend()->getCurrentCmdBuffer();
 		cmd_buffer.beginRenderPass(m_target_framebuffer);
