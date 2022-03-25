@@ -143,7 +143,7 @@ namespace VeistEditor
 
 	void EngineViewportPanel::renderScene()
 	{
-
+	/*
 		//RenderGraph Tests TODO: move declaring rendergraph passes etc to a renderer class or pre declared renderer structure
 		static constexpr uint32_t max_dir_lights = 4;
 		static constexpr uint32_t max_point_lights = 100;
@@ -192,16 +192,13 @@ namespace VeistEditor
 		auto output_image = builder.addColorOutput("FinalImage", output_image_info);
 		auto depth_output = builder.addDepthOutput("DepthAttachment", depth_attachment_info);
 		
-		/*
+		
 
 		render_graph.setOutputBuffer("FinalImage");
 		//End rendergraph tests
 
 
-
-
-
-
+		
 		builder.setRenderFunction([=](CommandBuffer& cmd, const RenderGraphPass* pass){
 		
 			auto ecs_registry = m_active_scene->ecsRegistry();
@@ -364,7 +361,8 @@ namespace VeistEditor
 					{
 						//Change material descriptors
 						//texture descriptor
-						cmd.bindMaterial(*curr_material);
+						//TODO: materials depend on renderpass, therefore must compile them at runtime (keep a hash map "cache" of already compiled materials so that they arent compiled EVERY frame
+						cmd.bindMaterial(*curr_material); 
 					}
 				}
 				cmd.bindVertexBuffer(*curr_mesh->getVertexBuffer());
@@ -400,8 +398,13 @@ namespace VeistEditor
 			}
 
 		});
-		*/
+		
 
+
+
+		render_graph.render();
+	*/
+		
 		CommandBuffer& cmd_buffer = RenderModule::getBackend()->getCurrentCmdBuffer();
 		cmd_buffer.beginRenderPass(m_target_framebuffer);
 		RenderModule::renderScene(cmd_buffer);

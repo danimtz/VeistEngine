@@ -80,6 +80,44 @@ namespace Veist
 	}
 
 
+	bool RenderGraph::setOutputBuffer(const std::string& name)
+	{
+		auto it = m_resource_to_idx_map.find(name);
+		if (it != m_resource_to_idx_map.end())
+		{
+			//todo? assert if its the correct type of resource
+			uint32_t index = it->second;
+			m_output_buffer = index;
+
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+
+
+
+	void RenderGraph::execute(CommandBuffer& cmd)
+	{
+
+		//Validate graph
+
+		//Allocate physical resources
+
+		//Build descriptors and framebuffers/renderpasses 
+		//TODO: materials depend on renderpass, therefore must compile them at runtime (keep a hash map "cache" of already compiled materials so that they arent compiled EVERY frame)
+
+		//Execute rendergraph passes
+
+		//TODO barriers. 
+
+
+
+
+	}
+
 
 
 }

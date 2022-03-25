@@ -42,21 +42,21 @@ static void fillSkyboxMeshData(MeshData& mesh_data)
 
 }
 
-std::unique_ptr<Skybox> Skybox::createFromCubemap(const std::string& material_name, const std::string& file_path)
+std::unique_ptr<Skybox> Skybox::createFromCubemap( const std::string& file_path)
 {
-	return std::make_unique<Skybox>(material_name, file_path, true);
+	return std::make_unique<Skybox>( file_path, true);
 }
 
 
-std::unique_ptr<Skybox> Skybox::createFromEquirectMap(const std::string& material_name, const std::string& file_path)
+std::unique_ptr<Skybox> Skybox::createFromEquirectMap( const std::string& file_path)
 {
-	return std::make_unique<Skybox>(material_name, file_path, false);
+	return std::make_unique<Skybox>( file_path, false);
 }
 
 
 
 
-Skybox::Skybox(const std::string& material_name, const std::string& cubemap_files_path, bool isCubemap)
+Skybox::Skybox(const std::string& cubemap_files_path, bool isCubemap)
 {
 
 	MeshData skybox_data;
@@ -66,12 +66,12 @@ Skybox::Skybox(const std::string& material_name, const std::string& cubemap_file
 
 	if (isCubemap)
 	{
-		m_material = AssetLoader::loadSkyboxMaterialFromCubemap(material_name.c_str(), cubemap_files_path, m_skybox_mesh->getVertexBuffer()->getInputDescription());
+		m_material = AssetLoader::loadSkyboxMaterialFromCubemap( cubemap_files_path);
 	}
 	else
 	{
 		
-		m_material = AssetLoader::loadSkyboxMaterialFromEquirectMap(material_name.c_str(), cubemap_files_path, m_skybox_mesh->getVertexBuffer()->getInputDescription());
+		m_material = AssetLoader::loadSkyboxMaterialFromEquirectMap( cubemap_files_path);
 		
 		
 	}

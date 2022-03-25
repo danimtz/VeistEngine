@@ -1,19 +1,20 @@
 #include "pch.h"
 
-#include "PBRMaterial.h"
+//#include "PBRMaterial.h"
 
 namespace Veist
 {
-
+/*
 PBRMaterial::PBRMaterial(const char* material_name, const VertexDescription& vertex_desc, 
-	std::shared_ptr<Texture> albedo, std::shared_ptr<Texture> normal, std::shared_ptr<Texture> occ_rgh_met, std::shared_ptr<Texture> emmissive) :
+	std::shared_ptr<Texture> albedo, std::shared_ptr<Texture> normal, std::shared_ptr<Texture> occ_rgh_met, std::shared_ptr<Texture> emmissive) : 
+	Material(material_name, vertex_desc),
 	m_albedo(albedo), 
 	m_normal(normal), 
 	m_occlusion_roughness_metallic(occ_rgh_met),
 	m_emmissive(emmissive)
 {
 
-	createPipeline(material_name, vertex_desc);
+	
 	setUpDescriptorSet();
 
 }
@@ -22,7 +23,7 @@ PBRMaterial::PBRMaterial(const char* material_name, const VertexDescription& ver
 void PBRMaterial::setUpDescriptorSet()
 {
 
-	m_descriptor_set.setDescriptorSetLayout(MATERIAL_DESCRIPTOR_SET_NUMBER, m_pipeline.get());
+	m_descriptor_set.setDescriptorSetLayout(MATERIAL_DESCRIPTOR_SET_NUMBER, m_pipeline_builder.get());
 
 	
 	m_descriptor_set.bindCombinedSamplerImage(PBRTextures::Albedo, m_albedo.get(), { SamplerType::RepeatLinear });
@@ -35,10 +36,5 @@ void PBRMaterial::setUpDescriptorSet()
 }
 
 
-void PBRMaterial::createPipeline(const char* material_name, const VertexDescription& vertex_desc) {
-
-	m_pipeline = std::make_shared<GraphicsPipeline>(material_name, vertex_desc);
-
-}
-
+*/
 }

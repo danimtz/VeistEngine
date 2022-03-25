@@ -26,10 +26,10 @@ static std::unique_ptr<RenderPass> createRenderPass(std::vector<ImageBase*>& col
 
 
 //Creates a RenderPass that links ot an existing VkRenderPass (used for swapchain framebuffer)
-static std::unique_ptr<RenderPass> setExistingRenderPass(VkRenderPass renderpass)
+/*static std::unique_ptr<RenderPass> setExistingRenderPass(VkRenderPass renderpass)
 {
 	return std::make_unique<RenderPass>(renderpass);
-}
+}*/
 
 
 static glm::u32vec2 calculateFramebufferSize(ImageBase& image)
@@ -98,7 +98,7 @@ Framebuffer::Framebuffer(std::vector<ImageBase*>& colors, ImageBase* depth, Load
 
 
 Framebuffer::Framebuffer(std::vector<ImageBase*>& colors, ImageBase* depth, RenderPass* renderpass) : 
-	m_render_pass(std::make_unique<RenderPass>(renderpass->vk_renderpass())), m_color_attachment_count(colors.size())
+	m_render_pass(std::make_unique<RenderPass>(renderpass)), m_color_attachment_count(colors.size())
 {
 	createFramebuffer(colors, depth, m_framebuffer, m_render_pass.get(), m_size);
 }

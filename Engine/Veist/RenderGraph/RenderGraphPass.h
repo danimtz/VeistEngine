@@ -1,6 +1,7 @@
 #pragma once
 
 #include "RenderGraphResource.h"
+#include "RenderGraphDescriptorTemplate.h"
 
 #include <Veist/Graphics/RenderModule.h>
 #include <Veist/Graphics/Vulkan/Buffers/ShaderBuffer.h>
@@ -24,7 +25,8 @@ namespace Veist
 		const std::string& name() const {return m_name;};
 
 
-		void addDescriptorTemplate(uint32_t descriptor_set_number, uint32_t resource_index);
+		void addDescriptorTemplate(uint32_t descriptor_set_number, uint32_t resource_index, VkDescriptorType descriptor_type, SamplerType sampler_type = SamplerType::None);
+		void addExternalDescriptorTemplate(uint32_t descriptor_set_number,  const Descriptor& descriptor);
 
 		ShaderBuffer* getPhysicalBuffer(RenderGraphBufferResource* resource) const;
 		ImageBase* getPhysicalImage(RenderGraphImageResource* resource) const;

@@ -12,7 +12,7 @@ namespace Veist
 {
 
 //IMPORTANT NOTE: if for example descriptor set 3 is used, the pipeline MUST have descriptors 1 and 2 declared in the shaders.
-void DescriptorSet::setDescriptorSetLayout(uint32_t set, const GraphicsPipeline* pipeline) 
+void DescriptorSet::setDescriptorSetLayout(uint32_t set, const GraphicsPipelineBuilder* pipeline) 
 {
 	if (set >= pipeline->shaderProgram()->descriptorLayouts().size())
 	{
@@ -163,11 +163,15 @@ void DescriptorSet::bindCombinedSamplerImage(uint32_t binding, const Cubemap* cu
 {
 	
 	
-
 	bindSampledImage(binding, cubemap->imageView(), VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, sampler.sampler());
 }
 
+void DescriptorSet::bindCombinedSamplerImage(uint32_t binding, const ImageBase* image, const Sampler sampler)
+{
 
+
+	bindSampledImage(binding, image->imageView(), VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, sampler.sampler());
+}
 
 
 

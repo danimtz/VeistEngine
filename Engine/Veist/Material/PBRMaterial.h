@@ -6,7 +6,7 @@
 namespace Veist
 {
 
-
+/*
 class PBRMaterial : public Material
 {
 public:
@@ -16,11 +16,9 @@ public:
 	
 
 private:
-
 	void setUpDescriptorSet() override;
-	void createPipeline(const char* material_name, const VertexDescription& vertex_desc) override;
-
-
+	
+	//These should be resource pointers once resource system is implemented
 	std::shared_ptr<Texture> m_albedo;
 	std::shared_ptr<Texture> m_normal;
 	std::shared_ptr<Texture> m_occlusion_roughness_metallic;
@@ -34,5 +32,9 @@ private:
 		Emmissive = 3
 	};
 };
+*/
+
+
+
 
 }

@@ -12,10 +12,12 @@
 #include "AssetLoader.h"
 
 #include "Veist/Material/Material.h"
-#include "Veist/Material/PBRMaterial.h"
-#include "Veist/Material/SkyboxMaterial.h"
+//#include "Veist/Material/PBRMaterial.h"
+//#include "Veist/Material/SkyboxMaterial.h"
 
 #include "Veist/Graphics/RenderModule.h"
+
+#include "Veist/Resources/EngineResources.h"
 
 namespace Veist
 {
@@ -586,7 +588,7 @@ std::shared_ptr<Cubemap> AssetLoader::loadCubemapFromEquirectMap(const char* fil
 
 
 
-std::shared_ptr<PBRMaterial> AssetLoader::loadPBRMaterialFromGLTF(const char* material_name, const char* gltf_filepath, std::string folder_path, const VertexDescription& vertex_desc)
+std::shared_ptr<Material> AssetLoader::loadPBRMaterialFromGLTF(const char* gltf_filepath, std::string folder_path)
 {
 	//Load TinyGLTF model
 	tinygltf::TinyGLTF loader;
@@ -604,7 +606,7 @@ std::shared_ptr<PBRMaterial> AssetLoader::loadPBRMaterialFromGLTF(const char* ma
 		CRITICAL_ERROR_LOG("Failed to load gltf file:" + std::string(gltf_filepath))
 	}
 	else {
-		CONSOLE_LOG("Loaded material: " + std::string(material_name) + " for: " + std::string(gltf_filepath))
+		CONSOLE_LOG("Loaded material for: " + std::string(gltf_filepath))
 	}
 
 
@@ -644,22 +646,15 @@ std::shared_ptr<PBRMaterial> AssetLoader::loadPBRMaterialFromGLTF(const char* ma
 	folder = folder_path;
 	std::shared_ptr<Texture> emmissive = AssetLoader::loadTextureFromFile(folder.append(uri).c_str(), { VK_FORMAT_R8G8B8A8_SRGB });
 	CONSOLE_LOG(" ===================== EMMISSIVE TEXTURE");
-	/*
-	MaterialData mat_data{material_name, vertex_desc};
-	mat_data.addTexture(albedo, MaterialData::PBRTextures::Albedo);
-	mat_data.addTexture(normal, MaterialData::PBRTextures::Normal);
-	mat_data.addTexture(occlusionRoughnessMetallic, MaterialData::PBRTextures::OcclusionRoughnessMetallic);
-	mat_data.addTexture(emmissive, MaterialData::PBRTextures::Emmissive);
-	*/
+	
 
-
-	return std::make_shared<PBRMaterial>(material_name, vertex_desc, albedo, normal, occlusionRoughnessMetallic, emmissive);
+	return std::make_shared<Material>(RenderModule::resources()->getMaterialType(EngineResources::MaterialTypes::PBRMaterial), MaterialData({albedo, normal, occlusionRoughnessMetallic, emmissive}));
 }
 
 
 
 
-std::shared_ptr<SkyboxMaterial> AssetLoader::loadSkyboxMaterialFromCubemap(const char* material_name, const std::string& filepath, const VertexDescription& vertex_desc)
+std::shared_ptr<Material> AssetLoader::loadSkyboxMaterialFromCubemap(const std::string& filepath)
 {
 
 	std::string posx = filepath;
@@ -680,19 +675,20 @@ std::shared_ptr<SkyboxMaterial> AssetLoader::loadSkyboxMaterialFromCubemap(const
 
 	std::shared_ptr<Cubemap> cubemap = AssetLoader::loadCubemapFromFiles(posx.c_str(), negx.c_str(), posy.c_str(), negy.c_str(), posz.c_str(), negz.c_str(), { VK_FORMAT_R8G8B8A8_SRGB });
 	CONSOLE_LOG(" ===================== CUBEMAP TEXTURE");
-	return std::make_shared<SkyboxMaterial>(material_name, vertex_desc, cubemap);
+	
+	return  std::make_shared<Material>(RenderModule::resources()->getMaterialType(EngineResources::MaterialTypes::SkyboxMaterial), MaterialData({cubemap}));
 }
 
 
 
 
-std::shared_ptr<SkyboxMaterial> AssetLoader::loadSkyboxMaterialFromEquirectMap(const char* material_name, const std::string& filepath, const VertexDescription& vertex_desc)
+std::shared_ptr<Material> AssetLoader::loadSkyboxMaterialFromEquirectMap(const std::string& filepath)
 {
 
 	std::shared_ptr<Cubemap> cubemap = AssetLoader::loadCubemapFromEquirectMap(filepath.c_str());
 
 
-	return std::make_shared<SkyboxMaterial>(material_name, vertex_desc, cubemap);
+	return  std::make_shared<Material>(RenderModule::resources()->getMaterialType(EngineResources::MaterialTypes::SkyboxMaterial), MaterialData({ cubemap }));
 
 }
 

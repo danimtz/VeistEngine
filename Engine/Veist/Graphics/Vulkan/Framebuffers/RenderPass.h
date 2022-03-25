@@ -31,19 +31,36 @@ public:
 		LoadOp load_op = LoadOp::Clear;
 	};
 
+	struct FormatLayout
+	{
+		FormatLayout() : m_depth_format(VK_FORMAT_UNDEFINED) {};
+		FormatLayout(const AttachmentProperties& depth_props, const std::vector<AttachmentProperties>& color_properties);
 
-	
+		
+		//map key functions
+		uint64_t hash() const;
+		//bool operator()(const FormatLayout const& lhs, const FormatLayout const& rhs) const;
+		bool operator <(const FormatLayout const& rhs) const;
+		
+
+		ImageFormat m_depth_format;
+		std::vector<ImageFormat> m_color_formats;
+	};
 	
 	RenderPass(std::vector<AttachmentProperties>& color_properties); //Renderpass without depth attachment
 	RenderPass(std::vector<AttachmentProperties>& color_properties, AttachmentProperties& depth_properties);
-	RenderPass(VkRenderPass renderpass) : m_render_pass(renderpass) {};
+	//RenderPass(VkRenderPass renderpass) : m_render_pass(renderpass) {};
 	RenderPass() = default;
+	RenderPass(RenderPass* other) : m_render_pass(other->vk_renderpass()), m_format_layout(other->formatLayout()) {}; //This should really be a copy constructor
 
 	VkRenderPass vk_renderpass() const { return m_render_pass; };
-	
+	FormatLayout formatLayout() const { return m_format_layout; };
+
 private:
 
 	VkRenderPass m_render_pass;
+	FormatLayout m_format_layout;
+
 };
 
 

@@ -17,7 +17,7 @@ namespace Veist
 		
 		RenderGraphPassBuilder addPass(std::string_view name);
 
-		
+		void execute(CommandBuffer& cmd);
 
 		bool setOutputBuffer(const std::string& name);
 
@@ -26,6 +26,7 @@ namespace Veist
 	
 	private:
 
+		int32_t m_output_buffer{-1};
 
 		std::vector<std::unique_ptr<RenderGraphPass>> m_passes;
 		std::vector<std::unique_ptr<RenderGraphResource>> m_resources;

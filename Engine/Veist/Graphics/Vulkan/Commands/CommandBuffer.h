@@ -29,6 +29,7 @@ public:
 	CommandBuffer() = default;
 
 	VkCommandBuffer vk_commandBuffer() const { return m_cmd_buffer; };
+	const RenderPass* currentRenderPass() const {return m_current_renderpass; };
 	const VkFence& fence() const { return m_fence; }
 
 	
@@ -61,12 +62,12 @@ public:
 	void bindIndexBuffer(const IndexBuffer& index_buffer);
 	void drawVertices(uint32_t size);
 	void drawIndexed(uint32_t size);
-	void bindMaterial(const Material& material);
+	void bindMaterial(Material& material);
 
 	void bindPipeline(GraphicsPipeline& pipeline);//maybe combine bindPipeline and bindDescriptorSet
 
 	//binds descriptor sets one at a time. TODO: make it bind all sets at once maybe? feed it a vector of VkDescriptorSet
-	void bindDescriptorSet(const GraphicsPipeline& pipeline, const DescriptorSet& descriptor_set, uint32_t offset_count, uint32_t* p_dynamic_offset);
+	void bindDescriptorSet(const DescriptorSet& descriptor_set, uint32_t offset_count, uint32_t* p_dynamic_offset);
 
 	//TODO: rework this one
 	void setPushConstants(const MatrixPushConstant& push_constant);
@@ -82,7 +83,7 @@ private:
 
 	VkFence m_fence;
 
-	const GraphicsPipeline* m_bound_pipeline{nullptr};
+	const GraphicsPipeline* m_bound_pipeline{ nullptr };
 	const RenderPass* m_current_renderpass{ nullptr };
 };
 

@@ -11,7 +11,7 @@
 namespace Veist
 {
 
-class PBRMaterial;
+class Material;
 class SkyboxMaterial;
 //TODO: be reworked alongisde resource/asset system that stores loaded assets in a map etc
 namespace AssetLoader {
@@ -32,11 +32,11 @@ namespace AssetLoader {
 
 
 	//std::shared_ptr<Texture> loadTextureFromGLTF(const char* filepath, ImageFormat format = { VK_FORMAT_R8G8B8A8_SRGB }); //TODO:
-	std::shared_ptr<PBRMaterial> loadPBRMaterialFromGLTF(const char* material_name, const char* gltf_filepath, std::string folder_path, const VertexDescription& vertex_desc); //TODO: dont like the VertexDescription argument dependency
+	std::shared_ptr<Material> loadPBRMaterialFromGLTF(const char* gltf_filepath, std::string folder_path); 
 	
 
-	std::shared_ptr<SkyboxMaterial> loadSkyboxMaterialFromCubemap(const char* material_name, const std::string& filepath, const VertexDescription& vertex_desc); //TODO: dont like the VertexDescription argument dependency
-	std::shared_ptr<SkyboxMaterial> loadSkyboxMaterialFromEquirectMap(const char* material_name, const std::string& filepath, const VertexDescription& vertex_desc); //TODO: dont like the VertexDescription argument dependency
+	std::shared_ptr<Material> loadSkyboxMaterialFromCubemap(const std::string& filepath);
+	std::shared_ptr<Material> loadSkyboxMaterialFromEquirectMap(const std::string& filepath);
 	
 
 }

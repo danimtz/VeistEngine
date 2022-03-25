@@ -300,9 +300,21 @@ void CommandBuffer::drawIndexed(uint32_t size)
 }
 
 
-void CommandBuffer::bindMaterial(const Material& material)
+void CommandBuffer::bindMaterial(Material& material)
 {
-	GraphicsPipeline* pipeline = material.pipeline().get();
+
+	GraphicsPipeline* pipeline = material.materialType()->getPipeline(m_current_renderpass);
+	
+	if (pipeline != m_bound_pipeline)
+	{
+		bindPipeline(*pipeline);
+		m_bound_pipeline = pipeline;
+	}
+
+	bindDescriptorSet(material.descriptorSet(), 0, nullptr);
+	
+	
+	/*GraphicsPipeline* pipeline = material.pipeline().get();
 
 	if (pipeline != m_bound_pipeline)
 	{
@@ -311,7 +323,7 @@ void CommandBuffer::bindMaterial(const Material& material)
 	}
 
 	bindDescriptorSet(*pipeline, material.descriptorSet(), 0, nullptr);
-
+	*/
 }
 
 
@@ -319,12 +331,12 @@ void CommandBuffer::bindPipeline(GraphicsPipeline& pipeline)
 {
 
 	//If pipeline was created for another renderpass either rebuild the pipeline or assert. choose
-	if (pipeline.getPipelineRenderpass() != m_current_renderpass->vk_renderpass())
+	/*if (pipeline.getPipelineRenderpass() != m_current_renderpass->vk_renderpass())
 	{
 		//CRITICAL_ERROR_LOG("Command Buffer Error: Attempted to bind pipeline for a different renderpass than its own");
 		CONSOLE_LOG("Renderpass changed: Pipeline was rebuilt");
 		pipeline.rebuildPipeline(*m_current_renderpass);
-	}
+	}*/
 
 	VkPipeline vulkan_pipeline = pipeline.pipeline();
 	vkCmdBindPipeline(m_cmd_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkan_pipeline);
@@ -332,10 +344,10 @@ void CommandBuffer::bindPipeline(GraphicsPipeline& pipeline)
 }
 
 
-void CommandBuffer::bindDescriptorSet(const GraphicsPipeline& pipeline, const DescriptorSet& descriptor_set, uint32_t offset_count, uint32_t* p_dynamic_offset)
+void CommandBuffer::bindDescriptorSet(const DescriptorSet& descriptor_set, uint32_t offset_count, uint32_t* p_dynamic_offset)
 {
 
-	VkPipelineLayout vulkan_pipeline_layout = pipeline.pipelineLayout();
+	VkPipelineLayout vulkan_pipeline_layout = m_bound_pipeline->pipelineLayout();
 
 	vkCmdBindDescriptorSets(
 		m_cmd_buffer,

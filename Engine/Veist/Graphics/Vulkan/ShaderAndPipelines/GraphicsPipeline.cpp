@@ -10,7 +10,7 @@ namespace Veist
 {
 
 
-
+/*
 GraphicsPipeline::GraphicsPipeline(const std::string& shader_name, const VertexDescription& vertex_desc, DepthTest depth_test, VkPrimitiveTopology topology,
 	VkPolygonMode polygon_mode, VkCullModeFlags cull_mode, VkFrontFace front_face)  : 
 	m_pipeline_builder({ shader_name, vertex_desc, depth_test, topology, polygon_mode, cull_mode, front_face })
@@ -23,7 +23,7 @@ GraphicsPipeline::GraphicsPipeline(const std::string& shader_name, const VertexD
 	
 };
 
-GraphicsPipeline::GraphicsPipeline(const RenderPass& renderpass, std::string shader_name, const VertexDescription& vertex_desc, DepthTest depth_test, VkPrimitiveTopology topology,
+GraphicsPipeline::GraphicsPipeline(const RenderPass& renderpass, const std::string& shader_name, const VertexDescription& vertex_desc, DepthTest depth_test, VkPrimitiveTopology topology,
 	VkPolygonMode polygon_mode, VkCullModeFlags cull_mode, VkFrontFace front_face) :
 	m_pipeline_builder({ shader_name, vertex_desc, depth_test, topology, polygon_mode, cull_mode, front_face })
 {
@@ -33,13 +33,25 @@ GraphicsPipeline::GraphicsPipeline(const RenderPass& renderpass, std::string sha
 
 	m_pipeline = m_pipeline_builder.buildPipeline(renderpass);
 
+};*/
+
+/*
+
+GraphicsPipeline::GraphicsPipeline(const std::string& shader_name, const VertexDescription& vertex_desc, DepthTest depth_test, VkPrimitiveTopology topology,
+	VkPolygonMode polygon_mode, VkCullModeFlags cull_mode, VkFrontFace front_face) :
+	m_pipeline_builder({ shader_name, vertex_desc, depth_test, topology, polygon_mode, cull_mode, front_face })
+{
+	m_pipeline_layout = m_pipeline_builder.m_pipeline_layout;
+	m_shader_program = m_pipeline_builder.m_shader_program;
+
 };
+
 
 void GraphicsPipeline::rebuildPipeline(const RenderPass& renderpass)
 {
 	m_pipeline = m_pipeline_builder.buildPipeline(renderpass);
 }
-
+*/
 
 
 GraphicsPipelineBuilder::GraphicsPipelineBuilder(const std::string& shader_name, const VertexDescription& vertex_desc, DepthTest depth_test, VkPrimitiveTopology topology,
@@ -51,7 +63,6 @@ GraphicsPipelineBuilder::GraphicsPipelineBuilder(const std::string& shader_name,
 	m_front_face(front_face)
 {
 	
-
 
 	createShaderProgram(shader_name);
 
@@ -299,13 +310,11 @@ void GraphicsPipelineBuilder::createPipelineLayout()
 }
 
 
-VkPipeline GraphicsPipelineBuilder::buildPipeline(const RenderPass& renderpass)
+GraphicsPipeline GraphicsPipelineBuilder::buildPipeline(const RenderPass* renderpass)
 {
 
-	m_renderpass = renderpass.vk_renderpass();
 	VkDevice device = RenderModule::getBackend()->getDevice();
-	//VkRenderPass render_pass = RenderModule::getBackend()->getRenderPass().vk_renderpass(); //TODO: oh boy pipelines depend on a renderpass. might need to have renderpass as an agrument when creating pipelines
-
+	
 	VkGraphicsPipelineCreateInfo pipeline_info = {};
 	pipeline_info.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
 	pipeline_info.pNext = nullptr;
@@ -321,7 +330,7 @@ VkPipeline GraphicsPipelineBuilder::buildPipeline(const RenderPass& renderpass)
 	pipeline_info.pDepthStencilState = &m_depth_stencil_state_info;
 	pipeline_info.pDynamicState = &m_dynamic_state_info;
 	pipeline_info.layout = m_pipeline_layout;
-	pipeline_info.renderPass = renderpass.vk_renderpass();
+	pipeline_info.renderPass = renderpass->vk_renderpass();
 	pipeline_info.subpass = 0; //This needs to be an argument later if subpasses are used for deferred rendering. NOTE TO FUTURE ME
 	pipeline_info.basePipelineHandle = VK_NULL_HANDLE;
 
@@ -335,7 +344,7 @@ VkPipeline GraphicsPipelineBuilder::buildPipeline(const RenderPass& renderpass)
 		vkDestroyPipeline(device, pipeline, nullptr);  
 	});
 
-	return pipeline;
+	return GraphicsPipeline(pipeline, renderpass->vk_renderpass(), m_pipeline_layout);
 }
 
 

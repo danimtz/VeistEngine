@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "Veist/Graphics/RenderModule.h"
 #include "Veist/Graphics/ForwardRenderer.h"
-
+#include "Veist/Resources/EngineResources.h"
 
 
 namespace Veist
@@ -9,6 +9,7 @@ namespace Veist
 
 
     std::unique_ptr<Renderer> RenderModule::s_renderer = nullptr;
+    std::unique_ptr<EngineResources> RenderModule::s_resources = nullptr;
     std::shared_ptr<RenderBackend> RenderModule::s_render_backend = nullptr;
 
     void RenderModule::init(GLFWwindow* window) 
@@ -18,6 +19,8 @@ namespace Veist
         s_render_backend->init(window);
 
         selectRenderArchitecture(); //By default create forward renderer. Later make init function with custom arguemtn to initialize this to something else
+
+        s_resources = std::make_unique<EngineResources>();
     }
 
 

@@ -43,14 +43,14 @@ namespace Veist
 
 			registry->emplaceComponent<DirectionalLightComponent>(sun_light, glm::normalize(glm::vec3(0.0, 1.0, -1.0)), glm::vec3(1.0), 1.0);
 
-			registry->emplaceComponent<MeshComponent>(waterbottle, Model("..\\assets\\GLTF_models\\Bottle\\", "PBRforward", "WaterBottle.gltf"));
+			registry->emplaceComponent<MeshComponent>(waterbottle, Model("..\\assets\\GLTF_models\\Bottle\\", "WaterBottle.gltf"));
 			registry->emplaceComponent<TransformComponent>(waterbottle, glm::vec3{ 2.0, 0.0, 0.0 }, glm::vec3{ 0.0, 0.0, 0.0 }, glm::vec3{ 8.0, 8.0, 8.0 });
 
-			registry->emplaceComponent<MeshComponent>(helmet, Model("..\\assets\\GLTF_models\\DamagedHelmet\\", "PBRforward", "DamagedHelmet.gltf"));
+			registry->emplaceComponent<MeshComponent>(helmet, Model("..\\assets\\GLTF_models\\DamagedHelmet\\", "DamagedHelmet.gltf"));
 			registry->emplaceComponent<TransformComponent>(helmet, glm::vec3{ -1.0, 0.0, 0.0 }, glm::vec3{ 90.0, 90.0, 0.0 }, glm::vec3{ 1.0, 1.0, 1.0 });
 
 
-			registry->emplaceComponent<SkyboxComponent>(skybox, Skybox("Skybox", "..\\assets\\Skyboxes\\Equirect\\Venice\\Venice.hdr", false));
+			registry->emplaceComponent<SkyboxComponent>(skybox, Skybox("..\\assets\\Skyboxes\\Equirect\\Venice\\Venice.hdr", false));
 
 			//IBL probe
 			std::shared_ptr<Cubemap> computed_cube = AssetLoader::loadCubemapFromEquirectMap("..\\assets\\Skyboxes\\Equirect\\Venice\\Venice.hdr", true);

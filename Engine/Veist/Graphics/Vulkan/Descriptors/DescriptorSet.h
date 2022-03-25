@@ -60,11 +60,14 @@ namespace Veist
 		}
 
 
-		Descriptor(VkDescriptorType type, DescriptorInfo info) : m_type(type), m_info(info)
+		Descriptor(VkDescriptorType type, DescriptorInfo info = DescriptorInfo()) : m_type(type), m_info(info)
 		{}
 
 
+		void setDescriptorInfo()
+		{
 
+		}
 
 
 		VkDescriptorType type() const { return m_type; }; 
@@ -86,7 +89,7 @@ namespace Veist
 	public:
 	
 		DescriptorSet() = default;
-		void setDescriptorSetLayout(uint32_t set, const GraphicsPipeline* pipeline);
+		void setDescriptorSetLayout(uint32_t set, const GraphicsPipelineBuilder* pipeline);
 		void setDescriptorSetLayout(uint32_t set, const ComputePipeline* pipeline); //TODO: maybe make compute and graphics pipeline inherit from pipeline? maybe not though
 
 
@@ -95,6 +98,7 @@ namespace Veist
 		void bindStorageBuffer(uint32_t binding, const ShaderBuffer* buffer, uint32_t range);
 		void bindCombinedSamplerImage(uint32_t binding, const Texture* texture, const Sampler sampler);
 		void bindCombinedSamplerImage(uint32_t binding, const Cubemap* cubemap, const Sampler sampler);
+		void bindCombinedSamplerImage(uint32_t binding, const ImageBase* image, const Sampler sampler);
 		void bindStorageImage(uint32_t binding, const ImageBase* image);
 		void bindStorageImage(uint32_t binding, const VkImageView image_view);
 	

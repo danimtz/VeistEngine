@@ -10,6 +10,7 @@
 
 namespace Veist
 {
+class EngineResources;
 
 class RenderModule
 {
@@ -19,7 +20,8 @@ public:
 
 	static void init(GLFWwindow* window);
 	static void shutdown();
-	static std::shared_ptr<RenderBackend> getBackend(){return s_render_backend;};
+	static std::shared_ptr<RenderBackend> getBackend(){ return s_render_backend;};
+	static EngineResources* resources() { return s_resources.get(); };
 	static void selectRenderArchitecture(RendererType renderer_type = RendererType::Forward); //default to forward renderer
 
 	static inline void onUpdate()
@@ -38,9 +40,11 @@ public:
 	}
 	
 private:
-
-	static std::unique_ptr<Renderer> s_renderer; //THESES NED TO SOMEHOW BE PREINITIALIZED. FIGURE IT OUT TOMMORROW
+	
+	
+	static std::unique_ptr<Renderer> s_renderer; 
 	static std::shared_ptr<RenderBackend> s_render_backend;
+	static std::unique_ptr<EngineResources> s_resources;
 	
 };
 

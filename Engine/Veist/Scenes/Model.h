@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Veist/Mesh/Mesh.h"
-#include "Veist/Material/PBRMaterial.h"
+#include "Veist/Material/Material.h"
 #include "Veist/Util/AssetLoader.h"
 
 //TODO: Refactor this entire class. only temporary.
@@ -16,11 +16,11 @@ class Model
 {
 public:
 
-	Model(std::string folder_filepath, std::string material_name, std::string gltf_file);
+	Model(std::string folder_filepath, std::string gltf_file);
 
 
 	std::shared_ptr<Mesh>	mesh() const { return m_mesh; };
-	std::shared_ptr<PBRMaterial> material() const { return m_material; };
+	std::shared_ptr<Material> material() const { return m_material; };
 
 
 	//temp
@@ -29,7 +29,7 @@ public:
 private:
 
 	std::shared_ptr<Mesh>	m_mesh;
-	std::shared_ptr<PBRMaterial> m_material;
+	std::shared_ptr<Material> m_material;
 
 	//temp until ECS
 	mutable glm::mat4 m_model_mat{1.0f};

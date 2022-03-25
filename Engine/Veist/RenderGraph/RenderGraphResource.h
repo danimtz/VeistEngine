@@ -3,6 +3,7 @@
 
 #include <Veist/Graphics/RenderModule.h>
 #include "Veist/Graphics/Vulkan/Images/Image.h"
+#include "Veist/Graphics/Vulkan/Buffers/ShaderBuffer.h"
 
 namespace Veist
 {

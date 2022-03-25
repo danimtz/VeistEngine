@@ -211,8 +211,9 @@ void ForwardRenderer::renderSceneECS(CommandBuffer& cmd_buffer)
 		auto& transform_comp = scene_view.get<TransformComponent>(entity);
 
 		Mesh* curr_mesh = mesh_comp.mesh();
+
 		Material* curr_material = mesh_comp.material();
-		GraphicsPipeline* curr_pipeline = curr_material->pipeline().get();
+		//GraphicsPipeline* curr_pipeline = curr_material->materialType()->getPipeline(cmd_buffer.currentRenderPass());
 
 
 		//Model matrices
@@ -222,10 +223,10 @@ void ForwardRenderer::renderSceneECS(CommandBuffer& cmd_buffer)
 
 		//Write directional lights to buffer
 
-		//Create Global descriptor set for that frame if it doenst exists aready
+		//Create Global descriptor set for that frame if it doenst exists aready TODO: i dont like how descriptors are declared. very clunky
 		if (m_global_descriptor[frame_num].descriptorSet() == nullptr)
 		{
-			m_global_descriptor[frame_num].setDescriptorSetLayout(0, curr_pipeline);
+			m_global_descriptor[frame_num].setDescriptorSetLayout(0, curr_material->materialType()->pipelineBuilder());
 
 			m_global_descriptor[frame_num].bindUniformBuffer(0, m_scene_info_buffer.get(), sizeof(SceneInfo));
 			m_global_descriptor[frame_num].bindUniformBuffer(1, m_camera_buffer.get(), sizeof(CameraData));
@@ -246,33 +247,36 @@ void ForwardRenderer::renderSceneECS(CommandBuffer& cmd_buffer)
 
 
 
-		//Check if pipeline changed
-		if (curr_pipeline != last_pipeline)
-		{
+		//Check if pipeline changed OPTIMISATION add a check if pipeline has changed from last frame
+		//if (curr_pipeline != last_pipeline)
+		//{
+
+
+		cmd_buffer.bindMaterial(*curr_material);
+		//cmd_buffer.bindPipeline(*curr_material->getPipeline(cmd_buffer.currentRenderPass()));
+		cmd_buffer.setPushConstants(push_constant);
+
+
+		constexpr int offset_count = 4;
+		uint32_t offset[offset_count];
+		offset[0] = m_scene_info_buffer->offset() * frame_num;
+		offset[1] = m_camera_buffer->offset() * frame_num;
+		offset[2] = m_dir_lights_buffer->offset() * frame_num;
+		offset[3] = m_point_lights_buffer->offset() * frame_num;
+
+		cmd_buffer.bindDescriptorSet(m_global_descriptor[frame_num], offset_count, offset);
+
+		//Check if material changed  
+		//if (curr_material != last_material)
+		//{
+			//Change material descriptors
+			//texture descriptor
+			//cmd_buffer.bindMaterial(*curr_material);
+		//}
+		//}
 
 
 
-			cmd_buffer.bindPipeline(*curr_material->pipeline());
-			cmd_buffer.setPushConstants(push_constant);
-
-
-			constexpr int offset_count = 4;
-			uint32_t offset[offset_count];
-			offset[0] = m_scene_info_buffer->offset() * frame_num;
-			offset[1] = m_camera_buffer->offset() * frame_num;
-			offset[2] = m_dir_lights_buffer->offset() * frame_num;
-			offset[3] = m_point_lights_buffer->offset() * frame_num;
-
-			cmd_buffer.bindDescriptorSet(*curr_material->pipeline(), m_global_descriptor[frame_num], offset_count, offset);
-
-			//Check if material changed  
-			if (curr_material != last_material)
-			{
-				//Change material descriptors
-				//texture descriptor
-				cmd_buffer.bindMaterial(*curr_material);
-			}
-		}
 		cmd_buffer.bindVertexBuffer(*curr_mesh->getVertexBuffer());
 		cmd_buffer.bindIndexBuffer(*curr_mesh->getIndexBuffer());
 

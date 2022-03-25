@@ -6,6 +6,7 @@ namespace Veist
 
 enum class SamplerType 
 {
+	None = 0,
 	RepeatLinear,
 	RepeatPoint,
 
