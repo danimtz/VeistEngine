@@ -12,36 +12,6 @@
 namespace Veist
 {
 
-/*
-class Material
-{
-public:
-
-	Material(const char* material_name, const VertexDescription& vertex_desc);
-	virtual ~Material() = default;
-
-	const DescriptorSet& descriptorSet() const { return m_descriptor_set; };
-	const GraphicsPipelineBuilder* pipelineBuilder() const {return m_pipeline_builder.get();};
-	
-	//Build pipeline based on renderpass, if it already exists return the pipeline
-	GraphicsPipeline* getPipeline(const RenderPass* renderpass);
-
-protected:
-	
-	//Configures the descriptor set for the material should be called from constructor of subclass
-	virtual void setUpDescriptorSet() = 0;
-
-	std::unique_ptr<GraphicsPipelineBuilder> m_pipeline_builder;
-
-	std::map<RenderPass::FormatLayout, GraphicsPipeline> m_compiled_pipelines;
-
-
-	DescriptorSet m_descriptor_set;
-	static const uint32_t MATERIAL_DESCRIPTOR_SET_NUMBER = 1;
-	static const uint32_t MAX_PIPELINES_PER_MATERIAL = 4;
-};
-*/
-
 	class Material
 	{
 	public:

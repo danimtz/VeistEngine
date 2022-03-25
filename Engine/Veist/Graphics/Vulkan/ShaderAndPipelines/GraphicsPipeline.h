@@ -34,22 +34,6 @@ class GraphicsPipeline
 {
 public:
 
-	/*
-		//Create graphics pipeline for default renderpass
-		GraphicsPipeline(const std::string& shader_name,  const VertexDescription& vertex_desc, DepthTest depth_test = DepthTest::ReadWrite, VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
-			VkPolygonMode polygon_mode = VK_POLYGON_MODE_FILL, VkCullModeFlags cull_mode = VK_CULL_MODE_BACK_BIT,
-			VkFrontFace front_face = VK_FRONT_FACE_COUNTER_CLOCKWISE);
-
-		//Create graphics pipeline for specific renderpass
-		GraphicsPipeline(const RenderPass& renderpass, const std::string& shader_name, const VertexDescription& vertex_desc, DepthTest depth_test = DepthTest::ReadWrite, VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
-			VkPolygonMode polygon_mode = VK_POLYGON_MODE_FILL, VkCullModeFlags cull_mode = VK_CULL_MODE_BACK_BIT,
-			VkFrontFace front_face = VK_FRONT_FACE_COUNTER_CLOCKWISE);
-
-		//Create graphics pipeline builder, but dont build the pipeline yet. lazy initialization of vkPipeline
-		GraphicsPipeline(const std::string& shader_name, const VertexDescription& vertex_desc, DepthTest depth_test = DepthTest::ReadWrite, VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
-			VkPolygonMode polygon_mode = VK_POLYGON_MODE_FILL, VkCullModeFlags cull_mode = VK_CULL_MODE_BACK_BIT, //VK_CULL_MODE_BACK_BIT VK_CULL_MODE_NONE//
-			VkFrontFace front_face = VK_FRONT_FACE_COUNTER_CLOCKWISE);
-	*/
 	GraphicsPipeline(VkPipeline pipeline, VkRenderPass renderpass, VkPipelineLayout pipeline_layout) : m_pipeline(pipeline), m_renderpass(renderpass), m_pipeline_layout(pipeline_layout){}
 	~GraphicsPipeline() {};
 

@@ -12,8 +12,7 @@ namespace Veist
 	public:
 		MaterialData() = default;
 		MaterialData(std::vector<std::shared_ptr<ImageBase>> textures) : m_textures(textures) {}
-		//MaterialData(std::initializer_list<std::shared_ptr<ImageBase>> textures) : m_textures(textures) {}
-
+		
 		const std::vector<std::shared_ptr<ImageBase>>& textures() const {return m_textures;};
 
 	protected:

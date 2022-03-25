@@ -25,9 +25,7 @@ namespace Veist
 	protected:
 
 		std::shared_ptr<GraphicsPipelineBuilder> m_pipeline_builder;
-
 		std::map<RenderPass::FormatLayout, GraphicsPipeline> m_compiled_pipelines;
-
 		const uint32_t m_descriptor_set_number{1};
 
 		static const uint32_t MAX_PIPELINES_PER_MATERIAL = 4;

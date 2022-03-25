@@ -9,51 +9,6 @@
 namespace Veist
 {
 
-
-/*
-GraphicsPipeline::GraphicsPipeline(const std::string& shader_name, const VertexDescription& vertex_desc, DepthTest depth_test, VkPrimitiveTopology topology,
-	VkPolygonMode polygon_mode, VkCullModeFlags cull_mode, VkFrontFace front_face)  : 
-	m_pipeline_builder({ shader_name, vertex_desc, depth_test, topology, polygon_mode, cull_mode, front_face })
-{
-	
-	m_pipeline_layout = m_pipeline_builder.m_pipeline_layout;
-	m_shader_program = m_pipeline_builder.m_shader_program;
-
-	m_pipeline = m_pipeline_builder.buildPipeline(RenderModule::getBackend()->getRenderPass());
-	
-};
-
-GraphicsPipeline::GraphicsPipeline(const RenderPass& renderpass, const std::string& shader_name, const VertexDescription& vertex_desc, DepthTest depth_test, VkPrimitiveTopology topology,
-	VkPolygonMode polygon_mode, VkCullModeFlags cull_mode, VkFrontFace front_face) :
-	m_pipeline_builder({ shader_name, vertex_desc, depth_test, topology, polygon_mode, cull_mode, front_face })
-{
-
-	m_pipeline_layout = m_pipeline_builder.m_pipeline_layout;
-	m_shader_program = m_pipeline_builder.m_shader_program;
-
-	m_pipeline = m_pipeline_builder.buildPipeline(renderpass);
-
-};*/
-
-/*
-
-GraphicsPipeline::GraphicsPipeline(const std::string& shader_name, const VertexDescription& vertex_desc, DepthTest depth_test, VkPrimitiveTopology topology,
-	VkPolygonMode polygon_mode, VkCullModeFlags cull_mode, VkFrontFace front_face) :
-	m_pipeline_builder({ shader_name, vertex_desc, depth_test, topology, polygon_mode, cull_mode, front_face })
-{
-	m_pipeline_layout = m_pipeline_builder.m_pipeline_layout;
-	m_shader_program = m_pipeline_builder.m_shader_program;
-
-};
-
-
-void GraphicsPipeline::rebuildPipeline(const RenderPass& renderpass)
-{
-	m_pipeline = m_pipeline_builder.buildPipeline(renderpass);
-}
-*/
-
-
 GraphicsPipelineBuilder::GraphicsPipelineBuilder(const std::string& shader_name, const VertexDescription& vertex_desc, DepthTest depth_test, VkPrimitiveTopology topology,
 	VkPolygonMode polygon_mode, VkCullModeFlags cull_mode, VkFrontFace front_face) :
 	m_depth_test(depth_test),
