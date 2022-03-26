@@ -143,7 +143,10 @@ namespace VeistEditor
 
 	void EngineViewportPanel::renderScene()
 	{
-	/*
+		if (!m_active_scene->ecsRegistry()->isSceneLoaded())
+		{
+			return;
+		}
 		//RenderGraph Tests TODO: move declaring rendergraph passes etc to a renderer class or pre declared renderer structure
 		static constexpr uint32_t max_dir_lights = 4;
 		static constexpr uint32_t max_point_lights = 100;
@@ -194,7 +197,7 @@ namespace VeistEditor
 		
 		
 
-		render_graph.setOutputBuffer("FinalImage");
+		render_graph.setBackbuffer("FinalImage");
 		//End rendergraph tests
 
 
@@ -206,8 +209,8 @@ namespace VeistEditor
 			MatrixPushConstant push_constant;
 
 
-			Material* last_material = nullptr;
-			GraphicsPipeline* last_pipeline = nullptr;
+			//Material* last_material = nullptr;
+			//GraphicsPipeline* last_pipeline = nullptr;
 
 			//Camera
 			Camera* main_cam;
@@ -305,7 +308,6 @@ namespace VeistEditor
 
 				Mesh* curr_mesh = mesh_comp.mesh();
 				Material* curr_material = mesh_comp.material();
-				GraphicsPipeline* curr_pipeline = curr_material->pipeline().get();
 
 
 				//Model matrices
@@ -316,7 +318,7 @@ namespace VeistEditor
 				//Write directional lights to buffer
 
 				//Create Global descriptor set for that frame if it doenst exists aready
-				if (m_global_descriptor[frame_num].descriptorSet() == nullptr)
+				/*if (m_global_descriptor[frame_num].descriptorSet() == nullptr)
 				{
 					m_global_descriptor[frame_num].setDescriptorSetLayout(0, curr_pipeline);
 
@@ -333,38 +335,25 @@ namespace VeistEditor
 
 
 					m_global_descriptor[frame_num].buildDescriptorSet();
-				}
+				}*/
 				
 
-
-				//Check if pipeline changed
-				if (curr_pipeline != last_pipeline)
-				{
-
+				cmd.bindMaterial(*curr_material);
+				//cmd_buffer.bindPipeline(*curr_material->getPipeline(cmd_buffer.currentRenderPass()));
+				cmd.setPushConstants(push_constant);
 
 
-					cmd.bindPipeline(*curr_material->pipeline());
-					cmd.setPushConstants(push_constant);
+				constexpr int offset_count = 4;
+				uint32_t offset[offset_count];
+				offset[0] = pass->getPhysicalBuffer(scene_info_buffer)->offset() * frame_num;
+				offset[1] = pass->getPhysicalBuffer(camera_buffer)->offset() * frame_num;
+				offset[2] = pass->getPhysicalBuffer(dir_lights_buffer)->offset() * frame_num;
+				offset[3] = pass->getPhysicalBuffer(point_lights_buffer)->offset() * frame_num;
 
 
-					constexpr int offset_count = 4;
-					uint32_t offset[offset_count];
-					offset[0] = pass->getPhysicalBuffer(scene_info_buffer)->offset() * frame_num;
-					offset[1] = pass->getPhysicalBuffer(camera_buffer)->offset() * frame_num;
-					offset[2] = pass->getPhysicalBuffer(dir_lights_buffer)->offset() * frame_num;
-					offset[3] = pass->getPhysicalBuffer(point_lights_buffer)->offset() * frame_num;
+				//cmd.bindDescriptorSet(m_global_descriptor[frame_num], offset_count, offset);
 
-					//cmd.bindDescriptorSet(*curr_material->pipeline(), m_global_descriptor[frame_num], offset_count, offset);
 
-					//Check if material changed  
-					if (curr_material != last_material)
-					{
-						//Change material descriptors
-						//texture descriptor
-						//TODO: materials depend on renderpass, therefore must compile them at runtime (keep a hash map "cache" of already compiled materials so that they arent compiled EVERY frame
-						cmd.bindMaterial(*curr_material); 
-					}
-				}
 				cmd.bindVertexBuffer(*curr_mesh->getVertexBuffer());
 				cmd.bindIndexBuffer(*curr_mesh->getIndexBuffer());
 
@@ -402,10 +391,14 @@ namespace VeistEditor
 
 
 
-		render_graph.render();
-	*/
-		
 		CommandBuffer& cmd_buffer = RenderModule::getBackend()->getCurrentCmdBuffer();
+
+
+
+		render_graph.execute(cmd_buffer);
+	
+		
+		
 		cmd_buffer.beginRenderPass(m_target_framebuffer);
 		RenderModule::renderScene(cmd_buffer);
 		cmd_buffer.endRenderPass();

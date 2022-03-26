@@ -1,8 +1,8 @@
 #pragma once
 
 #include "Veist/Graphics/Vulkan/Images/Image.h"
-#include "Veist/Material/SkyboxMaterial.h"
 #include "Veist/Mesh/Mesh.h"
+#include "Veist/Material/Material.h"
 
 
 namespace Veist

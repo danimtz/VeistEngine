@@ -102,11 +102,13 @@ namespace Veist
 	}
 
 
-	//============== Render graph pass outputs ===================//
+	//============== Render graph pass writes ===================//
 
 	RenderGraphImageResource* RenderGraphPassBuilder::addColorOutput(const std::string& name, const RenderGraphImageInfo& info)
 	{
 		auto* image_res = m_graph_pass->m_graph->getOrAddImageResource(name);
+
+		m_graph_pass->m_resource_write_count++;
 
 		//fill in resource info
 		image_res->setImageInfo(info);
@@ -121,6 +123,8 @@ namespace Veist
 	{
 		auto* image_res = m_graph_pass->m_graph->getOrAddImageResource(name);
 
+		m_graph_pass->m_resource_write_count++;
+
 		//fill in resource info
 		image_res->setImageInfo(info);
 		image_res->setResourceName(name);
@@ -134,6 +138,8 @@ namespace Veist
 	{
 		auto* image_res = m_graph_pass->m_graph->getOrAddImageResource(name);
 
+		m_graph_pass->m_resource_write_count++;
+
 		//fill in resource info
 		image_res->setImageInfo(info);
 		image_res->setResourceName(name);
@@ -146,6 +152,8 @@ namespace Veist
 	RenderGraphBufferResource* RenderGraphPassBuilder::addStorageOutput(const std::string& name, const RenderGraphBufferInfo& info)
 	{
 		auto* buffer_res = m_graph_pass->m_graph->getOrAddBufferResource(name);
+
+		m_graph_pass->m_resource_write_count++;
 
 		//fill in resource info
 		buffer_res->setBufferInfo(info);

@@ -29,6 +29,12 @@ namespace Veist
 
 		uint32_t index() const { return m_index; }
 
+		const std::unordered_set<uint32_t>& writtenInPasses() const { return m_written_in_passes; }
+
+		const std::unordered_set<uint32_t>& readInPasses() const { return m_read_in_passes; }
+
+		uint32_t& passReadsRefCount() {return m_read_in_pass_count;};
+
 		void setResourceName(const std::string& name)
 		{
 			m_name = name;
@@ -45,9 +51,14 @@ namespace Veist
 			m_read_in_passes.emplace(pass_index);
 		}
 
+
+		
+
+
 	private:
 
 		uint32_t m_index;
+		uint32_t m_read_in_pass_count; //refcount of pass reads
 		std::unordered_set<uint32_t> m_written_in_passes;
 		std::unordered_set<uint32_t> m_read_in_passes;
 		std::string m_name;

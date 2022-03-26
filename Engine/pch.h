@@ -9,6 +9,7 @@
 #include <map>
 #include <deque>
 #include <queue>
+#include <stack>
 #include <functional>
 #include <filesystem>
 #include <set>

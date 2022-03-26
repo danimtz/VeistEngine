@@ -7,7 +7,7 @@ namespace Veist
 {
 
 
-	RenderGraphPass::RenderGraphPass(std::string_view name, RenderGraph* graph) : m_name(name), m_graph(graph) {};
+	RenderGraphPass::RenderGraphPass(std::string_view name, RenderGraph* graph) : m_name(name), m_graph(graph), m_resource_write_count(0) {};
 
 
 

@@ -28,20 +28,18 @@ namespace Veist
 		void addDescriptorTemplate(uint32_t descriptor_set_number, uint32_t resource_index, VkDescriptorType descriptor_type, SamplerType sampler_type = SamplerType::None);
 		void addExternalDescriptorTemplate(uint32_t descriptor_set_number,  const Descriptor& descriptor);
 
-		ShaderBuffer* getPhysicalBuffer(RenderGraphBufferResource* resource) const;
-		ImageBase* getPhysicalImage(RenderGraphImageResource* resource) const;
+		ShaderBuffer* getPhysicalBuffer(RenderGraphBufferResource* resource) const {return nullptr; }; //TODO
+		ImageBase* getPhysicalImage(RenderGraphImageResource* resource) const { return nullptr; }; //TODO
 
 	private:
 
 		friend class RenderGraphPassBuilder;
 		friend class RenderGraph;
 
-		//TODO add storage of rendergraphPass resources !!!! but do i actually need this here?
-		//std::vector<RenderGraphTransientImage* > color_outputs;
-		//std::vector<RenderGraphTransientBuffer* > storage_outputs;
-		//add more for all things in a renderpass etc
+		
 
-
+		std::vector<RenderGraphResource*> m_resource_reads;//Pointers to graph resource inputs, used when building graph
+		uint32_t m_resource_write_count; //refcount of resource writes
 
 		std::map<uint32_t, std::vector<RenderGraphDescriptorTemplate>> m_descriptor_set_templates;
 

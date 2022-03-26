@@ -19,14 +19,19 @@ namespace Veist
 
 		void execute(CommandBuffer& cmd);
 
-		bool setOutputBuffer(const std::string& name);
+		bool setBackbuffer(const std::string& name);
 
 		RenderGraphBufferResource* getOrAddBufferResource(const std::string& name);
 		RenderGraphImageResource* getOrAddImageResource(const std::string& name);
 	
 	private:
 
-		int32_t m_output_buffer{-1};
+		bool validateGraph();
+		void setupGraphPassOrder(std::stack<uint32_t>& next_passes, std::stack<uint32_t>& next_resources);
+
+	private:
+
+		int32_t m_backbuffer_idx{-1};
 
 		std::vector<std::unique_ptr<RenderGraphPass>> m_passes;
 		std::vector<std::unique_ptr<RenderGraphResource>> m_resources;
@@ -35,6 +40,9 @@ namespace Veist
 
 		std::unordered_map<std::string, uint32_t> m_resource_to_idx_map;
 		std::unordered_map<std::string, uint32_t> m_pass_to_idx_map;
+
+		std::vector<uint32_t> m_pass_stack;
+
 	};
 
 
