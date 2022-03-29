@@ -188,7 +188,6 @@ void Swapchain::createSwapchain()
 
 void Swapchain::beginNextFrame()
 {
-	//FROM RC_beginFrame
 	VkDevice device = RenderModule::getBackend()->getDevice();
 	uint32_t frame_count = RenderModule::getBackend()->getFrameNumber();
 

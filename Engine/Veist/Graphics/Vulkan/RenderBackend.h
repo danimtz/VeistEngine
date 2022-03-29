@@ -101,7 +101,7 @@ public:
     Swapchain* getSwapchain() const {return m_swapchain.get();};
     ImageBase* getSwapchainDepthAttachment() const {return m_swapchain_depth_image.get();};
     VmaAllocator getAllocator() const { return m_allocator; }; //CONSIDER MOVING ALLOCATOR TO SEPARATE CLASS
-    
+    Sampler* getSampler(SamplerType type);
 
     VkQueue getGraphicsQueue() const { return m_graphics_queue; };
     VkQueue getTransferQueue() const { return m_transfer_queue; };
@@ -110,7 +110,7 @@ public:
     uint32_t getTransferFamily() const { return m_transfer_family_idx; };
     uint32_t getComputeFamily() const { return m_compute_family_idx; };
 
-    const RenderPass& getRenderPass() const { return m_render_pass; };
+    const RenderPass& getRenderPass() const { return *m_render_pass.get(); };
     uint32_t getFrameNumber() const { return m_frame_count; };
     void incrementFrameCounter() { m_frame_count++; };
 
@@ -167,7 +167,7 @@ private:
 
 // Swapchain/renderpass/framebuffer
     std::unique_ptr<Swapchain>      m_swapchain;
-    RenderPass                      m_render_pass;
+    std::shared_ptr<RenderPass>      m_render_pass;
     std::vector<Framebuffer>        m_framebuffers;
     std::unique_ptr<SwapchainDepthAttachment>  m_swapchain_depth_image;
   
@@ -202,6 +202,8 @@ private:
 
     std::unique_ptr<DescriptorSetAllocator> m_descriptor_allocator;
     
+    std::map<SamplerType, Sampler> m_samplers;
+
 };
 
 

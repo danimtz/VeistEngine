@@ -15,14 +15,15 @@ namespace Veist
 	}
 
 
-	//============== Render graph pass inputs ===================//
+	//============== Render graph pass reads/inputs ===================//
 
 
 	RenderGraphBufferResource* RenderGraphPassBuilder::addUniformInput(const std::string& name, const RenderGraphBufferInfo& info, const uint32_t d_set_index)
 	{
 		//Get resource
 		auto* buffer_res = m_graph_pass->m_graph->getOrAddBufferResource(name);
-		
+		m_graph_pass->m_resource_reads.emplace_back(buffer_res);
+
 		//fill in resource info
 		buffer_res->setBufferInfo(info);
 		buffer_res->setResourceName(name);
@@ -39,6 +40,7 @@ namespace Veist
 	{
 		//Get resource
 		auto* buffer_res = m_graph_pass->m_graph->getOrAddBufferResource(name);
+		m_graph_pass->m_resource_reads.emplace_back(buffer_res);
 
 		//fill in resource info
 		buffer_res->setBufferInfo(info);
@@ -55,6 +57,7 @@ namespace Veist
 	RenderGraphImageResource* RenderGraphPassBuilder::addAttachmentInput(const std::string& name, const RenderGraphImageInfo& info, SamplerType sampler_type, const uint32_t d_set_index)
 	{
 		auto* image_res = m_graph_pass->m_graph->getOrAddImageResource(name);
+		m_graph_pass->m_resource_reads.emplace_back(image_res);
 
 		//fill in resource info
 		image_res->setImageInfo(info);
@@ -68,6 +71,7 @@ namespace Veist
 	RenderGraphImageResource* RenderGraphPassBuilder::addTextureInput(const std::string& name, const RenderGraphImageInfo& info, SamplerType sampler_type, const uint32_t d_set_index )
 	{
 		auto* image_res = m_graph_pass->m_graph->getOrAddImageResource(name);
+		m_graph_pass->m_resource_reads.emplace_back(image_res);
 
 		//fill in resource info
 		image_res->setImageInfo(info);
@@ -83,6 +87,7 @@ namespace Veist
 	RenderGraphImageResource* RenderGraphPassBuilder::addDepthInput(const std::string& name, const RenderGraphImageInfo& info, SamplerType sampler_type, const uint32_t d_set_index)
 	{
 		auto* image_res = m_graph_pass->m_graph->getOrAddImageResource(name);
+		m_graph_pass->m_resource_reads.emplace_back(image_res);
 
 		//fill in resource info
 		image_res->setImageInfo(info);
@@ -102,11 +107,12 @@ namespace Veist
 	}
 
 
-	//============== Render graph pass writes ===================//
+	//============== Render graph pass writes/output ===================//
 
 	RenderGraphImageResource* RenderGraphPassBuilder::addColorOutput(const std::string& name, const RenderGraphImageInfo& info)
 	{
 		auto* image_res = m_graph_pass->m_graph->getOrAddImageResource(name);
+		m_graph_pass->m_resource_writes.emplace_back(image_res);
 
 		m_graph_pass->m_resource_write_count++;
 
@@ -115,13 +121,21 @@ namespace Veist
 		image_res->setResourceName(name);
 		image_res->setWrittenInPass(m_graph_pass->m_pass_index);
 		image_res->setImageUsage(ImageUsage::ColorAttachment);
+		m_graph_pass->m_color_outputs.emplace_back(image_res);
 		return image_res;
 	}
 
 
 	RenderGraphImageResource* RenderGraphPassBuilder::addDepthOutput(const std::string& name, const RenderGraphImageInfo& info)
 	{
+		//Only 1 depth image per renderpass
+		if (m_graph_pass->m_depth_output != nullptr)
+		{
+			CRITICAL_ERROR_LOG("RenderGraphPass attempting to write multiple depth outputs to pass: " + name);
+		}
+
 		auto* image_res = m_graph_pass->m_graph->getOrAddImageResource(name);
+		m_graph_pass->m_resource_writes.emplace_back(image_res);
 
 		m_graph_pass->m_resource_write_count++;
 
@@ -130,6 +144,7 @@ namespace Veist
 		image_res->setResourceName(name);
 		image_res->setWrittenInPass(m_graph_pass->m_pass_index);
 		image_res->setImageUsage(ImageUsage::DepthAttachment);
+		m_graph_pass->m_depth_output = image_res;
 		return image_res;
 	}
 
@@ -137,6 +152,7 @@ namespace Veist
 	RenderGraphImageResource* RenderGraphPassBuilder::addStorageTextureOutput(const std::string& name, const RenderGraphImageInfo& info)
 	{
 		auto* image_res = m_graph_pass->m_graph->getOrAddImageResource(name);
+		m_graph_pass->m_resource_writes.emplace_back(image_res);
 
 		m_graph_pass->m_resource_write_count++;
 
@@ -152,6 +168,7 @@ namespace Veist
 	RenderGraphBufferResource* RenderGraphPassBuilder::addStorageOutput(const std::string& name, const RenderGraphBufferInfo& info)
 	{
 		auto* buffer_res = m_graph_pass->m_graph->getOrAddBufferResource(name);
+		m_graph_pass->m_resource_writes.emplace_back(buffer_res);
 
 		m_graph_pass->m_resource_write_count++;
 

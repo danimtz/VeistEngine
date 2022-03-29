@@ -8,6 +8,15 @@
 namespace Veist
 {
 
+
+	DescriptorSet::DescriptorPoolData DescriptorSetAllocator::createDescriptorSet(std::vector<Descriptor>& descriptor_bindings)
+	{
+
+
+		
+	}
+
+/*
 DescriptorSetAllocator::DescriptorSetAllocator() : m_layout_cache(std::make_unique<DescriptorSetLayoutCache>())
 {
 
@@ -108,7 +117,8 @@ VkDescriptorPool DescriptorSetAllocator::getPool()
 	else
 	{
 		//create new pool if none availible
-		return createPool( m_descriptor_sizes, 1000, 0);
+		 
+		return createPool( m_descriptor_sizes, 1000, VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT);
 	}
 
 }
@@ -146,5 +156,5 @@ void DescriptorSetAllocator::cleanup()
 
 }
 
-
+*/
 }

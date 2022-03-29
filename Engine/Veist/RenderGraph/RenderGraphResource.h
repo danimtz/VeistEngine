@@ -24,16 +24,30 @@ namespace Veist
 	class RenderGraphResource
 	{
 	public:
+		enum class ResourceType
+		{
+			Buffer,
+			Image
+		};
+		RenderGraphResource(uint32_t index, ResourceType type) : m_type(type), m_index(index), m_read_in_pass_count(0), m_used_in_graph(false) {};
 
-		RenderGraphResource(uint32_t index) : m_index(index) {};
+		ResourceType resourceType() const {return m_type;}
 
 		uint32_t index() const { return m_index; }
+
+		bool usedInGraph() const { return m_used_in_graph; }
 
 		const std::unordered_set<uint32_t>& writtenInPasses() const { return m_written_in_passes; }
 
 		const std::unordered_set<uint32_t>& readInPasses() const { return m_read_in_passes; }
 
 		uint32_t& passReadsRefCount() {return m_read_in_pass_count;};
+
+
+		void setUsedInGraph(bool is_used)
+		{
+			m_used_in_graph = is_used;
+		}
 
 		void setResourceName(const std::string& name)
 		{
@@ -49,6 +63,7 @@ namespace Veist
 		void setReadInPass(uint32_t pass_index)
 		{
 			m_read_in_passes.emplace(pass_index);
+			m_read_in_pass_count = m_read_in_passes.size();
 		}
 
 
@@ -57,11 +72,13 @@ namespace Veist
 
 	private:
 
+		ResourceType m_type;
 		uint32_t m_index;
 		uint32_t m_read_in_pass_count; //refcount of pass reads
 		std::unordered_set<uint32_t> m_written_in_passes;
 		std::unordered_set<uint32_t> m_read_in_passes;
 		std::string m_name;
+		bool m_used_in_graph;
 		//add more here
 	};
 
@@ -71,7 +88,7 @@ namespace Veist
 	{
 	public:
 
-		RenderGraphImageResource(uint32_t index) : RenderGraphResource(index) {}
+		RenderGraphImageResource(uint32_t index) : RenderGraphResource(index, ResourceType::Image) {}
 
 		void setImageInfo(const RenderGraphImageInfo& info)
 		{
@@ -96,7 +113,7 @@ namespace Veist
 	{
 	public:
 
-		RenderGraphBufferResource(uint32_t index) : RenderGraphResource(index) {}
+		RenderGraphBufferResource(uint32_t index) : RenderGraphResource(index, ResourceType::Buffer) {}
 
 		void setBufferInfo(const RenderGraphBufferInfo& info)
 		{
@@ -117,19 +134,6 @@ namespace Veist
 
 	
 
-
-	template<ImageViewType type = ImageViewType::Flat>
-	class TransientImage : public ImageBase
-	{
-	public:
-
-		TransientImage(ImageProperties properties, ImageUsage usage) : ImageBase(properties, usage, type) {};
-
-		TransientImage() = default;
-
-
-		//Add c++ rule of 5 functions?
-	};
 
 
 

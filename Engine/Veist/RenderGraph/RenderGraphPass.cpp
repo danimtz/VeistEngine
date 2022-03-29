@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "RenderGraph.h"
 #include "RenderGraphPass.h"
 #include "RenderGraphDescriptorTemplate.h"
 
@@ -7,7 +8,7 @@ namespace Veist
 {
 
 
-	RenderGraphPass::RenderGraphPass(std::string_view name, RenderGraph* graph) : m_name(name), m_graph(graph), m_resource_write_count(0) {};
+	RenderGraphPass::RenderGraphPass(std::string_view name, RenderGraph* graph) : m_name(name), m_graph(graph), m_resource_write_count(0), m_depth_output(nullptr) {};
 
 
 
@@ -53,6 +54,84 @@ namespace Veist
 	{
 		return nullptr;
 	}*/
+
+
+	void RenderGraphPass::executePass(CommandBuffer& cmd)
+	{
+		m_render_function(cmd, this);
+	}
+
+
+	void RenderGraphPass::buildFramebuffer()
+	{
+		//check depth attachment is valid
+		
+		Framebuffer::Attachment depth;
+		std::vector<Framebuffer::Attachment> colors;
+		for (auto* img_res_ptr : m_color_outputs)
+		{
+			colors.emplace_back(getPhysicalImage(img_res_ptr));
+		}
+		depth = getPhysicalImage(m_depth_output);
+
+		//Calculate load-op for resources
+		{
+			//TODO calculate loadop for framebuffer. check useage of that resource
+			//for now it is using default of clear
+		}
+		m_framebuffer = Framebuffer(colors, depth);
+
+	}
+
+	void RenderGraphPass::buildDescriptors()
+	{
+		for (auto& desc_set_template : m_descriptor_set_templates)
+		{
+			std::vector<Descriptor> descriptor_bindings;
+			auto& descriptor_templates = desc_set_template.second;
+
+			int binding_num = 0;
+			for (auto& d_template : descriptor_templates)
+			{
+				//Check descriptor binding is in correct order
+				if (binding_num != d_template.m_binding_number)
+				{
+					CRITICAL_ERROR_LOG("RenderGraphPass resource inputs not declared in the same binding order as the shader")
+				}
+				//check if external descriptor
+				if (d_template.is_external_descriptor)
+				{
+					descriptor_bindings.emplace_back(*d_template.m_external_descriptor.get());
+					binding_num++;
+					continue;
+				}
+
+				//Create descriptor binding
+				auto res_type = m_graph->getResource(d_template.m_resource_index)->resourceType();
+				if (res_type == RenderGraphResource::ResourceType::Image)
+				{
+					ImageBase* image = getPhysicalImage(m_graph->getResource(d_template.m_resource_index));
+					descriptor_bindings.emplace_back(Descriptor(d_template.m_descriptor_type, image, d_template.m_sampler_type));
+				}
+				else if (res_type == RenderGraphResource::ResourceType::Buffer)
+				{
+					ShaderBuffer* buffer = getPhysicalBuffer(m_graph->getResource(d_template.m_resource_index));
+					descriptor_bindings.emplace_back(Descriptor(d_template.m_descriptor_type, buffer));
+				}
+				else
+				{
+					CRITICAL_ERROR_LOG("Unidentified resource type in RenderGraphResource");
+				}
+
+				binding_num++;
+			}
+
+			m_descriptor_sets.emplace_back(desc_set_template.first, descriptor_bindings); //set number, bindings
+		}
+
+
+
+	}
 
 
 

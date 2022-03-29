@@ -5,10 +5,67 @@
 #include "Veist/Graphics/Vulkan/ShaderAndPipelines/GraphicsPipeline.h"
 #include "Veist/Graphics/Vulkan/ShaderAndPipelines/ComputePipeline.h"
 #include "Veist/Graphics/Vulkan/Images/Image.h"
+#include "Veist/Graphics/Vulkan/Buffers/ShaderBuffer.h"
 
 namespace Veist
 {
 
+	class Descriptor
+	{
+	public:
+
+		struct DescriptorInfo
+		{
+			VkDescriptorBufferInfo buffer_info = {};
+			VkDescriptorImageInfo image_info = {};
+
+			DescriptorInfo() = default;
+
+			DescriptorInfo(VkDescriptorBufferInfo buff) : buffer_info(buff)
+			{}
+
+			DescriptorInfo(VkDescriptorImageInfo img) : image_info(img)
+			{}
+		};
+
+		Descriptor(VkDescriptorType type, const ImageBase* image, SamplerType sampler_type );
+		Descriptor(VkDescriptorType type, const ShaderBuffer* buffer,  uint32_t range = 0);
+		
+
+	private:
+		
+		DescriptorInfo m_info;
+		VkDescriptorType m_type;
+	
+	};
+
+
+	class DescriptorSetPool;
+
+	class DescriptorSet
+	{
+	public:
+		struct DescriptorPoolData
+		{
+			uint32_t m_index; //index in pool in which descriptor set is found
+			DescriptorSetPool* m_pool; //Which pool corresponds to descriptor set layout
+		};
+
+		DescriptorSet(uint32_t set_number, std::vector<Descriptor>& descriptor_bindings);
+
+
+		VkDescriptorSet descriptorSet() const;
+		VkDescriptorSetLayout descriptorSetLayout() const;
+
+	private:
+
+		uint32_t m_set_number;
+		DescriptorPoolData m_pool_data;
+		
+	};
+
+
+/*
 	class ShaderBuffer;
 
 
@@ -22,6 +79,7 @@ namespace Veist
 			VkDescriptorBufferInfo buffer_info = {};
 			VkDescriptorImageInfo image_info = {};
 
+			
 			DescriptorInfo() = default;
 
 			DescriptorInfo(VkDescriptorBufferInfo buff) : buffer_info(buff)
@@ -43,6 +101,7 @@ namespace Veist
 			desc_img_info.imageLayout = getImageLayout(image.imageUsage());
 			desc_img_info.imageView = image.imageView();
 			desc_img_info.sampler = sampler.sampler();
+			
 			m_info = {desc_img_info};
 			
 		}
@@ -56,6 +115,7 @@ namespace Veist
 			desc_img_info.imageView = image.imageView();
 			desc_img_info.sampler = sampler.sampler();
 			m_info = { desc_img_info };
+
 
 		}
 
@@ -133,5 +193,5 @@ namespace Veist
 		std::vector<Descriptor::DescriptorInfo> m_write_data;
 	};
 
-
+*/
 }

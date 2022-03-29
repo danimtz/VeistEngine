@@ -615,7 +615,7 @@ void RenderBackend::createSwapchainAndImages()
 }
 
 
-
+//Might be unnecesary
 void RenderBackend::createDefaultRenderPass()
 {
 
@@ -627,7 +627,7 @@ void RenderBackend::createDefaultRenderPass()
 	main_color_attachments.push_back({ color_props, RenderPass::LoadOp::Clear, ImageUsage::SwapchainImage | ImageUsage::ColorAttachment });
 
 	RenderPass::AttachmentProperties main_depth_attachment{ depth_props, RenderPass::LoadOp::Clear, ImageUsage::SwapchainImage | ImageUsage::DepthAttachment };
-	m_render_pass = RenderPass{ main_color_attachments, main_depth_attachment };
+	m_render_pass = std::make_shared<RenderPass>( main_color_attachments, main_depth_attachment );
 }
 
 
@@ -637,10 +637,15 @@ void RenderBackend::createFramebuffers()
 	m_framebuffers.clear();
 	//create a framebuffer for each swapchain image
 	const uint32_t swapchain_image_count = m_swapchain->imageCount();
+	m_framebuffers.reserve(swapchain_image_count);
 	for (int i = 0; i < swapchain_image_count; i++) 
 	{
-		std::vector<ImageBase*> color_images = { m_swapchain->images()[i].get() };
-		m_framebuffers.push_back({color_images, m_swapchain_depth_image.get(), &m_render_pass});
+		ImageBase* color_image = m_swapchain->images()[i].get();
+		ImageBase* depth_image = m_swapchain_depth_image.get();
+
+		auto colors = std::vector<Framebuffer::Attachment>{{color_image, RenderPass::LoadOp::Clear}};
+		auto depth = Framebuffer::Attachment(depth_image, RenderPass::LoadOp::Clear);
+		m_framebuffers.emplace_back(colors, depth);
 	}
 
 }
@@ -724,6 +729,25 @@ void RenderBackend::shutdown() {
 }
 
 
+Sampler* RenderBackend::getSampler(SamplerType type)
+{
+	auto it = m_samplers.find(type);
+
+	if (it != m_samplers.end())
+	{
+		return &it->second;
+	}
+	else
+	{
+		auto ret = m_samplers.emplace(type, Sampler(type));
+		Sampler* sampler =  &ret.first->second;
+		return sampler;
+	}
+}
+
+
+
+
 
 
 /*
@@ -786,7 +810,7 @@ void RenderBackend::initImGUI()
 	
 
 
-	ImGui_ImplVulkan_Init(&init_info, m_render_pass.vk_renderpass());
+	ImGui_ImplVulkan_Init(&init_info, m_render_pass->vk_renderpass());
 
 	//execute a gpu command to upload imgui font textures
 	CommandBuffer cmd_buffer = createDisposableCmdBuffer();

@@ -21,8 +21,8 @@ namespace Veist
 	private:
 
 		std::vector<ShaderBuffer> m_buffers;
-		std::vector<TransientImage<>> m_images;
-		std::vector<DescriptorSet> m_descriptor_sets;
+		std::vector<ImageBase> m_images;
+
 
 	};
 

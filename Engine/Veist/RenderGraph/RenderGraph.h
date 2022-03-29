@@ -23,11 +23,17 @@ namespace Veist
 
 		RenderGraphBufferResource* getOrAddBufferResource(const std::string& name);
 		RenderGraphImageResource* getOrAddImageResource(const std::string& name);
-	
+
+		RenderGraphResource* getResource(uint32_t index);
+
 	private:
 
 		bool validateGraph();
 		void setupGraphPassOrder(std::stack<uint32_t>& next_passes, std::stack<uint32_t>& next_resources);
+		void allocateResources();
+
+		std::stack<uint32_t> m_next_passes;
+		std::stack<uint32_t> m_next_resources;
 
 	private:
 
@@ -43,6 +49,8 @@ namespace Veist
 
 		std::vector<uint32_t> m_pass_stack;
 
+		
+		
 	};
 
 

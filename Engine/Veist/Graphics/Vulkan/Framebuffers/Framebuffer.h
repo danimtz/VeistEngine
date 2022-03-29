@@ -10,31 +10,45 @@ namespace Veist
 
 class Framebuffer
 {
-public:
+	public:
 	
-	using LoadOp = RenderPass::LoadOp;
+		using LoadOp = RenderPass::LoadOp;
 
-	Framebuffer() = default;
-	Framebuffer(std::vector<ImageBase*>& colors, ImageBase* depth, RenderPass* renderpass);
-	Framebuffer(std::vector<ImageBase*>& colors, ImageBase* depth, LoadOp load_op);
+		struct Attachment
+		{
+			Attachment() = default;
 
-	Framebuffer(ImageBase* color_attachment, ImageBase* depth, LoadOp load_op);
+			Attachment(ImageBase* img) : image(img)
+			{}
 
-	//TODO: add support for framebuffer without depth attachment
+			Attachment(ImageBase* img, LoadOp loadop) : image(img), load_op(loadop)
+			{}
 
-	VkFramebuffer framebuffer() const {return m_framebuffer;};
-	RenderPass* renderpass() const {return m_render_pass.get();};
-	glm::u32vec2 size() const {return m_size;};
-	size_t colorAttachmentCount() const {return m_color_attachment_count;};
+			ImageBase* image;
+			LoadOp load_op = LoadOp::Clear;
+		};
 
-private:
 
-	VkFramebuffer m_framebuffer;
-	std::unique_ptr<RenderPass> m_render_pass;
+		Framebuffer() = default;
+		Framebuffer(std::vector<Attachment>& colors, Attachment& depth, std::shared_ptr<RenderPass> renderpass);
+		Framebuffer(std::vector<Attachment>& colors, Attachment& depth);
+
+
+		//TODO: add support for framebuffer without depth attachment
+
+		VkFramebuffer framebuffer() const {return m_framebuffer;};
+		RenderPass* renderpass() const {return m_render_pass.get();};
+		glm::u32vec2 size() const {return m_size;};
+		size_t colorAttachmentCount() const {return m_color_attachment_count;};
+
+	private:
+
+		VkFramebuffer m_framebuffer;
+		std::shared_ptr<RenderPass> m_render_pass;
 	
-	size_t m_color_attachment_count;
-	glm::u32vec2 m_size;
-};
+		size_t m_color_attachment_count{0};
+		glm::u32vec2 m_size;
+	};
 
 
 }

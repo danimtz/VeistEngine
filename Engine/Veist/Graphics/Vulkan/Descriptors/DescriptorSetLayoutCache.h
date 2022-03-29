@@ -11,6 +11,8 @@ class DescriptorSetLayoutCache
 {
 public:
 
+	DescriptorSetLayoutCache() = default;
+
 	VkDescriptorSetLayout createDescriptorSetLayout(VkDevice device, VkDescriptorSetLayoutCreateInfo* info);
 
 	

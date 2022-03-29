@@ -7,8 +7,14 @@
 extern Veist::Application* Veist::CreateApplication();
 
 
+
+
 int main()
 {
+
+
+
+
 
     auto app = Veist::CreateApplication();
 

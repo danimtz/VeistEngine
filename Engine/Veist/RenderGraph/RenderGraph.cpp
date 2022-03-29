@@ -98,6 +98,12 @@ namespace Veist
 	}
 
 
+	RenderGraphResource* RenderGraph::getResource(uint32_t index)
+	{
+		return m_resources[index].get(); 
+	}
+
+
 	void RenderGraph::execute(CommandBuffer& cmd)
 	{
 
@@ -108,16 +114,39 @@ namespace Veist
 		}
 
 		//Setup graph passes order and cull unused resources
-		std::stack<uint32_t> m_next_passes;
-		std::stack<uint32_t> m_next_resources;
 		m_next_resources.push(m_backbuffer_idx);
-		setupGraphPassOrder(m_next_passes, m_next_resources);
+		setupGraphPassOrder(m_next_passes, m_next_resources); //TODO: reverse pass order at the end of the function?
 
-		//Allocate physical resources
+		//Allocate physical resources (TODO: For more complex passes calculate and support aliasing of physical resources)  // FROM themaister.net: The algorithm is fairly straight forward. For each resource we figure out the first and last physical render pass where a resource is used. 
+		allocateResources();																								//If we find another resource with the same dimensions/format, and their pass range does not overlap, presto, we can alias! 
+																															//We inject some information where we can transition “ownership” between resources.
 
-		//Build descriptors and framebuffers/renderpasses 
+
+
+		//Build descriptors and framebuffers/renderpasses  
+		/*TODO: Currently renderpass / framebuffer pair is created for each rendergraphpass and unused(and pushed to deletion queue) after each frame.
+		* Possible immediate performance improvement: Vkdestroy renderpass and framebuffer after rendergraph is done (after frame)
+		* Possible performance improvements: hash renderpass and framebuffer objects and reuse them if rendergraph doesnt change with respect to previous frames
+		* If the renderpass/framebuffer is not used after a couple of frames (8 or so) then it could be deleted		
+ 		  *
+		* Same for descriptor sets. See descriptor set allocator class
+ 		*/
+		for (auto pass_idx : m_pass_stack)
+		{
+			m_passes[pass_idx]->buildFramebuffer();
+			m_passes[pass_idx]->buildDescriptors();
+		}
+
+
 
 		//Execute rendergraph passes
+		for (auto pass_idx : m_pass_stack)
+		{
+			m_passes[pass_idx]->executePass(cmd);
+			cmd.endRenderPass();
+		}
+
+
 
 		//TODO barriers. 
 
@@ -130,6 +159,13 @@ namespace Veist
 	bool RenderGraph::validateGraph()
 	{
 
+		//check output buffer
+		if (m_backbuffer_idx < 0)
+		{
+			return false;
+		}
+
+		
 		for (auto& pass_ptr : m_passes)
 		{
 			auto& pass = *pass_ptr;
@@ -143,36 +179,22 @@ namespace Veist
 		{
 			auto& resource = *resource_ptr;
 
-			//If resource is not read, reduce resource write count from pass that wrote resource
+			//If resource is not read, reduce resource write count from pass that wrote resource (except for backbuffer)
 			if (resource.readInPasses().size() == 0)
 			{
-				for (auto& pass_index : resource.writtenInPasses())
-				{
-					m_passes[pass_index].get()->m_resource_write_count--;
+				if (resource.index() == m_backbuffer_idx) continue; //Do not reduce resource write for backbuffer
 
-					if (m_passes[pass_index].get()->m_resource_write_count < 0)
+				for (auto& pass_idx : resource.writtenInPasses())
+				{
+					m_passes[pass_idx].get()->m_resource_write_count--;
+
+					if (m_passes[pass_idx].get()->m_resource_write_count < 0)
 					{
 						CRITICAL_ERROR_LOG("RenderGraphPass resource write count cannot be smaller than 0");
 					}
 				}
 			}
-
 		}
-
-
-
-
-		//check output buffer
-		if (m_backbuffer_idx < 0)
-		{
-			return false;
-		}
-
-
-
-
-
-
 		return true;
 
 	}
@@ -218,20 +240,24 @@ namespace Veist
 					if (res->passReadsRefCount() <= 0)
 					{
 						next_resources.push(res->index());
+
+						//validate resource
+						res->setUsedInGraph(true);
 					}
+				}
+
+				//For each resource written by current pass, validate that resource as a resource that is used in the rendergraph and will need a "physical" 
+				for (auto& res : pass.m_resource_writes)
+				{
+					res->setUsedInGraph(true);
 				}
 				next_passes.pop();
 			}
-
-
 		}
-
-		
-
-
-		
-
 	}
 	
+
+
+
 
 }

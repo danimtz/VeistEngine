@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "Veist/Graphics/Vulkan/Descriptors/DescriptorSet.h"
 
+#include "Veist/Graphics/Vulkan/Descriptors/DescriptorSetAllocator.h"
+
 #include "Veist/Graphics/Vulkan/Buffers/ShaderBuffer.h"
 
 #include "Veist/Graphics/Vulkan/Images/Sampler.h"
@@ -8,9 +10,63 @@
 #include "Veist/Graphics/RenderModule.h"
 
 
+
+
 namespace Veist
 {
 
+	Descriptor::Descriptor(VkDescriptorType type, const ImageBase* image, SamplerType sampler_type) : m_type(type)
+	{
+
+		VkDescriptorImageInfo desc_img_info;
+		desc_img_info.imageLayout = getImageLayout(image->imageUsage());
+		desc_img_info.imageView = image->imageView();
+		desc_img_info.sampler = RenderModule::getBackend()->getSampler(sampler_type)->sampler();
+
+		m_info = { desc_img_info };
+
+	}
+
+
+	Descriptor::Descriptor(VkDescriptorType type, const ShaderBuffer* buffer, uint32_t range = 0) : m_type(type)
+	{
+
+		VkDescriptorBufferInfo desc_buffer_info;
+		desc_buffer_info.buffer = buffer->buffer();
+
+		//TODO: with dynamic descriptors these may be worng. 
+		desc_buffer_info.offset = 0;//Old working values 
+		desc_buffer_info.range = range;//Old working values 
+
+		//desc_buffer_info.offset = buffer->offset();
+		//desc_buffer_info.range = (range==0) ? buffer->size() : range; 
+
+		m_info = { desc_buffer_info };
+	}
+
+
+
+
+
+
+	//===================== DescriptorSet ====================
+	DescriptorSet::DescriptorSet(uint32_t set_number, std::vector<Descriptor>& descriptor_bindings) : m_set_number(set_number)
+	{
+		m_pool_data = RenderModule::getBackend()->getDescriptorAllocator()->createDescriptorSet(descriptor_bindings);
+	}
+
+	VkDescriptorSet DescriptorSet::descriptorSet() const
+	{
+		return m_pool_data.m_pool->descriptorSet(m_pool_data.m_index);
+	}
+
+	VkDescriptorSetLayout DescriptorSet::descriptorSetLayout() const
+	{
+		return m_pool_data.m_pool->descriptorSetLayout() 
+	};
+
+
+/*
 //IMPORTANT NOTE: if for example descriptor set 3 is used, the pipeline MUST have descriptors 1 and 2 declared in the shaders.
 void DescriptorSet::setDescriptorSetLayout(uint32_t set, const GraphicsPipelineBuilder* pipeline) 
 {
@@ -53,7 +109,7 @@ void DescriptorSet::bindDescriptor(uint32_t binding, const Descriptor desc)
 }
 
 
-void DescriptorSet::bindSampledImage(uint32_t binding, VkImageView image_view, VkDescriptorType type, VkSampler sampler/*sampler view etc?*/)
+void DescriptorSet::bindSampledImage(uint32_t binding, VkImageView image_view, VkDescriptorType type, VkSampler sampler)
 {
 	VkDescriptorImageInfo desc_info;
 	desc_info.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
@@ -107,26 +163,6 @@ void DescriptorSet::bindStorageImage(uint32_t binding, const ImageBase* image)
 }
 
 
-/*
-void DescriptorSet::bindBuffer(uint32_t binding, const ShaderBuffer* buffer, uint32_t range, VkDescriptorType type)
-{
-	VkDescriptorBufferInfo desc_info;
-	desc_info.buffer = buffer->buffer();
-	desc_info.offset = 0;
-	desc_info.range = range;
-
-	m_write_data.push_back({desc_info});
-
-	VkWriteDescriptorSet set_write = {};
-	set_write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	set_write.pNext = nullptr;
-	set_write.dstBinding = binding;
-	set_write.descriptorCount = 1;
-	set_write.descriptorType = type;
-
-	
-	m_writes.push_back(set_write);
-}*/
 
 void DescriptorSet::bindUniformBuffer(uint32_t binding, const ShaderBuffer* buffer, uint32_t range)
 {
@@ -216,5 +252,8 @@ void DescriptorSet::buildDescriptorSet()
 
 
 }
+*/
+
+
 
 }

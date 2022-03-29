@@ -8,6 +8,47 @@
 namespace Veist
 {
 
+	class DescriptorSetPool
+	{
+	public:
+		static constexpr size_t descriptor_pool_size = 128;
+
+		//DescriptorSetPool();
+
+
+
+	private:
+
+		VkDescriptorSetLayout m_layout;
+		VkDescriptorPool m_pool;
+		std::array<VkDescriptorSet, descriptor_pool_size> m_descriptor_sets;
+
+
+	};
+
+	class DescriptorSetAllocator
+	{
+	public:
+
+		DescriptorSetAllocator();
+
+		
+
+		DescriptorSet::DescriptorPoolData createDescriptorSet(std::vector<Descriptor>& descriptor_bindings);
+	
+	
+	
+	private:
+
+		std::unordered_map<DESCRIPTORLAYOUTKEY, DescriptorSetPool>
+
+
+	};
+
+
+//TODO rework this class entirely. To hold DescriptorPools for each DescriptorSetLayout. Then allocate descriptor sets based on that and recycle them instead of resetting pool. 
+//Try to also cache uses of descriptor sets that have not changed across frames
+/*
 class DescriptorSetAllocator
 {
 public:
@@ -53,5 +94,5 @@ private:
 	std::unique_ptr<DescriptorSetLayoutCache> m_layout_cache;
 	
 };
-
+*/
 }
