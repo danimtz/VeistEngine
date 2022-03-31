@@ -7,18 +7,39 @@
 
 namespace Veist
 {
+	//Descriptor set allocator design inspired from vkguide.dev and 'yave' by gan74
+	
+
+	struct DescriptorSetLayout
+	{
+		DescriptorSetLayout(const std::vector<Descriptor>& bindings);
+		DescriptorSetLayout(std::vector<VkDescriptorSetLayoutBinding>& bindings) : m_bindings(bindings) {};
+
+		std::vector<VkDescriptorSetLayoutBinding> m_bindings; //TODO: maybe shouldnt be a vector (dynamic alloc every pushback)
+
+		bool operator==(const DescriptorSetLayout& other) const;
+
+		size_t hash() const;
+	};
+
+
 
 	class DescriptorSetPool
 	{
 	public:
 		static constexpr size_t descriptor_pool_size = 128;
+		static constexpr size_t descriptor_type_size = 16; //How many descriptors per descriptor set in the pool
+		DescriptorSetPool(const DescriptorSetLayout& layout);
 
-		//DescriptorSetPool();
+		VkDescriptorSet getFreeDescriptorSet();
 
-
+		void recycleDescriptor(uint32_t index);
 
 	private:
 
+		std::bitset<descriptor_pool_size> m_free_descriptors;
+		uint32_t m_next_free_idx;
+		
 		VkDescriptorSetLayout m_layout;
 		VkDescriptorPool m_pool;
 		std::array<VkDescriptorSet, descriptor_pool_size> m_descriptor_sets;
@@ -26,21 +47,31 @@ namespace Veist
 
 	};
 
+
 	class DescriptorSetAllocator
 	{
 	public:
 
-		DescriptorSetAllocator();
+		DescriptorSetAllocator() = default;
+		~DescriptorSetAllocator();
 
+		void addDescriptorPool(std::vector<VkDescriptorSetLayoutBinding>& bindings);
 		
-
 		DescriptorSet::DescriptorPoolData createDescriptorSet(std::vector<Descriptor>& descriptor_bindings);
-	
-	
 	
 	private:
 
-		std::unordered_map<DESCRIPTORLAYOUTKEY, DescriptorSetPool>
+		struct DescriptorHash
+		{
+			size_t operator()(const DescriptorSetLayout& info) const
+			{
+				return info.hash();
+			};
+
+		};
+
+		//When searching for descriptorlayout ensure that only shader reflection. inserts new pools for new layouts into the map 
+		std::unordered_map<DescriptorSetLayout, DescriptorSetPool, DescriptorHash> m_descriptor_pools;
 
 
 	};

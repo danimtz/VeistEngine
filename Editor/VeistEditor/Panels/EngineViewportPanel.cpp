@@ -50,7 +50,10 @@ namespace VeistEditor
 
 
 		//Create framebuffer (only using 1 image for now)
-		m_target_framebuffer = { m_framebuffer_image.get(), m_depth_image.get(), Framebuffer::LoadOp::Clear };
+		auto colors = std::vector<Framebuffer::Attachment>{{m_framebuffer_image.get(), RenderPass::LoadOp::Clear}};
+		auto depth = Framebuffer::Attachment(m_depth_image.get(), RenderPass::LoadOp::Clear);
+		m_target_framebuffer = Framebuffer(colors, depth);
+	
 
 
 		m_texture_id = ImGui_ImplVulkan_AddTexture(Sampler(SamplerType::RepeatLinear).sampler(), m_framebuffer_image.get()->imageView(), getImageLayout(m_framebuffer_image.get()->imageUsage()));
@@ -148,7 +151,7 @@ namespace VeistEditor
 			return;
 		}
 		//RenderGraph Tests TODO: move declaring rendergraph passes etc to a renderer class or pre declared renderer structure
-		static constexpr uint32_t max_dir_lights = 4;
+		/*static constexpr uint32_t max_dir_lights = 4;
 		static constexpr uint32_t max_point_lights = 100;
 
 		RenderGraph render_graph(m_resource_pool);
@@ -318,7 +321,7 @@ namespace VeistEditor
 				//Write directional lights to buffer
 
 				//Create Global descriptor set for that frame if it doenst exists aready
-				/*if (m_global_descriptor[frame_num].descriptorSet() == nullptr)
+				if (m_global_descriptor[frame_num].descriptorSet() == nullptr)
 				{
 					m_global_descriptor[frame_num].setDescriptorSetLayout(0, curr_pipeline);
 
@@ -335,7 +338,7 @@ namespace VeistEditor
 
 
 					m_global_descriptor[frame_num].buildDescriptorSet();
-				}*/
+				}
 				
 
 				cmd.bindMaterial(*curr_material);
@@ -389,13 +392,13 @@ namespace VeistEditor
 		});
 		
 
-
+		*/
 
 		CommandBuffer& cmd_buffer = RenderModule::getBackend()->getCurrentCmdBuffer();
 
 
 
-		render_graph.execute(cmd_buffer);
+		//render_graph.execute(cmd_buffer);
 	
 		
 		

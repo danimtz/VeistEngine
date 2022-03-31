@@ -5,7 +5,7 @@
 
 namespace Veist
 {
-
+/*
 VkDescriptorSetLayout DescriptorSetLayoutCache::createDescriptorSetLayout(VkDevice device, VkDescriptorSetLayoutCreateInfo* info)
 {
 	
@@ -84,5 +84,5 @@ size_t DescriptorSetLayoutCache::DescriptorSetLayoutInfo::hash() const {
 
 	return result;
 }
-
+*/
 }

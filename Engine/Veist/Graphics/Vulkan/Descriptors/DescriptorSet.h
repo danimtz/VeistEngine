@@ -31,7 +31,8 @@ namespace Veist
 		Descriptor(VkDescriptorType type, const ImageBase* image, SamplerType sampler_type );
 		Descriptor(VkDescriptorType type, const ShaderBuffer* buffer,  uint32_t range = 0);
 		
-
+		VkDescriptorType type() const { return m_type;};
+		DescriptorInfo info() const { return m_info; };
 	private:
 		
 		DescriptorInfo m_info;

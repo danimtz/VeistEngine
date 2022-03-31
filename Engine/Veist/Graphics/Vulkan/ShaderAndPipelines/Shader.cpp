@@ -25,10 +25,12 @@ static VkDescriptorSetLayoutBinding getDescriptorSetLayoutBinding(uint32_t bindi
 
 }
 
+
+//Currently adds stage flag all
 static void addStageFlagToBinding(VkDescriptorSetLayoutBinding& layout_binding, VkShaderStageFlagBits stage_flag)
 {	
 
-	layout_binding.stageFlags = layout_binding.stageFlags | stage_flag;
+	layout_binding.stageFlags = VK_SHADER_STAGE_ALL; //layout_binding.stageFlags | stage_flag;
 
 }
 
@@ -306,7 +308,7 @@ void ShaderProgram::reflectShaderModules()
 			else
 			{
 				//Add stage flag
-				addStageFlagToBinding(m_bindings[set][binding], static_cast<VkShaderStageFlagBits>(spirv_source_it.first)); //UNTESTED MIGHT NOT WORK
+				addStageFlagToBinding(m_bindings[set][binding], static_cast<VkShaderStageFlagBits>(spirv_source_it.first)); //Currently adds stage flag all
 			
 			}
 
@@ -326,7 +328,7 @@ void ShaderProgram::reflectShaderModules()
 			else
 			{
 				//Add stage flag
-				addStageFlagToBinding(m_bindings[set][binding], static_cast<VkShaderStageFlagBits>(spirv_source_it.first)); //UNTESTED MIGHT NOT WORK
+				addStageFlagToBinding(m_bindings[set][binding], static_cast<VkShaderStageFlagBits>(spirv_source_it.first)); //Currently adds stage flag all
 
 			}
 
@@ -347,7 +349,7 @@ void ShaderProgram::reflectShaderModules()
 			else
 			{
 				//Add stage flag
-				addStageFlagToBinding(m_bindings[set][binding], static_cast<VkShaderStageFlagBits>(spirv_source_it.first)); //UNTESTED MIGHT NOT WORK
+				addStageFlagToBinding(m_bindings[set][binding], static_cast<VkShaderStageFlagBits>(spirv_source_it.first));//Currently adds stage flag all
 
 			}
 
@@ -370,7 +372,7 @@ void ShaderProgram::reflectShaderModules()
 			else
 			{
 				//Add stage flag
-				addStageFlagToBinding(m_bindings[set][binding], static_cast<VkShaderStageFlagBits>(spirv_source_it.first)); //UNTESTED MIGHT NOT WORK
+				addStageFlagToBinding(m_bindings[set][binding], static_cast<VkShaderStageFlagBits>(spirv_source_it.first));//Currently adds stage flag all
 
 			}
 
@@ -425,7 +427,7 @@ void ShaderProgram::createDescriptorSetLayouts()
 		{
 			bindings_array.push_back( std::move(m_bindings[i][j]) );
 		}
-
+		/*
 		VkDescriptorSetLayoutCreateInfo set_layout_info = {};
 
 		set_layout_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
@@ -433,18 +435,19 @@ void ShaderProgram::createDescriptorSetLayouts()
 		set_layout_info.flags = 0;
 		set_layout_info.pBindings = bindings_array.data();
 		set_layout_info.pNext = nullptr;
-
+		*/
 		
 		VkDevice device = RenderModule::getBackend()->getDevice();
 
+		RenderModule::getBackend()->getDescriptorAllocator()->addDescriptorPool(bindings_array);
 	
-		DescriptorSetLayoutCache* layout_cache = RenderModule::getBackend()->getDescriptorAllocator()->layoutCache();
-		VkDescriptorSetLayout layout = layout_cache->createDescriptorSetLayout(device, &set_layout_info);
+		//DescriptorSetLayoutCache* layout_cache = RenderModule::getBackend()->getDescriptorAllocator()->layoutCache();
+		//VkDescriptorSetLayout layout = layout_cache->createDescriptorSetLayout(device, &set_layout_info);
 
 		
 		
 
-		m_descriptor_layouts.push_back(layout);
+		//m_descriptor_layouts.push_back(layout);
 	}
 
 	CONSOLE_LOG("Created Descriptor set layouts")

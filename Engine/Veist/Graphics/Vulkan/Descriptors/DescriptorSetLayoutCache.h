@@ -6,7 +6,7 @@
 
 namespace Veist
 {
-
+/*
 class DescriptorSetLayoutCache
 {
 public:
@@ -36,6 +36,6 @@ private:
 
 	std::unordered_map<DescriptorSetLayoutInfo, VkDescriptorSetLayout, DescriptorHash> m_layouts;
 	
-};
+};*/
 
 }
