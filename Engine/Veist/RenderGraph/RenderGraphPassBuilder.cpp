@@ -17,6 +17,7 @@ namespace Veist
 
 	//============== Render graph pass reads/inputs ===================//
 
+	//TODO: if getOrAddBufferResource(name) returns an already existing resource, i shouldnt re add the name, info etc etc, i should  only do the m_graph_pass-> operations
 
 	RenderGraphBufferResource* RenderGraphPassBuilder::addUniformInput(const std::string& name, const RenderGraphBufferInfo& info, const uint32_t d_set_index)
 	{

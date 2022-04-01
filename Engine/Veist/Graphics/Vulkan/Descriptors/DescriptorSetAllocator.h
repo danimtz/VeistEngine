@@ -30,12 +30,20 @@ namespace Veist
 		static constexpr size_t descriptor_pool_size = 128;
 		static constexpr size_t descriptor_type_size = 16; //How many descriptors per descriptor set in the pool
 		DescriptorSetPool(const DescriptorSetLayout& layout);
+		~DescriptorSetPool();
+
 
 		VkDescriptorSet getFreeDescriptorSet();
 
+		VkDescriptorSet descriptorSet(uint32_t index) const { return m_descriptor_sets[index]; }
+		VkDescriptorSetLayout descriptorSetLayout() const { return m_layout; }
+
 		void recycleDescriptor(uint32_t index);
 
+
 	private:
+		
+		friend class DescriptorSetAllocator;
 
 		std::bitset<descriptor_pool_size> m_free_descriptors;
 		uint32_t m_next_free_idx;
@@ -54,6 +62,8 @@ namespace Veist
 
 		DescriptorSetAllocator() = default;
 		~DescriptorSetAllocator();
+
+		void cleanup() { m_descriptor_pools.clear(); };
 
 		void addDescriptorPool(std::vector<VkDescriptorSetLayoutBinding>& bindings);
 		

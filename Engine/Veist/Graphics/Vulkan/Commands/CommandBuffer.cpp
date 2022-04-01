@@ -106,7 +106,7 @@ void CommandBuffer::copyBuffer(const Buffer& src, const Buffer& dst)
 
 
 
-void CommandBuffer::copyBufferToImage(const Buffer stage_buff, const VkImage image, const std::vector<VkBufferImageCopy>& regions, const ImageProperties& properties)
+void CommandBuffer::copyBufferToImage(const Buffer& stage_buff, const VkImage image, const std::vector<VkBufferImageCopy>& regions, const ImageProperties& properties)
 {
 	//prepare pipeline barrier //TODO: Generalize image barrier to other type of images. i think only works with normal textures atm
 	VkImageSubresourceRange range;
@@ -192,12 +192,13 @@ void CommandBuffer::dispatch(const ComputePipeline& pipeline, const DescriptorSe
 
 	vkCmdBindPipeline(m_cmd_buffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipeline.pipeline());
 
+	VkDescriptorSet set = descriptor_set.descriptorSet();
 	vkCmdBindDescriptorSets(m_cmd_buffer, 
 		VK_PIPELINE_BIND_POINT_COMPUTE, 
 		pipeline.pipelineLayout(), 
 		0, 
 		1,
-		&descriptor_set.descriptorSet(),
+		&set,
 		0, nullptr);
 
 	vkCmdDispatch(m_cmd_buffer, group_count.x, group_count.y, group_count.z);
@@ -348,14 +349,14 @@ void CommandBuffer::bindDescriptorSet(const DescriptorSet& descriptor_set, uint3
 {
 
 	VkPipelineLayout vulkan_pipeline_layout = m_bound_pipeline->pipelineLayout();
-
+	VkDescriptorSet set = descriptor_set.descriptorSet();
 	vkCmdBindDescriptorSets(
 		m_cmd_buffer,
 		VK_PIPELINE_BIND_POINT_GRAPHICS,
 		vulkan_pipeline_layout,
 		descriptor_set.setNumber(),
 		1,
-		&descriptor_set.descriptorSet(),
+		&set,
 		offset_count,
 		p_dynamic_offset);
 }

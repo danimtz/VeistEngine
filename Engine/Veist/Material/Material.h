@@ -19,7 +19,7 @@ namespace Veist
 		Material(MaterialType* type, MaterialData data);
 		~Material() = default;
 
-		const DescriptorSet& descriptorSet() const { return m_descriptor_set; };
+		const DescriptorSet& descriptorSet() const { return *m_descriptor_set.get(); };
 
 		MaterialType* materialType() const { return m_material_type; };
 
@@ -29,7 +29,7 @@ namespace Veist
 
 		MaterialData m_material_data;
 
-		DescriptorSet m_descriptor_set;
+		std::unique_ptr<DescriptorSet> m_descriptor_set;
 	};
 
 

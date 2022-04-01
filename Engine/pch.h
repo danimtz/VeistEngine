@@ -16,6 +16,8 @@
 #include <fstream>
 #include <cmath>
 #include <string>
+#include <forward_list>
+#include <list>
 #include <array>
 #include <vector>
 #include <unordered_map>

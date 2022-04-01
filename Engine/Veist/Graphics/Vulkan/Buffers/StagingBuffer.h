@@ -14,7 +14,7 @@ class StagingBuffer : public Buffer
 public:
 
 	StagingBuffer(void* data, uint32_t size);
-	~StagingBuffer();
+	//~StagingBuffer();
 
 };
 

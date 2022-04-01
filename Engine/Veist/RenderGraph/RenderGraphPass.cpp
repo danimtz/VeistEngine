@@ -45,20 +45,33 @@ namespace Veist
 		}
 	}
 
-	/*ShaderBuffer* RenderGraphPass::getPhysicalBuffer(RenderGraphBufferResource* resource) const
+	ShaderBuffer* RenderGraphPass::getPhysicalBuffer(RenderGraphResource* resource) const
 	{
-		return nullptr;
+		if(resource->physicalIndex() == RenderGraphResource::Unset)
+		{
+			CRITICAL_ERROR_LOG("Buffer resource does not have a phisical resource assigned to it");
+		}
+
+		return m_graph->resourcePool()->getBuffer(static_cast<RenderGraphBufferResource*>(resource));
+		 
 	}
 
-	ImageBase* RenderGraphPass::getPhysicalImage(RenderGraphImageResource* resource) const
+	ImageBase* RenderGraphPass::getPhysicalImage(RenderGraphResource* resource) const
 	{
-		return nullptr;
-	}*/
+		if (resource->physicalIndex() == RenderGraphResource::Unset)
+		{
+			CRITICAL_ERROR_LOG("Image resource does not have a phisical resource assigned to it");
+		}
+
+		return m_graph->resourcePool()->getImage(static_cast<RenderGraphImageResource*>(resource));
+	}
 
 
 	void RenderGraphPass::executePass(CommandBuffer& cmd)
 	{
+		cmd.beginRenderPass(m_framebuffer);
 		m_render_function(cmd, this);
+		cmd.endRenderPass();
 	}
 
 

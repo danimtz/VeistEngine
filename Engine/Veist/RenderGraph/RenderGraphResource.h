@@ -17,6 +17,7 @@ namespace Veist
 	struct RenderGraphImageInfo
 	{
 		ImageProperties properties;
+		ImageViewType view_type{ImageViewType::Flat};
 	};
 
 
@@ -24,6 +25,8 @@ namespace Veist
 	class RenderGraphResource
 	{
 	public:
+		enum { Unset = ~0u };
+
 		enum class ResourceType
 		{
 			Buffer,
@@ -34,6 +37,9 @@ namespace Veist
 		ResourceType resourceType() const {return m_type;}
 
 		uint32_t index() const { return m_index; }
+
+		uint32_t physicalIndex() const { return m_index; }
+		
 
 		bool usedInGraph() const { return m_used_in_graph; }
 
@@ -67,6 +73,10 @@ namespace Veist
 		}
 
 
+		void setPhysicalIndex(uint32_t index)
+		{
+			m_physical_index = index;
+		}
 		
 
 
@@ -74,6 +84,7 @@ namespace Veist
 
 		ResourceType m_type;
 		uint32_t m_index;
+		unsigned m_physical_index = Unset;
 		uint32_t m_read_in_pass_count; //refcount of pass reads
 		std::unordered_set<uint32_t> m_written_in_passes;
 		std::unordered_set<uint32_t> m_read_in_passes;
@@ -92,13 +103,22 @@ namespace Veist
 
 		void setImageInfo(const RenderGraphImageInfo& info)
 		{
-			m_info = info;
+			if(m_info.properties.imageSize().width == 0) 
+			{ 
+				m_info = info;
+			}
 		}
 
 		void setImageUsage(ImageUsage usage)
 		{
-			m_usage = usage;
+			m_usage = m_usage | usage;
 		}
+
+
+
+		ImageUsage imageUsage() const {return m_usage;};
+		ImageProperties imageProperties() const {return m_info.properties;};
+		ImageViewType imageViewType() const {return m_info.view_type;};
 
 	private:
 
@@ -125,6 +145,9 @@ namespace Veist
 			m_usage = usage;
 		}
 
+		uint32_t bufferSize() const {return m_info.size;};
+		uint32_t subBufferCount() const { return m_info.subbuffer_count;};
+		ShaderBufferUsage bufferUsage() const {return m_usage;};
 	private:
 
 		RenderGraphBufferInfo m_info;

@@ -28,11 +28,14 @@ namespace Veist
 			{}
 		};
 
-		Descriptor(VkDescriptorType type, const ImageBase* image, SamplerType sampler_type );
+		Descriptor(VkDescriptorType type, DescriptorInfo info) : m_type(type), m_info(info) {};
+		
+		Descriptor(VkDescriptorType type, const ImageBase* image, SamplerType sampler_type = SamplerType::None );
 		Descriptor(VkDescriptorType type, const ShaderBuffer* buffer,  uint32_t range = 0);
 		
 		VkDescriptorType type() const { return m_type;};
-		DescriptorInfo info() const { return m_info; };
+		DescriptorInfo& info() { return m_info; };
+
 	private:
 		
 		DescriptorInfo m_info;
@@ -53,8 +56,9 @@ namespace Veist
 		};
 
 		DescriptorSet(uint32_t set_number, std::vector<Descriptor>& descriptor_bindings);
+		~DescriptorSet();
 
-
+		uint32_t setNumber() const {return m_set_number;};
 		VkDescriptorSet descriptorSet() const;
 		VkDescriptorSetLayout descriptorSetLayout() const;
 

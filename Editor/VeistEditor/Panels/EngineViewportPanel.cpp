@@ -151,7 +151,7 @@ namespace VeistEditor
 			return;
 		}
 		//RenderGraph Tests TODO: move declaring rendergraph passes etc to a renderer class or pre declared renderer structure
-		/*static constexpr uint32_t max_dir_lights = 4;
+		static constexpr uint32_t max_dir_lights = 4;
 		static constexpr uint32_t max_point_lights = 100;
 
 		RenderGraph render_graph(m_resource_pool);
@@ -191,9 +191,10 @@ namespace VeistEditor
 		
 		auto point_lights_buffer = builder.addStorageInput("PointLights", point_lights_buffer_info);
 
-		builder.addExternalInput("IBLProbe_irrmap", Descriptor(*light_probe->prefilterMap(), { SamplerType::RepeatLinear }));
-		builder.addExternalInput("IBLProbe_prefilt_map", Descriptor(*light_probe->prefilterMap(), { SamplerType::RepeatLinear }));
-		builder.addExternalInput("IBLProbe_brdfLUT", Descriptor(*light_probe->prefilterMap(), { SamplerType::RepeatLinear }));
+		//Sloppy as fuck. recode this
+		builder.addExternalInput("IBLProbe_irrmap", Descriptor(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, light_probe->prefilterMap(), { SamplerType::RepeatLinear }));
+		builder.addExternalInput("IBLProbe_prefilt_map", Descriptor(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, light_probe->prefilterMap(), { SamplerType::RepeatLinear }));
+		builder.addExternalInput("IBLProbe_brdfLUT", Descriptor(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, light_probe->prefilterMap(), { SamplerType::RepeatLinear }));
 		
 		auto output_image = builder.addColorOutput("FinalImage", output_image_info);
 		auto depth_output = builder.addDepthOutput("DepthAttachment", depth_attachment_info);
@@ -321,7 +322,7 @@ namespace VeistEditor
 				//Write directional lights to buffer
 
 				//Create Global descriptor set for that frame if it doenst exists aready
-				if (m_global_descriptor[frame_num].descriptorSet() == nullptr)
+				/*if (m_global_descriptor[frame_num].descriptorSet() == nullptr)
 				{
 					m_global_descriptor[frame_num].setDescriptorSetLayout(0, curr_pipeline);
 
@@ -338,7 +339,7 @@ namespace VeistEditor
 
 
 					m_global_descriptor[frame_num].buildDescriptorSet();
-				}
+				}*/
 				
 
 				cmd.bindMaterial(*curr_material);
@@ -354,7 +355,7 @@ namespace VeistEditor
 				offset[3] = pass->getPhysicalBuffer(point_lights_buffer)->offset() * frame_num;
 
 
-				//cmd.bindDescriptorSet(m_global_descriptor[frame_num], offset_count, offset);
+				cmd.bindDescriptorSet(pass->getDescriptorSets()[0], offset_count, offset);
 
 
 				cmd.bindVertexBuffer(*curr_mesh->getVertexBuffer());
@@ -392,20 +393,20 @@ namespace VeistEditor
 		});
 		
 
-		*/
+		
 
 		CommandBuffer& cmd_buffer = RenderModule::getBackend()->getCurrentCmdBuffer();
 
 
 
-		//render_graph.execute(cmd_buffer);
+		render_graph.execute(cmd_buffer);
 	
 		
-		
+		/*
 		cmd_buffer.beginRenderPass(m_target_framebuffer);
 		RenderModule::renderScene(cmd_buffer);
 		cmd_buffer.endRenderPass();
-
+		*/
 	}
 
 

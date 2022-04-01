@@ -21,14 +21,18 @@ namespace Veist
 		VkDescriptorImageInfo desc_img_info;
 		desc_img_info.imageLayout = getImageLayout(image->imageUsage());
 		desc_img_info.imageView = image->imageView();
-		desc_img_info.sampler = RenderModule::getBackend()->getSampler(sampler_type)->sampler();
+		if (sampler_type != SamplerType::None)
+		{
+			desc_img_info.sampler = RenderModule::getBackend()->getSampler(sampler_type)->sampler();
+		}
+		
 
 		m_info = { desc_img_info };
 
 	}
 
 
-	Descriptor::Descriptor(VkDescriptorType type, const ShaderBuffer* buffer, uint32_t range = 0) : m_type(type)
+	Descriptor::Descriptor(VkDescriptorType type, const ShaderBuffer* buffer, uint32_t range) : m_type(type)
 	{
 
 		VkDescriptorBufferInfo desc_buffer_info;
@@ -50,10 +54,17 @@ namespace Veist
 
 
 	//===================== DescriptorSet ====================
+
 	DescriptorSet::DescriptorSet(uint32_t set_number, std::vector<Descriptor>& descriptor_bindings) : m_set_number(set_number)
 	{
 		m_pool_data = RenderModule::getBackend()->getDescriptorAllocator()->createDescriptorSet(descriptor_bindings);
 	}
+
+	DescriptorSet::~DescriptorSet()
+	{
+		m_pool_data.m_pool->recycleDescriptor(m_pool_data.m_index);
+	}
+
 
 	VkDescriptorSet DescriptorSet::descriptorSet() const
 	{
@@ -62,8 +73,15 @@ namespace Veist
 
 	VkDescriptorSetLayout DescriptorSet::descriptorSetLayout() const
 	{
-		return m_pool_data.m_pool->descriptorSetLayout() 
+		return m_pool_data.m_pool->descriptorSetLayout(); 
 	};
+
+
+
+
+
+
+
 
 
 /*

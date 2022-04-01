@@ -28,9 +28,11 @@ namespace Veist
 		void addDescriptorTemplate(uint32_t descriptor_set_number, uint32_t resource_index, VkDescriptorType descriptor_type, SamplerType sampler_type = SamplerType::None);
 		void addExternalDescriptorTemplate(uint32_t descriptor_set_number,  const Descriptor& descriptor);
 
-		ShaderBuffer* getPhysicalBuffer(RenderGraphResource* resource) const {return nullptr; }; //TODO
-		ImageBase* getPhysicalImage(RenderGraphResource* resource) const { return nullptr; }; //TODO
-		
+		ShaderBuffer* getPhysicalBuffer(RenderGraphResource* resource) const; //TODO
+		ImageBase* getPhysicalImage(RenderGraphResource* resource) const; //TODO
+
+		const std::vector<DescriptorSet>& getDescriptorSets() const {return m_descriptor_sets;};
+
 		void executePass(CommandBuffer& cmd);
 
 	private:

@@ -45,6 +45,8 @@ public:
 	uint32_t sizeInPixels();
 	uint32_t layerSizeBytes();
 
+	bool operator==(const ImageProperties& other) const;
+
 private:
 
 	ImageSize m_size;

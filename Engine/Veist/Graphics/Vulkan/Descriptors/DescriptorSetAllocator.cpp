@@ -15,7 +15,10 @@ namespace Veist
 
 		for (auto binding : layout.m_bindings)
 		{
-			sizes.emplace_back( binding.descriptorType, descriptor_count);
+			VkDescriptorPoolSize size;
+			size.descriptorCount = descriptor_count;
+			size.type = binding.descriptorType;
+			sizes.emplace_back(size);
 		}
 
 		VkDescriptorPoolCreateInfo pool_info = {};
@@ -111,7 +114,7 @@ namespace Veist
 		auto it = m_descriptor_pools.find(layout);
 		if (it == m_descriptor_pools.end())//if pool not in map
 		{
-			m_descriptor_pools.emplace(layout);
+			m_descriptor_pools.emplace(layout, layout);
 		}
 	}
 
@@ -130,12 +133,12 @@ namespace Veist
 
 		VkDevice device = RenderModule::getBackend()->getDevice();
 		VkDescriptorSetLayout set_layout;
-		m_layout = set_layout;
 		VK_CHECK(vkCreateDescriptorSetLayout(device, &layout_info, nullptr, &set_layout));
 		RenderModule::getBackend()->pushToDeletionQueue([device, set_layout]() {vkDestroyDescriptorSetLayout(device, set_layout, nullptr); });
 		
+		m_layout = set_layout;
 
-		//Allocate pool
+		//Allocate pool TODO: fix descriptor count type sizes. not enough descriptors in pool
 		m_pool = createPool(layout, descriptor_pool_size, descriptor_type_size, VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT);
 
 		
@@ -152,7 +155,6 @@ namespace Veist
 		alloc_info.descriptorSetCount = descriptor_pool_size;
 
 		//Allocate descriptor sets
-		VkDevice device = RenderModule::getBackend()->getDevice();
 		VK_CHECK(vkAllocateDescriptorSets(device, &alloc_info, m_descriptor_sets.data()));
 
 
@@ -163,6 +165,16 @@ namespace Veist
 	}
 
 
+	DescriptorSetPool::~DescriptorSetPool()
+	{
+		VkDevice device = RenderModule::getBackend()->getDevice();
+		vkDestroyDescriptorPool(device, m_pool, nullptr);
+		//vkDestroyDescriptorSetLayout(device, m_layout, nullptr);//In deletion queue
+		
+	}
+
+
+
 	VkDescriptorSet DescriptorSetPool::getFreeDescriptorSet()
 	{
 		VkDescriptorSet free_descriptor = m_descriptor_sets.at(m_next_free_idx);
@@ -170,7 +182,7 @@ namespace Veist
 		m_free_descriptors.set(m_next_free_idx, false);
 
 		bool next_free_found = false;
-		while (!next_free_found)
+		while (!next_free_found) //I could use a queue here isntead of iterating through bitset finding next free index but its fine
 		{
 			m_next_free_idx++;
 			next_free_found = m_free_descriptors.test(m_next_free_idx);
@@ -182,6 +194,18 @@ namespace Veist
 		}
 
 	}
+
+
+
+	void DescriptorSetPool::recycleDescriptor(uint32_t index)
+	{
+		m_free_descriptors.set(index, true);
+		if (m_next_free_idx > index)
+		{
+			m_next_free_idx = index;
+		}
+	}
+
 
 
 
@@ -198,18 +222,50 @@ namespace Veist
 		}
 		else
 		{
+			DescriptorSet::DescriptorPoolData pool_data;
+			pool_data.m_pool = &it->second;
+			pool_data.m_index = it->second.m_next_free_idx;
 
 			DescriptorSetPool& pool = it->second;
 			VkDescriptorSet desc_set = pool.getFreeDescriptorSet();
 			
-			//TODO write descriptor set and return it
+			std::vector<VkWriteDescriptorSet> m_writes;
+			std::vector<Descriptor::DescriptorInfo> m_write_data;
+			m_writes.reserve(descriptor_bindings.size());
+			m_write_data.reserve(descriptor_bindings.size());
+
+			uint32_t binding = 0;
+			for (auto& descriptor : descriptor_bindings)
+			{
+				VkWriteDescriptorSet set_write;
+				set_write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+				set_write.descriptorCount = 1; //If inline blocks supported this is size in bytes
+				set_write.descriptorType = descriptor.type();
+				set_write.dstSet = desc_set;
+				set_write.dstBinding = binding;
+				set_write.pImageInfo = &descriptor.info().image_info;
+				set_write.pBufferInfo = &descriptor.info().buffer_info;
+				
+				m_writes.emplace_back(set_write);
+
+				binding++;
+			}
+
+			VkDevice device = RenderModule::getBackend()->getDevice();
+			vkUpdateDescriptorSets(device, m_writes.size(), m_writes.data(), 0, nullptr);
 
 
+			return pool_data;
 		}
 	}
 
 
 
+
+	DescriptorSetAllocator::~DescriptorSetAllocator()
+	{
+		
+	}
 
 
 

@@ -70,7 +70,9 @@ public:
 	void transitionImageLayout( VkImageLayout new_layout, VkImageLayout old_layout = VK_IMAGE_LAYOUT_UNDEFINED);
 	void generateMipmaps();
 
-	
+
+	ImageBase(ImageProperties properties, ImageUsage usage, ImageViewType type);
+
 	~ImageBase();
 	ImageBase(const ImageBase&) = default;
 	ImageBase& operator=(const ImageBase&) = default;
@@ -85,7 +87,7 @@ protected:
 
 
 	ImageBase(void* data, ImageProperties properties, ImageUsage usage, ImageViewType view_type);
-	ImageBase(ImageProperties properties, ImageUsage usage, ImageViewType type);
+	
 
 
 	//swapchain
@@ -102,7 +104,7 @@ protected:
 	VmaAllocation m_allocation{nullptr};
 };
 
-
+//Rework this template, call ImageBase Image. I dont really use this a while lot across the engine
 template<ImageUsage usage, ImageViewType type = ImageViewType::Flat>
 class Image : public ImageBase {
 public:

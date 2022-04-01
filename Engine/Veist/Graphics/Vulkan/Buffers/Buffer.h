@@ -15,6 +15,11 @@ public:
 	
 	VulkanBuffer() = default;
 	VulkanBuffer(uint32_t size, VkBufferUsageFlagBits buffer_usage, VmaMemoryUsage memory_usage);
+	virtual ~VulkanBuffer();
+
+	VulkanBuffer(VulkanBuffer&&);
+	VulkanBuffer& operator=(VulkanBuffer&&);
+
 
 	VkBuffer buffer() const { return m_buffer; };
 	VmaAllocation allocation() const { return m_allocation; };

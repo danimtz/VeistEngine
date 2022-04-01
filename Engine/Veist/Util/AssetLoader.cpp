@@ -499,11 +499,18 @@ std::shared_ptr<Cubemap> AssetLoader::loadCubemapFromEquirectMap(const char* fil
 
 		//Use compute shader to convert equirectangular image to cubemap
 		ComputePipeline compute_program = { "equirectToCubemapHDR" };
-		DescriptorSet compute_descriptor;
-		compute_descriptor.setDescriptorSetLayout(0, &compute_program);
-		compute_descriptor.bindCombinedSamplerImage(0, &equirect, { SamplerType::RepeatLinear });
-		compute_descriptor.bindStorageImage(1, &cubemap);
-		compute_descriptor.buildDescriptorSet();
+		
+
+		std::vector<Descriptor> bindings;
+		bindings.emplace_back(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, &equirect, SamplerType::RepeatLinear);
+		bindings.emplace_back(VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, &cubemap);
+		//compute_descriptor.setDescriptorSetLayout(0, &compute_program);
+		//compute_descriptor.bindCombinedSamplerImage(0, &equirect, { SamplerType::RepeatLinear });
+		//compute_descriptor.bindStorageImage(1, &cubemap);
+		//compute_descriptor.buildDescriptorSet();
+		DescriptorSet compute_descriptor{ 0, bindings };
+
+
 
 		CommandBuffer cmd_buff = RenderModule::getBackend()->createComputeQueueCmdBuffer();
 		cmd_buff.calcSizeAndDispatch(compute_program, compute_descriptor, img_size);
@@ -549,11 +556,16 @@ std::shared_ptr<Cubemap> AssetLoader::loadCubemapFromEquirectMap(const char* fil
 
 		//Use compute shader to convert equirectangular image to cubemap
 		ComputePipeline compute_program = { "equirectToCubemapRGB8" };
-		DescriptorSet compute_descriptor;
-		compute_descriptor.setDescriptorSetLayout(0, &compute_program);
-		compute_descriptor.bindCombinedSamplerImage(0, &equirect, { SamplerType::RepeatLinear });
-		compute_descriptor.bindStorageImage(1, &cubemap);
-		compute_descriptor.buildDescriptorSet();
+		
+
+		std::vector<Descriptor> bindings;
+		bindings.emplace_back(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, &equirect, SamplerType::RepeatLinear);
+		bindings.emplace_back(VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, &cubemap);
+		//compute_descriptor.setDescriptorSetLayout(0, &compute_program);
+		//compute_descriptor.bindCombinedSamplerImage(0, &equirect, { SamplerType::RepeatLinear });
+		//compute_descriptor.bindStorageImage(1, &cubemap);
+		//compute_descriptor.buildDescriptorSet();
+		DescriptorSet compute_descriptor{ 0, bindings };
 
 		CommandBuffer cmd_buff = RenderModule::getBackend()->createComputeQueueCmdBuffer();
 		cmd_buff.calcSizeAndDispatch(compute_program, compute_descriptor, img_size);

@@ -57,6 +57,8 @@ namespace Veist
 	
 
 
+
+
 	RenderGraphImageResource* RenderGraph::getOrAddImageResource(const std::string& name)
 	{
 		auto it = m_resource_to_idx_map.find(name);
@@ -78,6 +80,8 @@ namespace Veist
 			return static_cast<RenderGraphImageResource*>(resource.get());
 		}
 	}
+
+
 
 
 	bool RenderGraph::setBackbuffer(const std::string& name)
@@ -104,6 +108,7 @@ namespace Veist
 	}
 
 
+
 	void RenderGraph::execute(CommandBuffer& cmd)
 	{
 
@@ -115,12 +120,11 @@ namespace Veist
 
 		//Setup graph passes order and cull unused resources
 		m_next_resources.push(m_backbuffer_idx);
-		setupGraphPassOrder(m_next_passes, m_next_resources); //TODO: reverse pass order at the end of the function?
+		setupGraphPassOrder(m_next_passes, m_next_resources);
 
-		//Allocate physical resources (TODO: For more complex passes calculate and support aliasing of physical resources)  // FROM themaister.net: The algorithm is fairly straight forward. For each resource we figure out the first and last physical render pass where a resource is used. 
-		allocateResources();																								//If we find another resource with the same dimensions/format, and their pass range does not overlap, presto, we can alias! 
-																															//We inject some information where we can transition “ownership” between resources.
 
+		//Allocate physical resources 
+		allocatePhysicalResources();
 
 
 		//Build descriptors and framebuffers/renderpasses  
@@ -128,8 +132,7 @@ namespace Veist
 		* Possible immediate performance improvement: Vkdestroy renderpass and framebuffer after rendergraph is done (after frame)
 		* Possible performance improvements: hash renderpass and framebuffer objects and reuse them if rendergraph doesnt change with respect to previous frames
 		* If the renderpass/framebuffer is not used after a couple of frames (8 or so) then it could be deleted		
- 		  *
-		* Same for descriptor sets. See descriptor set allocator class
+ 		*
  		*/
 		for (auto pass_idx : m_pass_stack)
 		{
@@ -143,7 +146,7 @@ namespace Veist
 		for (auto pass_idx : m_pass_stack)
 		{
 			m_passes[pass_idx]->executePass(cmd);
-			cmd.endRenderPass();
+			
 		}
 
 
@@ -151,6 +154,11 @@ namespace Veist
 		//TODO barriers. 
 
 
+
+		//TODO resource aliasing
+		//	FROM themaister.net: The algorithm is fairly straight forward. For each resource we figure out the first and last physical render pass where a resource is used. 																								
+		//	If we find another resource with the same dimensions/format, and their pass range does not overlap, presto, we can alias! 
+		//	We inject some information where we can transition “ownership” between resources.
 	}
 
 
@@ -254,10 +262,45 @@ namespace Veist
 				next_passes.pop();
 			}
 		}
+
+		std::reverse(m_pass_stack.begin(), m_pass_stack.end());
 	}
 	
 
 
 
+
+
+	void RenderGraph::allocatePhysicalResources()
+	{
+		//Must do aliasing of read modify write resources. dont assign different physical resources
+
+		for (auto& resource : m_resources)
+		{
+			if(!resource->usedInGraph()) continue;
+
+			if (resource->physicalIndex() == RenderGraphResource::Unset)
+			{
+
+				if (resource->resourceType() == RenderGraphResource::ResourceType::Image)
+				{
+					m_resource_pool->createImage(static_cast<RenderGraphImageResource*>(resource.get()));
+				}
+				else if (resource->resourceType() == RenderGraphResource::ResourceType::Buffer)
+				{
+					m_resource_pool->createBuffer(static_cast<RenderGraphBufferResource*>(resource.get()));
+				}
+			}
+
+		}
+	}
+
+
+
+	RenderGraph::~RenderGraph()
+	{
+		//TODO: Maybe wait for frame to be finished? fences?
+		m_resource_pool->recycleRenderGraph();
+	}
 
 }
