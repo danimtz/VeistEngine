@@ -38,7 +38,7 @@ namespace Veist
 
 		uint32_t index() const { return m_index; }
 
-		uint32_t physicalIndex() const { return m_index; }
+		uint32_t physicalIndex() const { return m_physical_index; }
 		
 
 		bool usedInGraph() const { return m_used_in_graph; }
@@ -99,7 +99,7 @@ namespace Veist
 	{
 	public:
 
-		RenderGraphImageResource(uint32_t index) : RenderGraphResource(index, ResourceType::Image) {}
+		RenderGraphImageResource(uint32_t index) : RenderGraphResource(index, ResourceType::Image), m_usage(ImageUsage::None) {}
 
 		void setImageInfo(const RenderGraphImageInfo& info)
 		{

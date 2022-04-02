@@ -30,8 +30,8 @@ private:
 
 	void allocateBuffer(uint32_t size, VkBufferUsageFlagBits buffer_usage, VmaMemoryUsage memory_usage);
 	
-	VkBuffer			m_buffer;
-	VmaAllocation		m_allocation;
+	VkBuffer			m_buffer{VK_NULL_HANDLE};
+	VmaAllocation		m_allocation{nullptr};
 	
 };
 

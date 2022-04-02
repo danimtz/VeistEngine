@@ -33,7 +33,7 @@ namespace Veist
 		~DescriptorSetPool();
 
 
-		VkDescriptorSet getFreeDescriptorSet();
+		uint32_t getFreeDescriptorSetIndex();
 
 		VkDescriptorSet descriptorSet(uint32_t index) const { return m_descriptor_sets[index]; }
 		VkDescriptorSetLayout descriptorSetLayout() const { return m_layout; }
@@ -53,6 +53,8 @@ namespace Veist
 		std::array<VkDescriptorSet, descriptor_pool_size> m_descriptor_sets;
 
 
+		//std::vector<VkDescriptorSetLayoutBinding> TESTLAYOUT;
+
 	};
 
 
@@ -65,7 +67,7 @@ namespace Veist
 
 		void cleanup() { m_descriptor_pools.clear(); };
 
-		void addDescriptorPool(std::vector<VkDescriptorSetLayoutBinding>& bindings);
+		VkDescriptorSetLayout addDescriptorPool(std::vector<VkDescriptorSetLayoutBinding>& bindings);
 		
 		DescriptorSet::DescriptorPoolData createDescriptorSet(std::vector<Descriptor>& descriptor_bindings);
 	

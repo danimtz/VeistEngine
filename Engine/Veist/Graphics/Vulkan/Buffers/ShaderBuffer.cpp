@@ -7,7 +7,7 @@ namespace Veist
 {
 
 
-	ShaderBuffer::ShaderBuffer(uint32_t subbuffer_size, uint32_t subbuffer_count, ShaderBufferUsage usage) : m_usage(usage)
+	ShaderBuffer::ShaderBuffer(uint32_t subbuffer_size, uint32_t subbuffer_count, ShaderBufferUsage usage) : m_usage(usage), m_range(subbuffer_size)
 	{
 		uint32_t size = subbuffer_size;
 		uint32_t minUBOalignment = RenderModule::getBackend()->getGPUinfo().properties.limits.minUniformBufferOffsetAlignment;

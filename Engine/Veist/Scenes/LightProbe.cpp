@@ -82,7 +82,8 @@ static std::shared_ptr<Cubemap> calculateEnvironmentMap(const Cubemap& HDRcubema
 	size.z = 1;
 
 	std::vector<VkImageView> mipmap_views;
-
+	std::vector<DescriptorSet> compute_descriptors;
+	compute_descriptors.reserve(mip_levels);
 	for (uint32_t i = 0; i < mip_levels; i++)
 	{
 		
@@ -103,13 +104,13 @@ static std::shared_ptr<Cubemap> calculateEnvironmentMap(const Cubemap& HDRcubema
 		//compute_descriptor.bindCombinedSamplerImage(0, &HDRcubemap, { SamplerType::RepeatLinear });
 		//compute_descriptor.bindStorageImage(1, mipmap_views.back());
 		//compute_descriptor.buildDescriptorSet();
-		DescriptorSet compute_descriptor{ 0, bindings };
+		compute_descriptors.emplace_back(0, bindings );
 
 		//ROUGHNESS PUSH CONSTNAT
 		float roughness = (float)i / (float)(mip_levels - 1);
 
 		cmd_buff.setComputePushConstant(compute_IBLenvironment, roughness);
-		cmd_buff.calcSizeAndDispatch(compute_IBLenvironment, compute_descriptor, size);
+		cmd_buff.calcSizeAndDispatch(compute_IBLenvironment, compute_descriptors[i], size);
 		
 		size.x /= 2;
 		size.y /= 2;

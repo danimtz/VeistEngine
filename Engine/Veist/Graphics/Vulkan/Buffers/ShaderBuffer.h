@@ -23,6 +23,7 @@ namespace Veist
 		VkBuffer buffer() const { return m_buffer.buffer(); };
 		uint32_t size() const { return m_size; };
 		uint32_t offset() const { return m_offset; };
+		uint32_t range() const { return m_range; };
 		ShaderBufferUsage usage() const { return m_usage; };
 
 		void setData(const void* data, uint32_t size, uint32_t sub_allocation_num = 0);
@@ -31,6 +32,7 @@ namespace Veist
 	
 		VulkanBuffer m_buffer;
 		ShaderBufferUsage m_usage;
+		uint32_t m_range{0};
 		uint32_t m_size;
 		uint32_t m_offset{0};
 	};

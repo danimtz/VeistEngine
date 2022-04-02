@@ -28,7 +28,7 @@ namespace VeistEditor
         m_scene_loaded = false;
         m_thread_pool->spawnThread( [=]()
         { 
-            //DONT USE SCENE CLASS FUNCITON LATEER. USE SCENE SERIALIZER. This is simulating creating a new scene
+            //TODO: DONT USE SCENE CLASS FUNCITON LATEER. USE SCENE SERIALIZER. This is simulating creating a new scene
             m_active_scene = std::make_unique<Scene>();
             m_active_scene->loadScene(m_active_scene->ecsRegistry()); 
 

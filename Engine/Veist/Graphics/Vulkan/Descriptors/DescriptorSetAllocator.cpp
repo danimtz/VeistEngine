@@ -10,16 +10,20 @@ namespace Veist
 	
 	static VkDescriptorPool createPool(const DescriptorSetLayout& layout, uint32_t descriptor_set_count, uint32_t descriptor_count, VkDescriptorPoolCreateFlags flags)
 	{
+
+		//TODO rework this to only allocate enough descriptors as neded not more
 		std::vector<VkDescriptorPoolSize> sizes;
 		sizes.reserve(layout.m_bindings.size());
-
 		for (auto binding : layout.m_bindings)
 		{
 			VkDescriptorPoolSize size;
-			size.descriptorCount = descriptor_count;
+			size.descriptorCount = descriptor_count * descriptor_set_count;
 			size.type = binding.descriptorType;
 			sizes.emplace_back(size);
 		}
+		
+
+
 
 		VkDescriptorPoolCreateInfo pool_info = {};
 		pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
@@ -42,9 +46,11 @@ namespace Veist
 	{
 		//TODO support inline blocks?
 		m_bindings.reserve(descriptor_list.size());
+		uint32_t count = 0;
 		for (auto descriptor : descriptor_list)
 		{
 			VkDescriptorSetLayoutBinding binding;
+			binding.binding = count++;
 			binding.descriptorType = descriptor.type();
 			binding.stageFlags = VK_SHADER_STAGE_ALL;
 			binding.descriptorCount = 1; //if inline block this is size of of block in bytes
@@ -107,15 +113,19 @@ namespace Veist
 	}
 
 
-	void DescriptorSetAllocator::addDescriptorPool(std::vector<VkDescriptorSetLayoutBinding>& bindings)
+	VkDescriptorSetLayout DescriptorSetAllocator::addDescriptorPool(std::vector<VkDescriptorSetLayoutBinding>& bindings)
 	{
 		DescriptorSetLayout layout{bindings};
 
 		auto it = m_descriptor_pools.find(layout);
 		if (it == m_descriptor_pools.end())//if pool not in map
 		{
-			m_descriptor_pools.emplace(layout, layout);
+			auto& map_entry = m_descriptor_pools.emplace(layout, layout);
+			
+			return map_entry.first->second.descriptorSetLayout();
 		}
+
+		return it->second.descriptorSetLayout();
 	}
 
 
@@ -131,6 +141,8 @@ namespace Veist
 		layout_info.pNext = nullptr;
 		
 
+		
+
 		VkDevice device = RenderModule::getBackend()->getDevice();
 		VkDescriptorSetLayout set_layout;
 		VK_CHECK(vkCreateDescriptorSetLayout(device, &layout_info, nullptr, &set_layout));
@@ -138,7 +150,7 @@ namespace Veist
 		
 		m_layout = set_layout;
 
-		//Allocate pool TODO: fix descriptor count type sizes. not enough descriptors in pool
+		//Allocate pool
 		m_pool = createPool(layout, descriptor_pool_size, descriptor_type_size, VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT);
 
 		
@@ -175,9 +187,9 @@ namespace Veist
 
 
 
-	VkDescriptorSet DescriptorSetPool::getFreeDescriptorSet()
+	uint32_t DescriptorSetPool::getFreeDescriptorSetIndex()
 	{
-		VkDescriptorSet free_descriptor = m_descriptor_sets.at(m_next_free_idx);
+		uint32_t index = m_next_free_idx;
 
 		m_free_descriptors.set(m_next_free_idx, false);
 
@@ -192,6 +204,8 @@ namespace Veist
 				CRITICAL_ERROR_LOG("Descriptor pool full, could not find free descriptor");
 			}
 		}
+
+		return index;
 
 	}
 
@@ -227,21 +241,19 @@ namespace Veist
 			pool_data.m_index = it->second.m_next_free_idx;
 
 			DescriptorSetPool& pool = it->second;
-			VkDescriptorSet desc_set = pool.getFreeDescriptorSet();
+			uint32_t desc_set_idx = pool.getFreeDescriptorSetIndex();
 			
 			std::vector<VkWriteDescriptorSet> m_writes;
-			std::vector<Descriptor::DescriptorInfo> m_write_data;
 			m_writes.reserve(descriptor_bindings.size());
-			m_write_data.reserve(descriptor_bindings.size());
 
 			uint32_t binding = 0;
 			for (auto& descriptor : descriptor_bindings)
 			{
-				VkWriteDescriptorSet set_write;
+				VkWriteDescriptorSet set_write = {};
 				set_write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 				set_write.descriptorCount = 1; //If inline blocks supported this is size in bytes
 				set_write.descriptorType = descriptor.type();
-				set_write.dstSet = desc_set;
+				set_write.dstSet = pool.m_descriptor_sets[desc_set_idx];
 				set_write.dstBinding = binding;
 				set_write.pImageInfo = &descriptor.info().image_info;
 				set_write.pBufferInfo = &descriptor.info().buffer_info;

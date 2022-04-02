@@ -19,8 +19,8 @@ namespace Veist
 		void createImage(RenderGraphImageResource* resource);
 		void createBuffer(RenderGraphBufferResource* resource);
 
-		ImageBase* getImage(RenderGraphImageResource* resource) { return &m_physical_images[resource->physicalIndex()];};
-		ShaderBuffer* getBuffer(RenderGraphBufferResource* resource) { return &m_physical_buffers[resource->physicalIndex()]; };
+		ImageBase* getImage(RenderGraphImageResource* resource) { return m_physical_images[resource->physicalIndex()].get();};
+		ShaderBuffer* getBuffer(RenderGraphBufferResource* resource) { return m_physical_buffers[resource->physicalIndex()].get(); };
 
 		void recycleRenderGraph();
 
@@ -29,11 +29,12 @@ namespace Veist
 		bool reuseImageFromPool(RenderGraphImageResource* resource);
 		bool reuseBufferFromPool(RenderGraphBufferResource* resource);
 		
-		std::vector<ImageBase> m_physical_images;
-		std::vector<ShaderBuffer> m_physical_buffers;
+		std::vector<std::unique_ptr<ImageBase>> m_physical_images;
+		std::vector<std::unique_ptr<ShaderBuffer>> m_physical_buffers;
 
-		std::forward_list<std::pair<uint32_t, ShaderBuffer>> m_unused_buffer_pool;
-		std::forward_list<std::pair<uint32_t, ImageBase>> m_unused_image_pool;
+
+		std::forward_list<std::pair<uint32_t, std::unique_ptr<ImageBase>>> m_unused_image_pool;
+		std::forward_list<std::pair<uint32_t, std::unique_ptr<ShaderBuffer>>> m_unused_buffer_pool;
 
 
 	};

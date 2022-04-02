@@ -154,8 +154,8 @@ void CommandBuffer::copyBufferToImage(const Buffer& stage_buff, const VkImage im
 
 void CommandBuffer::setComputePushConstant(const ComputePipeline& pipeline, float constant_value)
 {
-
-	vkCmdPushConstants(m_cmd_buffer, pipeline.pipelineLayout(), VK_SHADER_STAGE_COMPUTE_BIT, 0, uint32_t(sizeof(constant_value)), &constant_value);
+	//TODO: go back to only using shader stage compute. but for that the whole shader reflections/ stage flags for descriptors needs ot be refactored
+	vkCmdPushConstants(m_cmd_buffer, pipeline.pipelineLayout(), VK_SHADER_STAGE_ALL/*VK_SHADER_STAGE_COMPUTE_BIT*/, 0, uint32_t(sizeof(constant_value)), &constant_value);
 
 }
 
@@ -365,7 +365,7 @@ void CommandBuffer::bindDescriptorSet(const DescriptorSet& descriptor_set, uint3
 void CommandBuffer::setPushConstants(const MatrixPushConstant& push_constant)
 {
 	VkPipelineLayout vulkan_pipeline_layout = m_bound_pipeline->pipelineLayout();
-	vkCmdPushConstants(m_cmd_buffer, vulkan_pipeline_layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(MatrixPushConstant), &push_constant);
+	vkCmdPushConstants(m_cmd_buffer, vulkan_pipeline_layout, VK_SHADER_STAGE_ALL/*VK_SHADER_STAGE_VERTEX_BIT*/, 0, sizeof(MatrixPushConstant), &push_constant);
 }
 
 

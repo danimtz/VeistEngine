@@ -302,7 +302,7 @@ void ShaderProgram::reflectShaderModules()
 			unsigned binding = comp.get_decoration(resource.id, spv::DecorationBinding);
 			if (m_bindings[set].find(binding) == m_bindings[set].end()) //if not found
 			{
-				auto decriptor_binding = getDescriptorSetLayoutBinding(binding, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, static_cast<VkShaderStageFlagBits>(spirv_source_it.first));
+				auto decriptor_binding = getDescriptorSetLayoutBinding(binding, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, VK_SHADER_STAGE_ALL /*static_cast<VkShaderStageFlagBits>(spirv_source_it.first)*/);
 				m_bindings[set].insert({binding, decriptor_binding});
 			} 
 			else
@@ -322,7 +322,7 @@ void ShaderProgram::reflectShaderModules()
 			unsigned binding = comp.get_decoration(resource.id, spv::DecorationBinding);
 			if (m_bindings[set].find(binding) == m_bindings[set].end()) //if not found
 			{
-				auto decriptor_binding = getDescriptorSetLayoutBinding(binding, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, static_cast<VkShaderStageFlagBits>(spirv_source_it.first));
+				auto decriptor_binding = getDescriptorSetLayoutBinding(binding, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, VK_SHADER_STAGE_ALL /*static_cast<VkShaderStageFlagBits>(spirv_source_it.first)*/);
 				m_bindings[set].insert({ binding, decriptor_binding });
 			}
 			else
@@ -343,7 +343,7 @@ void ShaderProgram::reflectShaderModules()
 			unsigned binding = comp.get_decoration(resource.id, spv::DecorationBinding);
 			if (m_bindings[set].find(binding) == m_bindings[set].end()) //if not found
 			{
-				auto decriptor_binding = getDescriptorSetLayoutBinding(binding, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, static_cast<VkShaderStageFlagBits>(spirv_source_it.first));
+				auto decriptor_binding = getDescriptorSetLayoutBinding(binding, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, VK_SHADER_STAGE_ALL /*static_cast<VkShaderStageFlagBits>(spirv_source_it.first)*/);
 				m_bindings[set].insert({ binding, decriptor_binding });
 			}
 			else
@@ -366,7 +366,7 @@ void ShaderProgram::reflectShaderModules()
 			unsigned binding = comp.get_decoration(resource.id, spv::DecorationBinding);
 			if (m_bindings[set].find(binding) == m_bindings[set].end()) //if not found
 			{
-				auto decriptor_binding = getDescriptorSetLayoutBinding(binding, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, static_cast<VkShaderStageFlagBits>(spirv_source_it.first));
+				auto decriptor_binding = getDescriptorSetLayoutBinding(binding, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_ALL /*static_cast<VkShaderStageFlagBits>(spirv_source_it.first)*/);
 				m_bindings[set].insert({ binding, decriptor_binding });
 			}
 			else
@@ -392,7 +392,7 @@ void ShaderProgram::reflectShaderModules()
 			auto& type = comp.get_type(resource.type_id);
 
 			VkPushConstantRange constant_range = {};
-			constant_range.stageFlags = static_cast<VkShaderStageFlagBits>(spirv_source_it.first);
+			constant_range.stageFlags = VK_SHADER_STAGE_ALL /*static_cast<VkShaderStageFlagBits>(spirv_source_it.first)*/;
 			constant_range.offset = 0;
 			constant_range.size = comp.get_declared_struct_size(type);
 
@@ -439,7 +439,7 @@ void ShaderProgram::createDescriptorSetLayouts()
 		
 		VkDevice device = RenderModule::getBackend()->getDevice();
 
-		RenderModule::getBackend()->getDescriptorAllocator()->addDescriptorPool(bindings_array);
+		VkDescriptorSetLayout layout = RenderModule::getBackend()->getDescriptorAllocator()->addDescriptorPool(bindings_array);
 	
 		//DescriptorSetLayoutCache* layout_cache = RenderModule::getBackend()->getDescriptorAllocator()->layoutCache();
 		//VkDescriptorSetLayout layout = layout_cache->createDescriptorSetLayout(device, &set_layout_info);
@@ -447,7 +447,7 @@ void ShaderProgram::createDescriptorSetLayouts()
 		
 		
 
-		//m_descriptor_layouts.push_back(layout);
+		m_descriptor_layouts.push_back(layout);
 	}
 
 	CONSOLE_LOG("Created Descriptor set layouts")

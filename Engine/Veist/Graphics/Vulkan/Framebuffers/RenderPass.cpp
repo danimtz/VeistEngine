@@ -38,6 +38,11 @@ namespace Veist
 	}
 
 	//If additional flags present bitwise and to remove them
+	if ((usage & ImageUsage::Storage) != ImageUsage::None)
+	{
+		return VK_IMAGE_LAYOUT_GENERAL;
+	}
+
 	if ((usage & ImageUsage::SwapchainImage) != ImageUsage::None) {
 		return VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 	}

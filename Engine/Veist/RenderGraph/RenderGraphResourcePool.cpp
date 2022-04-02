@@ -16,7 +16,7 @@ namespace Veist
 		if (!reuseImageFromPool(resource))
 		{
 			uint32_t index = m_physical_images.size();
-			m_physical_images.emplace_back(resource->imageProperties(), resource->imageUsage(), resource->imageViewType());
+			m_physical_images.emplace_back(std::make_unique<ImageBase>(resource->imageProperties(), resource->imageUsage(), resource->imageViewType()));
 			resource->setPhysicalIndex(index);
 
 		}
@@ -30,8 +30,8 @@ namespace Veist
 		if (!reuseBufferFromPool(resource))
 		{
 
-			uint32_t index = m_physical_images.size();
-			m_physical_buffers.emplace_back(resource->bufferSize(), resource->subBufferCount(), resource->bufferUsage());
+			uint32_t index = m_physical_buffers.size();
+			m_physical_buffers.emplace_back(std::make_unique<ShaderBuffer>(resource->bufferSize(), resource->subBufferCount(), resource->bufferUsage()));
 			resource->setPhysicalIndex(index);
 
 		}
@@ -45,7 +45,7 @@ namespace Veist
 		for (auto it = m_unused_image_pool.begin(); it != m_unused_image_pool.end(); it++)
 		{
 			auto& image = it->second;
-			if ((image.properties() == resource->imageProperties()) && (image.imageUsage() == resource->imageUsage()))
+			if ((image->properties() == resource->imageProperties()) && (image->imageUsage() == resource->imageUsage()))
 			{
 				uint32_t index = m_physical_images.size();
 				m_physical_images.emplace_back(std::move(image)); //move contruct image to used images vector
@@ -69,7 +69,7 @@ namespace Veist
 		for (auto it = m_unused_buffer_pool.begin(); it != m_unused_buffer_pool.end(); it++)
 		{
 			auto& buffer = it->second;
-			if ((buffer.size() == resource->bufferSize()) && buffer.usage() == resource->bufferUsage())
+			if ((buffer->size() == resource->bufferSize()) && buffer->usage() == resource->bufferUsage())
 			{
 				uint32_t index = m_physical_buffers.size();
 				m_physical_buffers.emplace_back(std::move(buffer)); //move contruct image to used images vector

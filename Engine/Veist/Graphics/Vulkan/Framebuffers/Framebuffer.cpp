@@ -73,6 +73,7 @@ namespace Veist
 
 
 		VkDevice device = RenderModule::getBackend()->getDevice();
+
 		VK_CHECK(vkCreateFramebuffer(device, &framebuffer_info, nullptr, &framebuffer));
 
 	

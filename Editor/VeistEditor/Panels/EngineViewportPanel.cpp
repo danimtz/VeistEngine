@@ -163,7 +163,7 @@ namespace VeistEditor
 		camera_buffer_info.size = sizeof(RendererUniforms::CameraData);
 		scene_info_buffer_info.size = sizeof(RendererUniforms::SceneInfo);
 		dir_lights_buffer_info.size = sizeof(RendererUniforms::GPUDirLight) * max_dir_lights;
-		point_lights_buffer_info.size = sizeof(RendererUniforms::GPUDirLight) * max_point_lights;
+		point_lights_buffer_info.size = sizeof(RendererUniforms::GPUPointLight) * max_point_lights;
 
 		camera_buffer_info.subbuffer_count = swapchain_image_count;
 		scene_info_buffer_info.subbuffer_count = swapchain_image_count;

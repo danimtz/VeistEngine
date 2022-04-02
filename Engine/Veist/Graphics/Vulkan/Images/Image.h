@@ -124,8 +124,9 @@ public:
 	//Move constructor (example use convert StorageCubemap to Cubemap)
 	template<ImageUsage use, typename = std::enable_if_t<types_compatible(use)>>
 	Image(Image<use, type>&& other)
-	{
+	{	
 		ImageBase::operator=(std::move(other));
+		m_usage = usage;
 	}
 	
 	Image() = default;

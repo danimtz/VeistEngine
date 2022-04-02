@@ -40,10 +40,10 @@ namespace Veist
 
 		//TODO: with dynamic descriptors these may be worng. 
 		desc_buffer_info.offset = 0;//Old working values 
-		desc_buffer_info.range = range;//Old working values 
+		//desc_buffer_info.range = range;//Old working values 
 
 		//desc_buffer_info.offset = buffer->offset();
-		//desc_buffer_info.range = (range==0) ? buffer->size() : range; 
+		desc_buffer_info.range = (range==0) ? buffer->range() : range; 
 
 		m_info = { desc_buffer_info };
 	}

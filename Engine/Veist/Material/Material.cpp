@@ -28,7 +28,7 @@ namespace Veist
 			bindings.emplace_back(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, image.get(), SamplerType::RepeatLinear);
 		}
 
-		std::make_unique<DescriptorSet>(type->descSetNumber(), bindings);
+		m_descriptor_set = std::make_unique<DescriptorSet>(type->descSetNumber(), bindings);
 	}
 	
 
