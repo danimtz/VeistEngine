@@ -302,7 +302,7 @@ void ShaderProgram::reflectShaderModules()
 			unsigned binding = comp.get_decoration(resource.id, spv::DecorationBinding);
 			if (m_bindings[set].find(binding) == m_bindings[set].end()) //if not found
 			{
-				auto decriptor_binding = getDescriptorSetLayoutBinding(binding, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, VK_SHADER_STAGE_ALL /*static_cast<VkShaderStageFlagBits>(spirv_source_it.first)*/);
+				auto decriptor_binding = getDescriptorSetLayoutBinding(binding, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL /*static_cast<VkShaderStageFlagBits>(spirv_source_it.first)*/);
 				m_bindings[set].insert({binding, decriptor_binding});
 			} 
 			else
@@ -322,7 +322,7 @@ void ShaderProgram::reflectShaderModules()
 			unsigned binding = comp.get_decoration(resource.id, spv::DecorationBinding);
 			if (m_bindings[set].find(binding) == m_bindings[set].end()) //if not found
 			{
-				auto decriptor_binding = getDescriptorSetLayoutBinding(binding, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, VK_SHADER_STAGE_ALL /*static_cast<VkShaderStageFlagBits>(spirv_source_it.first)*/);
+				auto decriptor_binding = getDescriptorSetLayoutBinding(binding, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_ALL /*static_cast<VkShaderStageFlagBits>(spirv_source_it.first)*/);
 				m_bindings[set].insert({ binding, decriptor_binding });
 			}
 			else

@@ -52,7 +52,7 @@ namespace Veist
 			VkDescriptorSetLayoutBinding binding;
 			binding.binding = count++;
 			binding.descriptorType = descriptor.type();
-			binding.stageFlags = VK_SHADER_STAGE_ALL;
+			binding.stageFlags = descriptor.stageFlags();
 			binding.descriptorCount = 1; //if inline block this is size of of block in bytes
 
 			m_bindings.emplace_back(binding);
@@ -213,11 +213,44 @@ namespace Veist
 
 	void DescriptorSetPool::recycleDescriptor(uint32_t index)
 	{
-		m_free_descriptors.set(index, true);
-		if (m_next_free_idx > index)
+		VkDevice device = RenderModule::getBackend()->getDevice();
+		
+		//Add descriptor to recycle queue along with current command buffer fence 
+		
+		VkFence fence = RenderModule::getBackend()->getCurrentCmdBuffer().fence();
+		m_descriptor_recycle_list.emplace_back(index, fence);
+		
+		//Attempt to free all descriptors in queue if their fence is not signalled
+		for (auto it = m_descriptor_recycle_list.begin(); it != m_descriptor_recycle_list.end();)
 		{
-			m_next_free_idx = index;
+			uint32_t free_idx = it->first;
+			fence = it->second;
+
+			//Attempt to recycle descriptor if its not in use
+			if (vkGetFenceStatus(device, fence) == VK_SUCCESS)
+			{
+				m_free_descriptors.set(free_idx, true);
+				if (m_next_free_idx > free_idx)
+				{
+					m_next_free_idx = free_idx;
+				}
+				it = m_descriptor_recycle_list.erase(it); //Delete descriptor from recycle list since it succeeded
+			}
+			else
+			{
+				it++;
+			}
+
 		}
+
+		
+		//TODO: for global descriptors(eg materials) what comand buffer fence is used or does it not matter since they will be deleted at program end
+		
+		
+		
+
+
+		
 	}
 
 

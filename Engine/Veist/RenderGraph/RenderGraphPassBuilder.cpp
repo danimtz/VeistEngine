@@ -30,7 +30,7 @@ namespace Veist
 		buffer_res->setResourceName(name);
 		buffer_res->setReadInPass(m_graph_pass->m_pass_index);
 		buffer_res->setBufferUsage(ShaderBufferUsage::Uniform);
-		m_graph_pass->addDescriptorTemplate(d_set_index, buffer_res->index(), VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC);
+		m_graph_pass->addDescriptorTemplate(d_set_index, buffer_res->index(), VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
 
 		return buffer_res;
 
@@ -48,7 +48,7 @@ namespace Veist
 		buffer_res->setResourceName(name);
 		buffer_res->setReadInPass(m_graph_pass->m_pass_index);
 		buffer_res->setBufferUsage(ShaderBufferUsage::Storage);
-		m_graph_pass->addDescriptorTemplate(d_set_index, buffer_res->index(), VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC);
+		m_graph_pass->addDescriptorTemplate(d_set_index, buffer_res->index(), VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
 
 		return buffer_res;
 
@@ -121,7 +121,7 @@ namespace Veist
 		image_res->setImageInfo(info);
 		image_res->setResourceName(name);
 		image_res->setWrittenInPass(m_graph_pass->m_pass_index);
-		image_res->setImageUsage(ImageUsage::ColorAttachment);
+		image_res->setImageUsage(ImageUsage::ColorAttachment | ImageUsage::Texture); //texture as well so that it can be sampled TODO remove when editor pass is created i guess
 		m_graph_pass->m_color_outputs.emplace_back(image_res);
 		return image_res;
 	}

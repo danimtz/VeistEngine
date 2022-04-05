@@ -98,6 +98,7 @@ namespace Veist
 
 	void RenderGraphPass::buildDescriptors()
 	{
+
 		for (auto& desc_set_template : m_descriptor_set_templates)
 		{
 			std::vector<Descriptor> descriptor_bindings;
@@ -106,11 +107,13 @@ namespace Veist
 			int binding_num = 0;
 			for (auto& d_template : descriptor_templates)
 			{
-				//Check descriptor binding is in correct order
+				//Check descriptor binding is in correct order. 
+				//For this check to work, pass descriptors would have to have binding number stated, for now binding number is equal to declaration order
+				/*
 				if (binding_num != d_template.m_binding_number)
 				{
 					CRITICAL_ERROR_LOG("RenderGraphPass resource inputs not declared in the same binding order as the shader")
-				}
+				}*/
 				//check if external descriptor
 				if (d_template.is_external_descriptor)
 				{

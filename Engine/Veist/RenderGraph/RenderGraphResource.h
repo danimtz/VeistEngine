@@ -11,7 +11,7 @@ namespace Veist
 	struct RenderGraphBufferInfo
 	{
 		uint32_t size;
-		uint32_t subbuffer_count;
+		uint32_t subbuffer_count{1};
 	};
 
 	struct RenderGraphImageInfo
@@ -145,7 +145,7 @@ namespace Veist
 			m_usage = usage;
 		}
 
-		uint32_t bufferSize() const {return m_info.size;};
+		uint32_t bufferSize() const {return m_info.size;}; //Returns size of subbuffer
 		uint32_t subBufferCount() const { return m_info.subbuffer_count;};
 		ShaderBufferUsage bufferUsage() const {return m_usage;};
 	private:

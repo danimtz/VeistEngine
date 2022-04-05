@@ -49,15 +49,23 @@ namespace VeistEditor
 		m_depth_image = std::make_unique<DepthTextureAttachment>(depth_img_props);
 
 
-		//Create framebuffer (only using 1 image for now)
-		auto colors = std::vector<Framebuffer::Attachment>{{m_framebuffer_image.get(), RenderPass::LoadOp::Clear}};
-		auto depth = Framebuffer::Attachment(m_depth_image.get(), RenderPass::LoadOp::Clear);
-		m_target_framebuffer = Framebuffer(colors, depth);
-	
-
-
+		//Create descriptor layout for ImGUI::Image descriptor TODO: move this someplace different
+		std::vector<VkDescriptorSetLayoutBinding> binding_array;
+		VkDescriptorSetLayoutBinding set_binding = {};
+		set_binding.binding = 0;
+		set_binding.descriptorCount = 1;
+		set_binding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+		set_binding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		binding_array.emplace_back(set_binding);
+		RenderModule::getBackend()->getDescriptorAllocator()->addDescriptorPool(binding_array);
+		
+		
+		//auto colors = std::vector<Framebuffer::Attachment>{{m_framebuffer_image.get(), RenderPass::LoadOp::Clear}};
+		//auto depth = Framebuffer::Attachment(m_depth_image.get(), RenderPass::LoadOp::Clear);
+		//m_target_framebuffer = Framebuffer(colors, depth);
+		
 		m_texture_id = ImGui_ImplVulkan_AddTexture(Sampler(SamplerType::RepeatLinear).sampler(), m_framebuffer_image.get()->imageView(), getImageLayout(m_framebuffer_image.get()->imageUsage()));
-	
+		
 		
 		m_active_scene = EditorApp::get().getActiveScene();
 
@@ -150,6 +158,7 @@ namespace VeistEditor
 		{
 			return;
 		}
+
 		//RenderGraph Tests TODO: move declaring rendergraph passes etc to a renderer class or pre declared renderer structure
 		static constexpr uint32_t max_dir_lights = 4;
 		static constexpr uint32_t max_point_lights = 100;
@@ -165,10 +174,10 @@ namespace VeistEditor
 		dir_lights_buffer_info.size = sizeof(RendererUniforms::GPUDirLight) * max_dir_lights;
 		point_lights_buffer_info.size = sizeof(RendererUniforms::GPUPointLight) * max_point_lights;
 
-		camera_buffer_info.subbuffer_count = swapchain_image_count;
-		scene_info_buffer_info.subbuffer_count = swapchain_image_count;
-		dir_lights_buffer_info.subbuffer_count = swapchain_image_count;
-		point_lights_buffer_info.subbuffer_count = swapchain_image_count;
+		//camera_buffer_info.subbuffer_count = swapchain_image_count;
+		//scene_info_buffer_info.subbuffer_count = swapchain_image_count;
+		//dir_lights_buffer_info.subbuffer_count = swapchain_image_count;
+		//point_lights_buffer_info.subbuffer_count = swapchain_image_count;
 		
 		RenderGraphImageInfo output_image_info, depth_attachment_info;
 
@@ -183,18 +192,15 @@ namespace VeistEditor
 		auto builder = render_graph.addPass("ForwardPass");
 		//auto builder2 = render_graph.addPass("ForwardPass2");
 
-
-
-		auto camera_buffer = builder.addUniformInput("CameraBuffer", camera_buffer_info);
+		//Input and outputs (descriptors)
 		auto scene_info_buffer = builder.addUniformInput("SceneInfo", scene_info_buffer_info);
+		auto camera_buffer = builder.addUniformInput("CameraBuffer", camera_buffer_info);
 		auto dir_lights_buffer = builder.addUniformInput("DirLights", dir_lights_buffer_info);
-		
 		auto point_lights_buffer = builder.addStorageInput("PointLights", point_lights_buffer_info);
 
-		//Sloppy as fuck. recode this
-		builder.addExternalInput("IBLProbe_irrmap", Descriptor(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, light_probe->prefilterMap(), { SamplerType::RepeatLinear }));
+		builder.addExternalInput("IBLProbe_irrmap", Descriptor(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, light_probe->irradianceMap(), { SamplerType::RepeatLinear }));
 		builder.addExternalInput("IBLProbe_prefilt_map", Descriptor(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, light_probe->prefilterMap(), { SamplerType::RepeatLinear }));
-		builder.addExternalInput("IBLProbe_brdfLUT", Descriptor(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, light_probe->prefilterMap(), { SamplerType::RepeatLinear }));
+		builder.addExternalInput("IBLProbe_brdfLUT", Descriptor(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, light_probe->brdfLUT(), { SamplerType::RepeatLinear }));
 		
 		auto output_image = builder.addColorOutput("FinalImage", output_image_info);
 		auto depth_output = builder.addDepthOutput("DepthAttachment", depth_attachment_info);
@@ -202,12 +208,15 @@ namespace VeistEditor
 		
 
 		render_graph.setBackbuffer("FinalImage");
+		
 		//End rendergraph tests
 
 
+		ImageBase* editor_target; //TODO move this part to an editor pass which outputs this image
+
+		builder.setRenderFunction([=, &editor_target](CommandBuffer& cmd, const RenderGraphPass* pass){
 		
-		builder.setRenderFunction([=](CommandBuffer& cmd, const RenderGraphPass* pass){
-		
+			editor_target = pass->getPhysicalImage(output_image);
 			auto ecs_registry = m_active_scene->ecsRegistry();
 			uint32_t frame_num = RenderModule::getBackend()->getSwapchainImageNumber();
 			MatrixPushConstant push_constant;
@@ -233,7 +242,7 @@ namespace VeistEditor
 				camera_data.inverse_view = glm::inverse(glm::mat3(main_cam->viewMatrix()));
 				camera_data.view_projection = main_cam->viewProjectionMatrix();
 
-				pass->getPhysicalBuffer(camera_buffer)->setData(&camera_data, sizeof(camera_data), frame_num);
+				pass->getPhysicalBuffer(camera_buffer)->setData(&camera_data, sizeof(RendererUniforms::CameraData));//, frame_num);
 			}
 
 
@@ -271,7 +280,7 @@ namespace VeistEditor
 					light_count++;
 				}
 
-				pass->getPhysicalBuffer(point_lights_buffer)->setData(&point_lights, sizeof(RendererUniforms::GPUPointLight) * max_point_lights, frame_num);
+				pass->getPhysicalBuffer(point_lights_buffer)->setData(&point_lights, sizeof(RendererUniforms::GPUPointLight) * max_point_lights);//, frame_num);
 				scene_info_data.point_lights_count = light_count;
 			}
 
@@ -291,14 +300,14 @@ namespace VeistEditor
 					directional_lights[light_count].direction = world2view_mat * glm::vec4(light_comp.direction(), 1.0);
 					light_count++;
 				}
-				pass->getPhysicalBuffer(dir_lights_buffer)->setData(&directional_lights, sizeof(RendererUniforms::GPUDirLight) * max_dir_lights, frame_num);
+				pass->getPhysicalBuffer(dir_lights_buffer)->setData(&directional_lights, sizeof(RendererUniforms::GPUDirLight) * max_dir_lights);//, frame_num);
 				scene_info_data.dir_lights_count = light_count;
 			}
 
 
 			//Scene info buffer
 			{
-				pass->getPhysicalBuffer(scene_info_buffer)->setData(&scene_info_data, sizeof(RendererUniforms::SceneInfo), frame_num);
+				pass->getPhysicalBuffer(scene_info_buffer)->setData(&scene_info_data, sizeof(RendererUniforms::SceneInfo));//;, frame_num);
 			}
 
 
@@ -319,43 +328,21 @@ namespace VeistEditor
 				push_constant.mat2 = glm::inverseTranspose(glm::mat3(main_cam->viewMatrix() * push_constant.mat1));
 
 
-				//Write directional lights to buffer
-
-				//Create Global descriptor set for that frame if it doenst exists aready
-				/*if (m_global_descriptor[frame_num].descriptorSet() == nullptr)
-				{
-					m_global_descriptor[frame_num].setDescriptorSetLayout(0, curr_pipeline);
-
-					m_global_descriptor[frame_num].bindUniformBuffer(0, m_scene_info_buffer.get(), sizeof(SceneInfo));
-					m_global_descriptor[frame_num].bindUniformBuffer(1, m_camera_buffer.get(), sizeof(CameraData));
-					m_global_descriptor[frame_num].bindUniformBuffer(2, m_dir_lights_buffer.get(), sizeof(GPUDirLight) * MAX_DIR_LIGHTS);
-					m_global_descriptor[frame_num].bindStorageBuffer(3, m_point_lights_buffer.get(), sizeof(GPUPointLight) * MAX_POINT_LIGHTS);
-
-					
-
-					m_global_descriptor[frame_num].bindDescriptor(4, Descriptor(*global_light_probe->irradianceMap(), { SamplerType::RepeatLinear }));
-					m_global_descriptor[frame_num].bindDescriptor(5, Descriptor(*global_light_probe->prefilterMap(), { SamplerType::RepeatLinear }));
-					m_global_descriptor[frame_num].bindDescriptor(6, Descriptor(*global_light_probe->brdfLUT(), { SamplerType::RepeatLinear }));
-
-
-					m_global_descriptor[frame_num].buildDescriptorSet();
-				}*/
-				
 
 				cmd.bindMaterial(*curr_material);
 				//cmd_buffer.bindPipeline(*curr_material->getPipeline(cmd_buffer.currentRenderPass()));
 				cmd.setPushConstants(push_constant);
 
 
-				constexpr int offset_count = 4;
+				/*constexpr int offset_count = 4;
 				uint32_t offset[offset_count];
 				offset[0] = pass->getPhysicalBuffer(scene_info_buffer)->offset() * frame_num;
 				offset[1] = pass->getPhysicalBuffer(camera_buffer)->offset() * frame_num;
 				offset[2] = pass->getPhysicalBuffer(dir_lights_buffer)->offset() * frame_num;
 				offset[3] = pass->getPhysicalBuffer(point_lights_buffer)->offset() * frame_num;
+				*/
 
-
-				cmd.bindDescriptorSet(pass->getDescriptorSets()[0], offset_count, offset);
+				cmd.bindDescriptorSet(pass->getDescriptorSets()[0]);//, offset_count, offset);
 
 
 				cmd.bindVertexBuffer(*curr_mesh->getVertexBuffer());
@@ -390,9 +377,9 @@ namespace VeistEditor
 				}
 			}
 
-		});
-		
 
+
+		});
 		
 
 		CommandBuffer& cmd_buffer = RenderModule::getBackend()->getCurrentCmdBuffer();
@@ -401,6 +388,15 @@ namespace VeistEditor
 
 		render_graph.execute(cmd_buffer);
 	
+
+		//TODO this should be part of an editor pass
+		std::vector<Descriptor> descriptor;
+		descriptor.emplace_back(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, editor_target, SamplerType::RepeatLinear, VK_SHADER_STAGE_FRAGMENT_BIT);
+
+		DescriptorSet desc_set{0, descriptor};
+		m_texture_id = desc_set.descriptorSet();//ImGui_ImplVulkan_AddTexture(sampler->sampler(), final_image->imageView(), getImageLayout(final_image->imageUsage()));
+
+
 		
 		/*
 		cmd_buffer.beginRenderPass(m_target_framebuffer);

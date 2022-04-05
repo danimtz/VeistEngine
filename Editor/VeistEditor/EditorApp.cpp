@@ -50,7 +50,7 @@ namespace VeistEditor
         auto& render_backend = RenderModule::getBackend();
 
         
-
+        loadScene();
         while (m_running)
         {
             float time = (float)glfwGetTime();
@@ -72,6 +72,7 @@ namespace VeistEditor
                 {
                     render_backend->getSwapchain()->beginNextFrame(); //Swapchain should maybe belong to window but that would require changing the whole backend
                     CommandBuffer& cmd_buffer = render_backend->getCurrentCmdBuffer();
+                    
                     cmd_buffer.begin();
                     GUIModule::beginFrame();//why do i need guimodule then?
 
@@ -82,6 +83,7 @@ namespace VeistEditor
 
 
                     cmd_buffer.end();
+                    
                     render_backend->getSwapchain()->present(cmd_buffer);
                 }
 

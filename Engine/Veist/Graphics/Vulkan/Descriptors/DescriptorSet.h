@@ -28,18 +28,20 @@ namespace Veist
 			{}
 		};
 
-		Descriptor(VkDescriptorType type, DescriptorInfo info) : m_type(type), m_info(info) {};
+		Descriptor(VkDescriptorType type, DescriptorInfo info, VkShaderStageFlags stage_flag = VK_SHADER_STAGE_ALL) : m_type(type), m_info(info), m_stage_flag(stage_flag){};
 		
-		Descriptor(VkDescriptorType type, const ImageBase* image, SamplerType sampler_type = SamplerType::None );
-		Descriptor(VkDescriptorType type, const ShaderBuffer* buffer,  uint32_t range = 0);
+		Descriptor(VkDescriptorType type, const ImageBase* image, SamplerType sampler_type = SamplerType::None, VkShaderStageFlags stage_flag = VK_SHADER_STAGE_ALL);
+		Descriptor(VkDescriptorType type, const ShaderBuffer* buffer,  uint32_t range = 0, VkShaderStageFlags stage_flag = VK_SHADER_STAGE_ALL);
 		
 		VkDescriptorType type() const { return m_type;};
+		VkShaderStageFlags stageFlags() const { return m_stage_flag; };
 		DescriptorInfo& info() { return m_info; };
 
 	private:
 		
 		DescriptorInfo m_info;
 		VkDescriptorType m_type;
+		VkShaderStageFlags m_stage_flag;
 	
 	};
 
