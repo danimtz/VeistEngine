@@ -32,7 +32,10 @@ class Framebuffer
 		Framebuffer() = default;
 		Framebuffer(std::vector<Attachment>& colors, Attachment& depth, std::shared_ptr<RenderPass> renderpass);
 		Framebuffer(std::vector<Attachment>& colors, Attachment& depth);
+		~Framebuffer();
 
+		Framebuffer(Framebuffer&& other);
+		Framebuffer& operator=(Framebuffer&& other);
 
 		//TODO: add support for framebuffer without depth attachment
 
@@ -43,8 +46,8 @@ class Framebuffer
 
 	private:
 
-		VkFramebuffer m_framebuffer;
-		std::shared_ptr<RenderPass> m_render_pass;
+		VkFramebuffer m_framebuffer{VK_NULL_HANDLE};
+		std::shared_ptr<RenderPass> m_render_pass{nullptr};
 	
 		size_t m_color_attachment_count{0};
 		glm::u32vec2 m_size;

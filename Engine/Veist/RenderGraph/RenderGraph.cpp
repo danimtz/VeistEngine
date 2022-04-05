@@ -299,7 +299,6 @@ namespace Veist
 
 	RenderGraph::~RenderGraph()
 	{
-		//TODO: Maybe wait for frame to be finished? fences?
 		m_resource_pool->recycleRenderGraph();
 	}
 

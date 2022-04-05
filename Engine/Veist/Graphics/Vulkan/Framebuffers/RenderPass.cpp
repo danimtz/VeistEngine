@@ -261,6 +261,7 @@ namespace Veist
 	
 		VkRenderPass renderpass = m_render_pass;
 
+		/*
 		if ((color_properties[0].usage & ImageUsage::SwapchainImage) != ImageUsage::None)
 		{
 			RenderModule::getBackend()->pushToSwapchainDeletionQueue([device, renderpass]() { vkDestroyRenderPass(device, renderpass, nullptr);	});
@@ -270,13 +271,67 @@ namespace Veist
 			RenderModule::getBackend()->pushToDeletionQueue([device, renderpass]() { vkDestroyRenderPass(device, renderpass, nullptr);	});
 
 		}
-	
+	*/
 
 	}
 
 
 	RenderPass::RenderPass(std::vector<AttachmentProperties>& color_properties) : 
 		RenderPass(color_properties, AttachmentProperties()) {};//Renderpass without depth attachment
+
+
+
+
+
+	RenderPass::~RenderPass()
+	{
+		if (m_render_pass != VK_NULL_HANDLE)
+		{
+			VkDevice device = RenderModule::getBackend()->getDevice();
+			VkFence fence = RenderModule::getBackend()->getCurrentCmdBuffer().fence();
+			VkRenderPass renderpass = m_render_pass;
+			RenderModule::getBackend()->registerDestruction(fence, [=]() { vkDestroyRenderPass(device, renderpass, nullptr);});
+		}
+
+	}
+
+
+
+	RenderPass::RenderPass(RenderPass&& other)
+	{
+		m_render_pass = other.m_render_pass;
+		m_format_layout = other.m_format_layout;
+
+		other.m_render_pass = VK_NULL_HANDLE;
+
+	}
+
+
+
+	//Move copy
+	RenderPass& RenderPass::operator=(RenderPass&& other)
+	{
+		if (this != &other)
+		{
+			// Free the existing resource if it exists
+			if (m_render_pass != VK_NULL_HANDLE)
+			{
+				VkDevice device = RenderModule::getBackend()->getDevice();
+				VkFence fence = RenderModule::getBackend()->getCurrentCmdBuffer().fence();
+				VkRenderPass renderpass = m_render_pass;
+				RenderModule::getBackend()->registerDestruction(fence, [=]() { vkDestroyRenderPass(device, renderpass, nullptr); });
+			}
+
+			//copy resources
+			m_render_pass = other.m_render_pass;
+			m_format_layout = other.m_format_layout;
+
+			other.m_render_pass = VK_NULL_HANDLE;
+		}
+		return *this;
+
+	}
+
 
 
 }

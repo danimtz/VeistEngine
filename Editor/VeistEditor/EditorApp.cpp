@@ -85,6 +85,7 @@ namespace VeistEditor
                     cmd_buffer.end();
                     
                     render_backend->getSwapchain()->present(cmd_buffer);
+                    render_backend->cleanupFrame();
                 }
 
                 

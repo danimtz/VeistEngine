@@ -31,6 +31,7 @@
 #include "Veist/Graphics/Vulkan/Swapchain/Swapchain.h"
 #include "Veist/Graphics/Vulkan/Commands/CommandPool.h"
 #include "Veist/Graphics/Vulkan/Commands/CommandBuffer.h"
+#include "Veist/Graphics/Vulkan/VulkanGarbageCollector.h"
 
 namespace Veist
 {
@@ -95,7 +96,7 @@ public:
     uint32_t getSwapchainImageCount() const { return (FRAME_OVERLAP_COUNT); };
     uint32_t getSwapchainImageNumber() const { return (m_frame_count % FRAME_OVERLAP_COUNT); };
     void pushToDeletionQueue(std::function<void()> function);
-    void pushToSwapchainDeletionQueue(std::function<void()> function);
+    //void pushToSwapchainDeletionQueue(std::function<void()> function);
     const Framebuffer& getCurrentFramebuffer() const {return m_framebuffers[m_swapchain->currentImageIndex()]; };
     CommandBuffer& getCurrentCmdBuffer() { return getCurrentFrameCmdBuffer(); }; //TODO rework this later
     Swapchain* getSwapchain() const {return m_swapchain.get();};
@@ -113,6 +114,10 @@ public:
     const RenderPass& getRenderPass() const { return *m_render_pass.get(); };
     uint32_t getFrameNumber() const { return m_frame_count; };
     void incrementFrameCounter() { m_frame_count++; };
+
+    void cleanupFrame() {m_garbage_collector.destroyFrameResources();};
+    void registerDestruction(VkFence fence, std::function<void()> func) { m_garbage_collector.registerDestruction(fence, func); };
+
 
     CommandBuffer createDisposableCmdBuffer();
     CommandBuffer createTransferQueueCmdBuffer();
@@ -196,7 +201,9 @@ private:
 
     DeletionQueue               m_deletion_queue;
 
-    DeletionQueue               m_swapchain_deletion_queue;
+    //DeletionQueue               m_swapchain_deletion_queue;
+
+    VulkanGarbageCollector      m_garbage_collector;
 
 //Descriptors
 

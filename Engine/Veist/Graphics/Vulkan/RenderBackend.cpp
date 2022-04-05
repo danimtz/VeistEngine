@@ -683,12 +683,12 @@ void RenderBackend::pushToDeletionQueue(std::function<void()> function) {
 	m_deletion_queue.pushFunction(function);
 
 }
-
+/*
 void RenderBackend::pushToSwapchainDeletionQueue(std::function<void()> function) {
 
 	m_swapchain_deletion_queue.pushFunction(function);
 
-}
+}*/
 
 
 void RenderBackend::waitIdle()
@@ -707,7 +707,11 @@ void RenderBackend::shutdown() {
 
 		m_descriptor_allocator->cleanup();
 
-		m_swapchain_deletion_queue.executeDeletionQueue(); //maybe add the rest to the deletion queue
+		m_render_pass.reset();
+		m_framebuffers.clear();
+
+		m_garbage_collector.destroyFrameResources();
+		//m_swapchain_deletion_queue.executeDeletionQueue(); //maybe add the rest to the deletion queue
 		m_swapchain_depth_image.reset();
 		m_swapchain.reset(); // delete swapchain unique ptr
 
@@ -861,7 +865,7 @@ void RenderBackend::rebuildSwapchain()
 {
 	vkDeviceWaitIdle(m_device);
 
-	m_swapchain_deletion_queue.executeDeletionQueue();
+	//m_swapchain_deletion_queue.executeDeletionQueue();
 
 	//Check surface capabilities have changed
 	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_gpu_info.device, m_surface, &m_gpu_info.surface_capabilities );

@@ -77,6 +77,7 @@ namespace Veist
 		VK_CHECK(vkCreateFramebuffer(device, &framebuffer_info, nullptr, &framebuffer));
 
 	
+	/*
 		if ((colors[0].image->imageUsage() & ImageUsage::SwapchainImage) != ImageUsage::None)
 		{
 			RenderModule::getBackend()->pushToSwapchainDeletionQueue([=]() { vkDestroyFramebuffer(device, framebuffer, nullptr);	});
@@ -85,7 +86,7 @@ namespace Veist
 		{
 			RenderModule::getBackend()->pushToDeletionQueue([=]() { vkDestroyFramebuffer(device, framebuffer, nullptr);	});
 		}
-
+	*/
 	
 	
 	}
@@ -103,6 +104,62 @@ namespace Veist
 	{
 		createFramebuffer(colors, depth, m_framebuffer, m_render_pass.get(), m_size);
 	}
+
+
+
+
+	Framebuffer::~Framebuffer()
+	{
+
+		if (m_framebuffer != VK_NULL_HANDLE)
+		{
+			VkDevice device = RenderModule::getBackend()->getDevice();
+			VkFence fence = RenderModule::getBackend()->getCurrentCmdBuffer().fence();
+			VkFramebuffer framebuffer = m_framebuffer;
+			RenderModule::getBackend()->registerDestruction(fence, [=]() { vkDestroyFramebuffer(device, framebuffer, nullptr);	});
+		
+		}
+
+	}
+
+	Framebuffer::Framebuffer(Framebuffer&& other)
+	{
+		m_framebuffer = other.m_framebuffer;
+		m_render_pass = other.m_render_pass;
+		m_color_attachment_count = other.m_color_attachment_count;
+		m_size = other.m_size;
+
+		other.m_framebuffer = VK_NULL_HANDLE;
+		other.m_render_pass = nullptr;
+	}
+
+
+
+	//Move copy
+	Framebuffer& Framebuffer::operator=(Framebuffer&& other)
+	{
+		if (this != &other)
+		{
+			// Free the existing resource if it exists
+			if (m_framebuffer != VK_NULL_HANDLE)
+			{
+				VkDevice device = RenderModule::getBackend()->getDevice();
+				vkDestroyFramebuffer(device, m_framebuffer, nullptr);
+			}
+
+			//copy resources
+			m_framebuffer = other.m_framebuffer;
+			m_render_pass = other.m_render_pass;
+			m_color_attachment_count = other.m_color_attachment_count;
+			m_size = other.m_size;
+
+			other.m_framebuffer = VK_NULL_HANDLE;
+			other.m_render_pass = nullptr;
+		}
+		return *this;
+
+	}
+
 
 
 

@@ -50,7 +50,9 @@ namespace Veist
 
 		RenderPass(std::vector<AttachmentProperties>& color_properties, AttachmentProperties& depth_properties);
 		RenderPass(std::vector<AttachmentProperties>& color_properties); //Renderpass without depth attachment
-		
+		~RenderPass();
+		RenderPass& operator=(RenderPass&& other);
+		RenderPass(RenderPass&& other);
 		//RenderPass(VkRenderPass renderpass) : m_render_pass(renderpass) {};
 	
 		//RenderPass(RenderPass* other) : m_render_pass(other->vk_renderpass()), m_format_layout(other->formatLayout()) {}; //This should really be a copy constructor
@@ -60,7 +62,7 @@ namespace Veist
 
 	private:
 
-		VkRenderPass m_render_pass;
+		VkRenderPass m_render_pass{VK_NULL_HANDLE};
 		FormatLayout m_format_layout;
 
 	};
