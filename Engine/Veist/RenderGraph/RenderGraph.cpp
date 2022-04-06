@@ -128,11 +128,9 @@ namespace Veist
 
 
 		//Build descriptors and framebuffers/renderpasses  
-		/*TODO: Currently renderpass / framebuffer pair is created for each rendergraphpass and unused(and pushed to deletion queue) after each frame.
-		* Possible immediate performance improvement: Vkdestroy renderpass and framebuffer after rendergraph is done (after frame)
+		/*TODO: Currently renderpass / framebuffer pair is created for each rendergraphpass.
 		* Possible performance improvements: hash renderpass and framebuffer objects and reuse them if rendergraph doesnt change with respect to previous frames
 		* If the renderpass/framebuffer is not used after a couple of frames (8 or so) then it could be deleted		
- 		*
  		*/
 		for (auto pass_idx : m_pass_stack)
 		{

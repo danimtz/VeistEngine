@@ -181,8 +181,8 @@ namespace VeistEditor
 		
 		RenderGraphImageInfo output_image_info, depth_attachment_info;
 
-		output_image_info.properties = ImageProperties({ m_viewport_size }, { VK_FORMAT_R8G8B8A8_SRGB });
-		depth_attachment_info.properties = ImageProperties({ m_viewport_size }, { VK_FORMAT_D32_SFLOAT });
+		output_image_info.properties = ImageProperties({ 1920,1080 }, { VK_FORMAT_R8G8B8A8_SRGB });
+		depth_attachment_info.properties = ImageProperties({ 1920,1080 }, { VK_FORMAT_D32_SFLOAT });
 
 
 		//Get light probe
