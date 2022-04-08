@@ -70,7 +70,7 @@ namespace Veist
 	CRITICAL_ERROR_LOG("Unsuported image layout");
 }
 
-
+	//TODO rework layouts of renderpass attachments
 	static VkAttachmentDescription createAttachmentDescription(RenderPass::AttachmentProperties& attachment) 
 	{
 		//Setup depth attachment
@@ -179,10 +179,7 @@ namespace Veist
 		return hash_code;
 	}
 
-	/*bool RenderPass::FormatLayout::operator()(const FormatLayout const& lhs, const FormatLayout const& rhs) const
-	{
-		return lhs.hash() < rhs.hash();
-	}*/
+
 	bool RenderPass::FormatLayout::operator <(const FormatLayout const& rhs) const
 	{
 		return hash() < rhs.hash();
@@ -261,17 +258,7 @@ namespace Veist
 	
 		VkRenderPass renderpass = m_render_pass;
 
-		/*
-		if ((color_properties[0].usage & ImageUsage::SwapchainImage) != ImageUsage::None)
-		{
-			RenderModule::getBackend()->pushToSwapchainDeletionQueue([device, renderpass]() { vkDestroyRenderPass(device, renderpass, nullptr);	});
-		}
-		else 
-		{
-			RenderModule::getBackend()->pushToDeletionQueue([device, renderpass]() { vkDestroyRenderPass(device, renderpass, nullptr);	});
-
-		}
-	*/
+	
 
 	}
 

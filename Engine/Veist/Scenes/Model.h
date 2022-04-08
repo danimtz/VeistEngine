@@ -2,7 +2,7 @@
 
 #include "Veist/Mesh/Mesh.h"
 #include "Veist/Material/Material.h"
-#include "Veist/Util/AssetLoader.h"
+
 
 //TODO: Refactor this entire class. only temporary.
 //This class holds a mesh and a material. This should be later replaced when an ECS is implemented. should be called

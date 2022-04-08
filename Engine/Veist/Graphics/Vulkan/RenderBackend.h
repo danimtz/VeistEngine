@@ -28,6 +28,7 @@
 #include "Veist/Graphics/Vulkan/Descriptors/DescriptorSetAllocator.h"
 #include "Veist/Graphics/Vulkan/Framebuffers/RenderPass.h"
 #include "Veist/Graphics/Vulkan/Framebuffers/Framebuffer.h"
+#include "Veist/Graphics/Vulkan/Barriers/Barrier.h"
 #include "Veist/Graphics/Vulkan/Swapchain/Swapchain.h"
 #include "Veist/Graphics/Vulkan/Commands/CommandPool.h"
 #include "Veist/Graphics/Vulkan/Commands/CommandBuffer.h"

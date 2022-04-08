@@ -2,6 +2,7 @@
 
 #include "Veist/Mesh/Mesh.h"
 #include "Veist/Material/Material.h"
+#include "Veist/Scenes/Model.h"
 
 namespace Veist
 {

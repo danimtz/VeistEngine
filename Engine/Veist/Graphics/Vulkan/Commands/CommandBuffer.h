@@ -10,6 +10,7 @@
 #include "Veist/Graphics/Vulkan/Buffers/IndexBuffer.h"
 #include "Veist/Graphics/Vulkan/ShaderAndPipelines/GraphicsPipeline.h"
 #include "Veist/Graphics/Vulkan/Images/Image.h"
+#include "Veist/Graphics/Vulkan/Barriers/Barrier.h"
 #include "Veist/Material/Material.h"
 
 namespace Veist
@@ -40,7 +41,12 @@ public:
 	void immediateSubmit(VkQueue queue);
 	void copyBuffer(const Buffer& src, const Buffer& dst);
 	void copyBufferToImage(const Buffer& stage_buff, const VkImage image, const std::vector<VkBufferImageCopy>& regions,  const ImageProperties& properties );
-	//void pipelineBarrier(); TODO: Pipeline barriers inside copyBufferToImage, extract them into functions
+	
+	//TODO: Pipeline barriers inside copyBufferToImage, extract them into functions
+
+	void pipelineBarrier(const std::vector<ImageBarrier>& image_barriers);
+	void pipelineBarrier(const std::vector<BufferBarrier>& buffer_barriers);
+	void pipelineBarrier(const std::vector<ImageBarrier>& image_barriers, const std::vector<BufferBarrier>& buffer_barriers); 
 
 
 

@@ -86,6 +86,42 @@ void CommandBuffer::immediateSubmit(VkQueue queue)
 }
 
 
+void CommandBuffer::pipelineBarrier(const std::vector<ImageBarrier>& image_barriers, const std::vector<BufferBarrier>& buffer_barriers)
+{
+
+	//TODO create vector of image barriers and buffer barriers
+	std::vector<VkImageMemoryBarrier> image_memory_barriers;
+	std::vector<VkBufferMemoryBarrier> buffer_memory_barriers;
+
+	//TODO bitwise combine | pipeline dst stage and src stages for all image and buffer barriers combined
+	PipelineStage src_stage_mask = PipelineStage::None;
+	PipelineStage dst_stage_mask = PipelineStage::None;
+
+
+	vkCmdPipelineBarrier(m_cmd_buffer,
+		VkPipelineStageFlags(src_stage_mask), 
+		VkPipelineStageFlags(dst_stage_mask),
+		VK_DEPENDENCY_BY_REGION_BIT, 
+		0, nullptr,
+		uint32_t(buffer_memory_barriers.size()), buffer_memory_barriers.data(),
+		uint32_t(image_memory_barriers.size()), image_memory_barriers.data()
+		);
+}
+
+void CommandBuffer::pipelineBarrier(const std::vector<ImageBarrier>& image_barriers)
+{
+	pipelineBarrier(image_barriers, {});
+}
+
+void CommandBuffer::pipelineBarrier(const std::vector<BufferBarrier>& buffer_barriers)
+{
+	pipelineBarrier({}, buffer_barriers);
+}
+
+
+
+
+
 
 void CommandBuffer::copyBuffer(const Buffer& src, const Buffer& dst)
 {

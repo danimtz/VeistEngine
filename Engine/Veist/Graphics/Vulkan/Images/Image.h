@@ -26,6 +26,7 @@ enum class ImageUsage : uint32_t
 	TransferSrc = VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
 	TransferDst = VK_IMAGE_USAGE_TRANSFER_DST_BIT,
 };
+
 inline constexpr ImageUsage operator|(ImageUsage left, ImageUsage right) {
 	return ImageUsage(uint32_t(left) | uint32_t(right));
 }

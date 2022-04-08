@@ -4,6 +4,8 @@
 
 #include "Veist/Graphics/Vulkan/Buffers/VertexBuffer.h"
 
+#include "Veist/Util/AssetLoader.h"
+
 namespace Veist
 {
 
