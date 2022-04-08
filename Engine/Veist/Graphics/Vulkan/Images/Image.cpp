@@ -89,9 +89,9 @@ namespace Veist
 
 
 		//Sumbit staging buffer copy TODO: change to use cmd buffer
-		auto cmd_buffer = RenderModule::getBackend()->createTransferQueueCmdBuffer();
-		cmd_buffer.copyBufferToImage(stage_buff, m_image, regions, m_properties);
-		cmd_buffer.immediateSubmit(RenderModule::getBackend()->getTransferQueue());
+		auto cmd_buffer = RenderModule::getBackend()->createDisposableCmdBuffer();
+		cmd_buffer.copyBufferToImage(stage_buff, this, regions, m_properties);
+		cmd_buffer.immediateSubmit(RenderModule::getBackend()->getGraphicsQueue());
 	
 
 	
@@ -175,11 +175,13 @@ namespace Veist
 
 	void ImageBase::transitionImageLayout(VkImageLayout new_layout, VkImageLayout old_layout)
 	{
-		CommandBuffer cmd = RenderModule::getBackend()->createTransferQueueCmdBuffer();
+		CommandBuffer cmd = RenderModule::getBackend()->createDisposableCmdBuffer();
 
+		cmd.pipelineBarrier({ImageBarrier::createTransitionBarrier(this, old_layout, new_layout)});
 		//TODO: move barrier functionality to CommandBuffer class
 		 //from vulkan-tutorial
 
+/*
 		VkImageMemoryBarrier barrier = {};
 		barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
 		barrier.oldLayout = old_layout;
@@ -199,15 +201,15 @@ namespace Veist
 		barrier.dstAccessMask = 0; // TODO
 
 		vkCmdPipelineBarrier( cmd.vk_commandBuffer(), //Non blocking barrier for now
-			VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT /* src */, 
-			VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT /* dst */,
+			VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT , 
+			VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
 			0,
 			0, nullptr,
 			0, nullptr,
 			1, &barrier
 		);
-
-		cmd.immediateSubmit(RenderModule::getBackend()->getTransferQueue());
+*/
+		cmd.immediateSubmit(RenderModule::getBackend()->getGraphicsQueue());
 	}
 
 

@@ -41,7 +41,7 @@ namespace Veist
 
 	bool RenderGraphResourcePool::reuseImageFromPool(RenderGraphImageResource* resource)
 	{
-		
+		//Search unused list for viable resourcce (older resources appear at the front)
 		for (auto it = m_unused_image_pool.begin(); it != m_unused_image_pool.end(); it++)
 		{
 			auto& image = it->second;
@@ -56,7 +56,6 @@ namespace Veist
 				return true;
 			}
 
-				
 		}
 		return false;
 	}
@@ -65,7 +64,6 @@ namespace Veist
 
 	bool RenderGraphResourcePool::reuseBufferFromPool(RenderGraphBufferResource* resource)
 	{
-
 		for (auto it = m_unused_buffer_pool.begin(); it != m_unused_buffer_pool.end(); it++)
 		{
 			auto& buffer = it->second;
@@ -106,12 +104,12 @@ namespace Veist
 
 		
 
-		//Once command buffer is finished move buffers and images to unused pool
+		//Once command buffer is finished move buffers and images to unused pool to the back of the list
 		for (auto& it = m_in_use_images.begin(); it != m_in_use_images.end(); )
 		{
 			if (vkGetFenceStatus(device,it->first) == VK_SUCCESS)
 			{
-				m_unused_image_pool.emplace_front(0, std::move(it->second));
+				m_unused_image_pool.emplace_back(0, std::move(it->second));
 				it = m_in_use_images.erase(it);
 			}
 			else
@@ -124,7 +122,7 @@ namespace Veist
 		{
 			if (vkGetFenceStatus(device, it->first) == VK_SUCCESS)
 			{
-				m_unused_buffer_pool.emplace_front(0, std::move(it->second));
+				m_unused_buffer_pool.emplace_back(0, std::move(it->second));
 				it = m_in_use_buffers.erase(it);
 			}
 			else

@@ -63,10 +63,88 @@ namespace Veist
 			CRITICAL_ERROR_LOG("Pipeline stage not valid in barrier dst access mask")
 			break;
 		}
+	}
 
 
+
+
+	static VkAccessFlags getAccessFlagsFromLayout(VkImageLayout layout)
+	{
+		switch (layout)
+		{
+			case VK_IMAGE_LAYOUT_UNDEFINED:
+				return 0;
+
+			case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:
+				return VK_ACCESS_TRANSFER_READ_BIT;
+
+			case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
+				return VK_ACCESS_TRANSFER_WRITE_BIT;
+
+			case VK_IMAGE_LAYOUT_PRESENT_SRC_KHR:
+				return VK_ACCESS_MEMORY_READ_BIT;
+
+			case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:
+				return VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
+			case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:
+				return VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
+			case VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL:
+				return VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
+
+			case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
+				return VK_ACCESS_SHADER_READ_BIT;
+
+			case VK_IMAGE_LAYOUT_GENERAL:
+				return VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
+
+			default:
+				CRITICAL_ERROR_LOG("Layout not supported")
+				break;
+		}
+
+		
+	}
+
+	static PipelineStage getPipelineStageFromAccessFlags(VkAccessFlags access_flags)
+	{
+
+		if (access_flags == 0 || access_flags == VK_ACCESS_MEMORY_READ_BIT)
+		{
+			return PipelineStage::Host;
+		}
+
+		//Depth attachments
+		if (access_flags & (VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT))
+		{
+			return PipelineStage::DepthAttachmentEarly | PipelineStage::DepthAttachmentLate;
+		}
+
+		//Color attachments
+		if (access_flags & (VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT))
+		{
+			return PipelineStage::ColorAttachment;
+		}
+
+		//Shaders
+		if (access_flags & (VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT))
+		{
+			return PipelineStage::AnyShader;
+		}
+
+		//Transfer
+		if (access_flags & (VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT))
+		{
+			return PipelineStage::Transfer;
+		}
+		
+
+		CRITICAL_ERROR_LOG("Access flag not supported");
 
 	}
+
+
 
 	ImageBarrier::ImageBarrier(const ImageBase* image, PipelineStage src, PipelineStage dst) : m_src_stage(src), m_dst_stage(dst)
 	{
@@ -87,6 +165,37 @@ namespace Veist
 	}
 
 
+	//Transfer barrier
+	ImageBarrier::ImageBarrier(const ImageBase* image, VkImageLayout old_layout, VkImageLayout new_layout) : 
+		m_src_stage(getPipelineStageFromAccessFlags(getAccessFlagsFromLayout(old_layout))),
+		m_dst_stage(getPipelineStageFromAccessFlags(getAccessFlagsFromLayout(new_layout)))
+	{
+		
+		
+
+		m_barrier = {};
+		m_barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+		m_barrier.srcAccessMask = getAccessFlagsFromLayout(old_layout);
+		m_barrier.dstAccessMask = getAccessFlagsFromLayout(new_layout);
+		m_barrier.image = image->image();
+		m_barrier.newLayout = new_layout;
+		m_barrier.oldLayout = old_layout;
+		m_barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		m_barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+
+		m_barrier.subresourceRange.aspectMask = image->properties().imageFormat().imageAspectFlags();
+		m_barrier.subresourceRange.layerCount = image->properties().layerCount();
+		m_barrier.subresourceRange.levelCount = image->properties().mipLevels();
+
+	}
+
+
+
+	ImageBarrier ImageBarrier::createTransitionBarrier(const ImageBase* image, VkImageLayout old_layout, VkImageLayout new_layout)
+	{
+		return ImageBarrier{ image, old_layout, new_layout};
+	}
+
 
 
 	BufferBarrier::BufferBarrier(const ShaderBuffer* buffer, PipelineStage src, PipelineStage dst) : m_src_stage(src), m_dst_stage(dst)
@@ -101,4 +210,8 @@ namespace Veist
 		m_barrier.size = buffer->size();
 		m_barrier.offset = buffer->offset();
 	}
+
+
+	
+
 }

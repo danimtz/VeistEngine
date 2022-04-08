@@ -89,14 +89,32 @@ void CommandBuffer::immediateSubmit(VkQueue queue)
 void CommandBuffer::pipelineBarrier(const std::vector<ImageBarrier>& image_barriers, const std::vector<BufferBarrier>& buffer_barriers)
 {
 
-	//TODO create vector of image barriers and buffer barriers
+	//create vector of image barriers and buffer barriers
 	std::vector<VkImageMemoryBarrier> image_memory_barriers;
 	std::vector<VkBufferMemoryBarrier> buffer_memory_barriers;
+	for (auto barrier : image_barriers)
+	{
+		image_memory_barriers.emplace_back(barrier.barrier());
+	}
+	for (auto barrier : buffer_barriers)
+	{
+		buffer_memory_barriers.emplace_back(barrier.barrier());
+	}
 
-	//TODO bitwise combine | pipeline dst stage and src stages for all image and buffer barriers combined
+
+	//bitwise combine | pipeline dst stage and src stages for all image and buffer barriers combined
 	PipelineStage src_stage_mask = PipelineStage::None;
 	PipelineStage dst_stage_mask = PipelineStage::None;
-
+	for (auto barrier : image_barriers)
+	{
+		src_stage_mask = src_stage_mask | barrier.srcStage();
+		dst_stage_mask = dst_stage_mask | barrier.dstStage();
+	}
+	for (auto barrier : buffer_barriers)
+	{
+		src_stage_mask = src_stage_mask | barrier.srcStage();
+		dst_stage_mask = dst_stage_mask | barrier.dstStage();
+	}
 
 	vkCmdPipelineBarrier(m_cmd_buffer,
 		VkPipelineStageFlags(src_stage_mask), 
@@ -142,10 +160,10 @@ void CommandBuffer::copyBuffer(const Buffer& src, const Buffer& dst)
 
 
 
-void CommandBuffer::copyBufferToImage(const Buffer& stage_buff, const VkImage image, const std::vector<VkBufferImageCopy>& regions, const ImageProperties& properties)
+void CommandBuffer::copyBufferToImage(const Buffer& stage_buff, const ImageBase* image, const std::vector<VkBufferImageCopy>& regions, const ImageProperties& properties)
 {
 	//prepare pipeline barrier //TODO: Generalize image barrier to other type of images. i think only works with normal textures atm
-	VkImageSubresourceRange range;
+	/*VkImageSubresourceRange range;
 	range.aspectMask = properties.imageFormat().imageAspectFlags();
 	range.baseMipLevel = 0;
 	range.levelCount = properties.mipLevels();
@@ -183,7 +201,14 @@ void CommandBuffer::copyBufferToImage(const Buffer& stage_buff, const VkImage im
 	barrier_toReadable.dstAccessMask = VK_ACCESS_HOST_READ_BIT;
 
 	//barrier the image into the shader readable layout
-	vkCmdPipelineBarrier(m_cmd_buffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_HOST_BIT/*VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT*/, 0, 0, nullptr, 0, nullptr, 1, &barrier_toReadable);
+	vkCmdPipelineBarrier(m_cmd_buffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_HOST_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier_toReadable);
+	*/
+
+	pipelineBarrier({ImageBarrier::createTransitionBarrier(image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)});
+
+	vkCmdCopyBufferToImage(m_cmd_buffer, stage_buff.getBuffer(), image->image(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, regions.size(), regions.data());
+
+	pipelineBarrier({ ImageBarrier::createTransitionBarrier(image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) });
 
 }
 

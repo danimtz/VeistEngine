@@ -27,6 +27,7 @@ namespace Veist
 
 	private:
 	
+		
 		bool reuseImageFromPool(RenderGraphImageResource* resource);
 		bool reuseBufferFromPool(RenderGraphBufferResource* resource);
 		

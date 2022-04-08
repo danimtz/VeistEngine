@@ -72,14 +72,21 @@ namespace Veist
 	{
 	public:
 
+		static ImageBarrier createTransitionBarrier(const ImageBase* image, VkImageLayout old_layout, VkImageLayout new_layout);
+
 		ImageBarrier(const ImageBase* image, PipelineStage src, PipelineStage dst);
 
+
+
 		VkImageMemoryBarrier barrier() { return m_barrier;};
-		PipelineStage dstStage() {return m_dst_stage;};
+		PipelineStage dstStage() { return m_dst_stage;};
 		PipelineStage srcStage() { return m_src_stage; };
 
 	private:
-	
+		
+		ImageBarrier(const ImageBase* image, VkImageLayout old_layout, VkImageLayout new_layout);
+
+
 		VkImageMemoryBarrier m_barrier;
 
 		PipelineStage m_src_stage;
