@@ -146,6 +146,7 @@ namespace Veist
 
 
 
+	//Default arrier constructor
 	ImageBarrier::ImageBarrier(const ImageBase* image, PipelineStage src, PipelineStage dst) : m_src_stage(src), m_dst_stage(dst)
 	{
 		m_barrier = {};
@@ -165,7 +166,7 @@ namespace Veist
 	}
 
 
-	//Transfer barrier
+	//Transfer barrier constructor
 	ImageBarrier::ImageBarrier(const ImageBase* image, VkImageLayout old_layout, VkImageLayout new_layout) : 
 		m_src_stage(getPipelineStageFromAccessFlags(getAccessFlagsFromLayout(old_layout))),
 		m_dst_stage(getPipelineStageFromAccessFlags(getAccessFlagsFromLayout(new_layout)))

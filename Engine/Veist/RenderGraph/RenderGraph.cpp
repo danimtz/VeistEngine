@@ -140,6 +140,16 @@ namespace Veist
 
 
 
+		//TODO NEXT barriers. 
+
+
+
+		//TODO resource aliasing
+		//	FROM themaister.net: The algorithm is fairly straight forward. For each resource we figure out the first and last physical render pass where a resource is used. 																								
+		//	If we find another resource with the same dimensions/format, and their pass range does not overlap, presto, we can alias! 
+		//	We inject some information where we can transition “ownership” between resources.
+
+
 		//Execute rendergraph passes
 		for (auto pass_idx : m_pass_stack)
 		{
@@ -149,14 +159,7 @@ namespace Veist
 
 
 
-		//TODO barriers. 
 
-
-
-		//TODO resource aliasing
-		//	FROM themaister.net: The algorithm is fairly straight forward. For each resource we figure out the first and last physical render pass where a resource is used. 																								
-		//	If we find another resource with the same dimensions/format, and their pass range does not overlap, presto, we can alias! 
-		//	We inject some information where we can transition “ownership” between resources.
 	}
 
 

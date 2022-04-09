@@ -93,13 +93,14 @@ namespace Veist
 	}
 
 
+	/* TODO: For tile based rendering, input attachments are more efficient. not implemented
 	RenderGraphImageResource* RenderGraphPassBuilder::addAttachmentInput(const std::string& name, const RenderGraphImageInfo& info, SamplerType sampler_type, 
 		PipelineStage stage,  uint32_t d_set_index)
 	{
-		auto* image_res = addImageToPass(ResourceAction::Read, name, info, stage, ImageUsage::ColorAttachment);
-		m_graph_pass->addDescriptorTemplate(d_set_index, image_res->index(), VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, sampler_type);
+		auto* image_res = addImageToPass(ResourceAction::Read, name, info, stage, (ImageUsage::ColorAttachment));
+		m_graph_pass->addDescriptorTemplate(d_set_index, image_res->index(), VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, sampler_type);
 		return image_res;
-	}
+	}*/
 	
 	RenderGraphImageResource* RenderGraphPassBuilder::addTextureInput(const std::string& name, const RenderGraphImageInfo& info, SamplerType sampler_type, 
 		PipelineStage stage, uint32_t d_set_index )

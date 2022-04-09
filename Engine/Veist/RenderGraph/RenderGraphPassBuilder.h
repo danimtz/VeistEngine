@@ -19,9 +19,10 @@ namespace Veist
 		//Pass reads. Read resources must be declared respecting binding order inside the shader
 		RenderGraphBufferResource* addUniformInput(const std::string &name, const RenderGraphBufferInfo& info,  PipelineStage stage = PipelineStage::AnyShader, uint32_t d_set_index = 0);
 		RenderGraphBufferResource* addStorageInput(const std::string& name, const RenderGraphBufferInfo& info,  PipelineStage stage = PipelineStage::AnyShader, uint32_t d_set_index = 0);
-		RenderGraphImageResource* addAttachmentInput(const std::string& name, const RenderGraphImageInfo& info, SamplerType sampler_type, PipelineStage stage = PipelineStage::AnyShader, uint32_t d_set_index = 0);
+		
 		RenderGraphImageResource* addTextureInput(const std::string& name, const RenderGraphImageInfo& info, SamplerType sampler_type, PipelineStage stage = PipelineStage::AnyShader, uint32_t d_set_index = 0);
 		RenderGraphImageResource* addDepthInput(const std::string& name, const RenderGraphImageInfo& info, SamplerType sampler_type, PipelineStage stage = PipelineStage::AnyShader, uint32_t d_set_index = 0);
+		//RenderGraphImageResource* addAttachmentInput(const std::string& name, const RenderGraphImageInfo& info, SamplerType sampler_type, PipelineStage stage = PipelineStage::AnyShader, uint32_t d_set_index = 0);
 
 		void addExternalInput(const std::string& name, Descriptor descriptor, const uint32_t d_set_index = 0); //Adds input from a resource external to the rendergraph environement.
 		//todo add more
@@ -32,6 +33,7 @@ namespace Veist
 		RenderGraphImageResource* addColorOutput(const std::string& name, const RenderGraphImageInfo& info);
 		RenderGraphImageResource* addDepthOutput(const std::string& name, const RenderGraphImageInfo& info);
 		RenderGraphImageResource* addStorageTextureOutput(const std::string& name, const RenderGraphImageInfo& info, PipelineStage stage = PipelineStage::ComputeShader);
+		
 		RenderGraphBufferResource* addStorageOutput(const std::string& name, const RenderGraphBufferInfo& info, PipelineStage stage = PipelineStage::ComputeShader);
 		//todo add more
 
