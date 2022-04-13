@@ -10,7 +10,7 @@ namespace Veist
 
 	struct RenderGraphBufferInfo
 	{
-		uint32_t size;
+		uint32_t size{0};
 		uint32_t subbuffer_count{1};
 	};
 
@@ -109,7 +109,7 @@ namespace Veist
 			}
 		}
 
-		void setImageUsage(ImageUsage usage)
+		void addImageUsage(ImageUsage usage)
 		{
 			m_usage = m_usage | usage;
 		}

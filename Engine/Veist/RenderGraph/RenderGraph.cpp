@@ -33,7 +33,7 @@ namespace Veist
 	}
 
 
-	RenderGraphBufferResource* RenderGraph::getOrAddBufferResource(const std::string& name)
+	std::pair<bool, RenderGraphBufferResource*> RenderGraph::addBufferResource(const std::string& name)
 	{
 		auto it = m_resource_to_idx_map.find(name);
 		if (it != m_resource_to_idx_map.end())
@@ -41,7 +41,7 @@ namespace Veist
 			//todo? assert if its the correct type of resource
 			uint32_t index = it->second;
 
-			return static_cast<RenderGraphBufferResource*>(m_resources[index].get());
+			return {true, static_cast<RenderGraphBufferResource*>(m_resources[index].get())};
 		}
 		else
 		{
@@ -51,7 +51,7 @@ namespace Veist
 
 			auto& resource = m_resources.emplace_back(std::make_unique<RenderGraphBufferResource>(RenderGraphBufferResource(index)));
 			
-			return static_cast<RenderGraphBufferResource*>(resource.get());
+			return {false, static_cast<RenderGraphBufferResource*>(resource.get())};
 		}
 	}
 	
@@ -59,17 +59,17 @@ namespace Veist
 
 
 
-	RenderGraphImageResource* RenderGraph::getOrAddImageResource(const std::string& name)
+	std::pair<bool, RenderGraphImageResource*> RenderGraph::addImageResource(const std::string& name)
 	{
 		auto it = m_resource_to_idx_map.find(name);
-		if (it != m_resource_to_idx_map.end())
+		if (it != m_resource_to_idx_map.end()) //found
 		{
 			//todo? assert if its the correct type of resource
 			uint32_t index = it->second;
 
-			return static_cast<RenderGraphImageResource*>(m_resources[index].get());
+			return {true, static_cast<RenderGraphImageResource*>(m_resources[index].get())};
 		}
-		else
+		else //added
 		{
 			uint32_t index = m_resources.size();
 
@@ -77,7 +77,7 @@ namespace Veist
 
 			auto& resource = m_resources.emplace_back(std::make_unique<RenderGraphImageResource>(RenderGraphImageResource(index)));
 
-			return static_cast<RenderGraphImageResource*>(resource.get());
+			return {false, static_cast<RenderGraphImageResource*>(resource.get())};
 		}
 	}
 
@@ -164,7 +164,7 @@ namespace Veist
 
 
 
-
+	//TODO print to conosole reason why it didnt validate
 	bool RenderGraph::validateGraph()
 	{
 
@@ -189,7 +189,7 @@ namespace Veist
 			auto& resource = *resource_ptr;
 
 			//If resource is not read, reduce resource write count from pass that wrote resource (except for backbuffer)
-			if (resource.readInPasses().size() == 0)
+			if (resource.readInPasses().size() == 0) //TODO if resource is not read after last write?
 			{
 				if (resource.index() == m_backbuffer_idx) continue; //Do not reduce resource write for backbuffer
 
@@ -225,7 +225,7 @@ namespace Veist
 				for (auto& pass_idx : resource.writtenInPasses())
 				{
 					m_passes[pass_idx]->m_resource_write_count--;
-					if (m_passes[pass_idx]->m_resource_write_count <= 0)
+					if (m_passes[pass_idx]->m_resource_write_count <= 0) //TODO its never <= to 0 with "aliasing resource names"
 					{
 						next_passes.push(pass_idx);
 						m_pass_stack.emplace_back(pass_idx);//add pass to final order of passses

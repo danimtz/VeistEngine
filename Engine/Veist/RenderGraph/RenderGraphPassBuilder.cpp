@@ -18,8 +18,9 @@ namespace Veist
 	RenderGraphImageResource* RenderGraphPassBuilder::addImageToPass(ResourceAction action, const std::string& name, const RenderGraphImageInfo& info, PipelineStage stage, ImageUsage usage)
 	{
 		//Get resource
-		auto* image_res = m_graph_pass->m_graph->getOrAddImageResource(name);
-
+		auto ret = m_graph_pass->m_graph->addImageResource(name);
+		auto found = ret.first;
+		auto* image_res = ret.second;
 		if (action == ResourceAction::Read)
 		{
 			m_graph_pass->m_resource_reads.emplace_back(image_res);
@@ -34,10 +35,20 @@ namespace Veist
 		
 		//TODO Stage
 
-		//fill in resource info
-		image_res->setImageInfo(info);
-		image_res->setResourceName(name);
-		image_res->setImageUsage(usage);
+		//If image name was found and not newly addded
+		if (!found)
+		{
+			//check that image info is not empt
+			if (info.properties.imageSize().n_channels == 0)
+			{
+				CRITICAL_ERROR_LOG("Resource being added for first time without valid resource info: " + name);
+			}
+
+			image_res->setImageInfo(info);
+			image_res->setResourceName(name);
+		}
+
+		image_res->addImageUsage(usage);
 
 		return image_res;
 	}
@@ -45,8 +56,10 @@ namespace Veist
 	RenderGraphBufferResource* RenderGraphPassBuilder::addBufferToPass(ResourceAction action, const std::string& name, const RenderGraphBufferInfo& info, PipelineStage stage, ShaderBufferUsage usage)
 	{
 		//Get resource
-		auto* buffer_res = m_graph_pass->m_graph->getOrAddBufferResource(name);
-		
+		auto ret = m_graph_pass->m_graph->addBufferResource(name);
+		auto found = ret.first;
+		auto* buffer_res = ret.second;
+
 		if (action == ResourceAction::Read)
 		{
 			m_graph_pass->m_resource_reads.emplace_back(buffer_res);
@@ -61,10 +74,19 @@ namespace Veist
 
 		//TODO stage
 
+		//If buffer name was found and not newly addded
+		if (!found)
+		{
+			//check that image info is not empt
+			if (info.size == 0)
+			{
+				CRITICAL_ERROR_LOG("Resource being added for first time without valid resource info: " + name);
+			}
 
-		//fill in resource info
-		buffer_res->setBufferInfo(info);
-		buffer_res->setResourceName(name);
+			buffer_res->setBufferInfo(info);
+			buffer_res->setResourceName(name);
+		}
+
 		buffer_res->setBufferUsage(usage);
 		return buffer_res;
 	}
@@ -72,8 +94,7 @@ namespace Veist
 
 	//============== Render graph pass reads/inputs ===================//
 
-	//TODO: if getOrAddBufferResource(name) returns an already existing resource, i shouldnt re add the name, info etc etc, i should  only do the m_graph_pass-> operations
-
+	
 	RenderGraphBufferResource* RenderGraphPassBuilder::addUniformInput(const std::string& name, const RenderGraphBufferInfo& info, PipelineStage stage, uint32_t d_set_index)
 	{
 		auto* buffer_res = addBufferToPass(ResourceAction::Read, name, info, stage, ShaderBufferUsage::Uniform);
@@ -82,14 +103,23 @@ namespace Veist
 		return buffer_res;
 
 	}
+	RenderGraphBufferResource* RenderGraphPassBuilder::addUniformInput(const std::string& name, PipelineStage stage, uint32_t d_set_index)
+	{
+		RenderGraphBufferInfo NOT_USED;
+		return addUniformInput(name, NOT_USED, stage, d_set_index);
+	}
 
 
 	RenderGraphBufferResource* RenderGraphPassBuilder::addStorageInput(const std::string& name, const RenderGraphBufferInfo& info, PipelineStage stage, uint32_t d_set_index)
 	{
-
 		auto* buffer_res = addBufferToPass(ResourceAction::Read, name, info, stage, ShaderBufferUsage::Storage);
 		m_graph_pass->addDescriptorTemplate(d_set_index, buffer_res->index(), VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
 		return buffer_res;
+	}
+	RenderGraphBufferResource* RenderGraphPassBuilder::addStorageInput(const std::string& name, PipelineStage stage, uint32_t d_set_index)
+	{
+		RenderGraphBufferInfo NOT_USED;
+		return addStorageInput(name, NOT_USED, stage, d_set_index);
 	}
 
 
@@ -103,24 +133,34 @@ namespace Veist
 	}*/
 	
 	RenderGraphImageResource* RenderGraphPassBuilder::addTextureInput(const std::string& name, const RenderGraphImageInfo& info, SamplerType sampler_type, 
-		PipelineStage stage, uint32_t d_set_index )
+		PipelineStage stage, uint32_t d_set_index)
 	{
-
 		auto* image_res = addImageToPass(ResourceAction::Read, name, info, stage, ImageUsage::Texture);
 		m_graph_pass->addDescriptorTemplate(d_set_index, image_res->index(), VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, sampler_type);
 		return image_res;
 	}
+	RenderGraphImageResource* RenderGraphPassBuilder::addTextureInput(const std::string& name, SamplerType sampler_type, 
+		PipelineStage stage, uint32_t d_set_index )
+	{
+		RenderGraphImageInfo NOT_USED;
+		return addTextureInput(name, NOT_USED, sampler_type, stage, d_set_index);
+	}
 
 
-
-	RenderGraphImageResource* RenderGraphPassBuilder::addDepthInput(const std::string& name, const RenderGraphImageInfo& info, SamplerType sampler_type, 
+	RenderGraphImageResource* RenderGraphPassBuilder::addDepthInput(const std::string& name, const RenderGraphImageInfo& info, SamplerType sampler_type,
 		PipelineStage stage, uint32_t d_set_index)
 	{
-
 		auto* image_res = addImageToPass(ResourceAction::Read, name, info, stage, ImageUsage::DepthAttachment);
 		m_graph_pass->addDescriptorTemplate(d_set_index, image_res->index(), VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, sampler_type);
 		return image_res;
 	}
+	RenderGraphImageResource* RenderGraphPassBuilder::addDepthInput(const std::string& name, SamplerType sampler_type,
+		PipelineStage stage, uint32_t d_set_index)
+	{
+		RenderGraphImageInfo NOT_USED;
+		return addDepthInput(name, NOT_USED, sampler_type, stage, d_set_index);
+	}
+
 
 
 	void RenderGraphPassBuilder::addExternalInput(const std::string& name, Descriptor descriptor, const uint32_t d_set_index)
@@ -135,12 +175,16 @@ namespace Veist
 
 	RenderGraphImageResource* RenderGraphPassBuilder::addColorOutput(const std::string& name, const RenderGraphImageInfo& info)
 	{
-	
-
 		//texture as well so that it can be sampled TODO remove when editor pass is created i guess
 		auto* image_res = addImageToPass(ResourceAction::Write, name, info, PipelineStage::ColorAttachment, (ImageUsage::ColorAttachment | ImageUsage::Texture));
 		m_graph_pass->m_color_outputs.emplace_back(image_res);
 		return image_res;
+	}
+	RenderGraphImageResource* RenderGraphPassBuilder::addColorOutput(const std::string& name)
+	{
+		//texture as well so that it can be sampled TODO remove when editor pass is created i guess
+		RenderGraphImageInfo NOT_USED;
+		return addColorOutput(name, NOT_USED);
 	}
 
 
@@ -159,21 +203,35 @@ namespace Veist
 		return image_res;
 	}
 
+	RenderGraphImageResource* RenderGraphPassBuilder::addDepthOutput(const std::string& name)
+	{
+		RenderGraphImageInfo NOT_USED;
+		return addDepthOutput(name, NOT_USED);
+	}
+
 
 	RenderGraphImageResource* RenderGraphPassBuilder::addStorageTextureOutput(const std::string& name, const RenderGraphImageInfo& info, PipelineStage stage)
 	{
-
 		auto* image_res = addImageToPass(ResourceAction::Write, name, info, stage, ImageUsage::Storage);
 		return image_res;
+	}
+	RenderGraphImageResource* RenderGraphPassBuilder::addStorageTextureOutput(const std::string& name, PipelineStage stage)
+	{
+		RenderGraphImageInfo NOT_USED;
+		return addStorageTextureOutput(name, NOT_USED, stage);
 	}
 
 
 	RenderGraphBufferResource* RenderGraphPassBuilder::addStorageOutput(const std::string& name, const RenderGraphBufferInfo& info, PipelineStage stage)
 	{
-	
-		
 		auto* buffer_res = addBufferToPass(ResourceAction::Write, name, info, stage, ShaderBufferUsage::Storage);
 		return buffer_res;
+	}
+	RenderGraphBufferResource* RenderGraphPassBuilder::addStorageOutput(const std::string& name, PipelineStage stage)
+	{
+
+		RenderGraphBufferInfo NOT_USED;
+		return addStorageOutput(name, NOT_USED, stage);
 
 	}
 

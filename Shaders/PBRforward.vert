@@ -27,7 +27,7 @@ layout(set = 0, binding = 1) uniform  cameraBuffer
 	mat4 mP;
 	mat4 mVP;
 	mat4 mInvV;
-} camera_data;
+} camera;
 
 
 
@@ -37,8 +37,8 @@ void main()
 {
 	
 	//output the position of each vertex
-	gl_Position = (camera_data.mVP*push_constant.mM)*vec4(inPosition, 1.0f);
-	outPosition = vec3((camera_data.mV*push_constant.mM)*vec4(inPosition, 1.0f));
+	gl_Position = (camera.mVP*push_constant.mM)*vec4(inPosition, 1.0f);
+	outPosition = vec3((camera.mV*push_constant.mM)*vec4(inPosition, 1.0f));
 	
 	mat3 Nmat = mat3(push_constant.mN); //mN is already a 3x3 extended to a 4x4 matrix but this is cleaner
 

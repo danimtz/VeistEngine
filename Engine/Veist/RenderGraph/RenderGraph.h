@@ -22,8 +22,8 @@ namespace Veist
 
 		bool setBackbuffer(const std::string& name);
 
-		RenderGraphBufferResource* getOrAddBufferResource(const std::string& name);
-		RenderGraphImageResource* getOrAddImageResource(const std::string& name);
+		std::pair<bool, RenderGraphBufferResource*> addBufferResource(const std::string& name);
+		std::pair<bool, RenderGraphImageResource*> addImageResource(const std::string& name);
 		RenderGraphResource* getResource(uint32_t index);
 
 		RenderGraphResourcePool* resourcePool() { return m_resource_pool.get();};
