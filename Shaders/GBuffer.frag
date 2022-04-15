@@ -29,13 +29,13 @@ void main()
 	vec3 tex_normal = normalize(texture(inNormalTex, inUV).xyz * 2.0 - 1.0); //shift to -1 to 1 range from 0 to 1
 	
 	outAlbedoMetallic.rgb = texture(inAlbedo, inUV).xyz;
-	outAlbedoMetallic.a = texture(inOccRoughMetal).z;
+	outAlbedoMetallic.a = texture(inOccRoughMetal, inUV).z;
 
 	outNormalRoughness.rgb = normalize(mTBN * tex_normal);
-	outNormalRoughness.a = texture(inOccRoughMetal).y;
+	outNormalRoughness.a = texture(inOccRoughMetal, inUV).y;
 	
 	outEmmissiveOcclusion.rgb = texture(inEmmissive, inUV).xyz;
-	outEmmissiveOcclusion.a = texture(inOccRoughMetal).x;
+	outEmmissiveOcclusion.a = texture(inOccRoughMetal, inUV).x;
 
 	 
 }

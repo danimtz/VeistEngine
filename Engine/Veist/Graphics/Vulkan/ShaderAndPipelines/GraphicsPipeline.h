@@ -57,7 +57,7 @@ class GraphicsPipelineBuilder
 public:
 
 	//Create graphics pipeline builder, but dont build the pipeline yet. lazy initialization of vkPipeline
-	GraphicsPipelineBuilder(const std::string& shader_name, const VertexDescription& vertex_desc, DepthTest depth_test = DepthTest::ReadWrite, VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
+	GraphicsPipelineBuilder(const std::string& shader_name, const VertexDescription& vertex_desc, uint32_t attachment_count = 1, DepthTest depth_test = DepthTest::ReadWrite, VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
 		VkPolygonMode polygon_mode = VK_POLYGON_MODE_FILL, VkCullModeFlags cull_mode = VK_CULL_MODE_BACK_BIT,/*VK_CULL_MODE_BACK_BIT*//*VK_CULL_MODE_NONE*/
 		VkFrontFace front_face = VK_FRONT_FACE_COUNTER_CLOCKWISE);
 
@@ -70,7 +70,7 @@ private:
 
 	void createShaderProgram(const std::string& shader_name);
 	void setVertexInputDescriptions(const VertexDescription& vertex_desc);
-	void createPipelineStates();
+	void createPipelineStates(uint32_t attachment_count);
 	void createPipelineLayout();
 
 
@@ -92,7 +92,7 @@ private:
 	VkPipelineInputAssemblyStateCreateInfo			m_input_assembly_info = {};
 	VkPipelineRasterizationStateCreateInfo			m_rasterizer_info = {};
 	VkPipelineMultisampleStateCreateInfo			m_multisample_state_info = {};
-	VkPipelineColorBlendAttachmentState				m_color_blend_attachment_state = {};//This could be a vector if using multiple attachments in a multi-render targer rendering framework
+	std::vector<VkPipelineColorBlendAttachmentState> m_color_blend_attachment_state = {};
 	VkPipelineColorBlendStateCreateInfo				m_color_blend_state_info = {};
 	VkPipelineDepthStencilStateCreateInfo			m_depth_stencil_state_info = {};
 	VkPipelineViewportStateCreateInfo				m_viewport_state_info = {};

@@ -13,7 +13,8 @@ namespace Veist
 		{
 			PBRMaterial,
 			SkyboxMaterial,
-			
+			DeferredGBufferMaterial,
+			DeferredLightingMaterial,
 			
 			MaxMaterialTypes
 		};

@@ -288,6 +288,7 @@ void ShaderProgram::reflectShaderModules()
 		// The SPIR-V is now parsed, and we can perform reflection on it.
 		spirv_cross::ShaderResources resources = comp.get_shader_resources();
 
+		
 
 		for (uint32_t i = 0; i < 3; i++)//Compute shader
 		{

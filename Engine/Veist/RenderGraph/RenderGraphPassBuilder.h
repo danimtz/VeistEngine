@@ -40,19 +40,19 @@ namespace Veist
 
 		//Pass writes:
 
-		RenderGraphImageResource* addColorOutput(const std::string& name, const RenderGraphImageInfo& info);
-		RenderGraphImageResource* addColorOutput(const std::string& name);
+		RenderGraphImageResource* addColorOutput(const std::string& name, const RenderGraphImageInfo& info = {}, const std::string& input = "");
+		RenderGraphImageResource* addDepthOutput(const std::string& name, const RenderGraphImageInfo& info = {});
 
-		RenderGraphImageResource* addDepthOutput(const std::string& name, const RenderGraphImageInfo& info);
-		RenderGraphImageResource* addDepthOutput(const std::string& name);
+		//TODO "input" argument does nothing for these two functions
+		RenderGraphImageResource* addStorageTextureOutput(const std::string& name, const RenderGraphImageInfo& info = {}, const std::string& input = "", PipelineStage stage = PipelineStage::ComputeShader);
+		RenderGraphBufferResource* addStorageOutput(const std::string& name, const RenderGraphBufferInfo& info = {}, const std::string& input = "", PipelineStage stage = PipelineStage::ComputeShader);
+		
 
-		RenderGraphImageResource* addStorageTextureOutput(const std::string& name, const RenderGraphImageInfo& info, PipelineStage stage = PipelineStage::ComputeShader);
-		RenderGraphImageResource* addStorageTextureOutput(const std::string& name, PipelineStage stage = PipelineStage::ComputeShader);
 
-		RenderGraphBufferResource* addStorageOutput(const std::string& name, const RenderGraphBufferInfo& info, PipelineStage stage = PipelineStage::ComputeShader);
-		RenderGraphBufferResource* addStorageOutput(const std::string& name, PipelineStage stage = PipelineStage::ComputeShader);
-		//todo add more
-
+		//RenderGraphImageResource* addColorOutput(const std::string& name);
+		//RenderGraphImageResource* addDepthOutput(const std::string& name);
+		//RenderGraphImageResource* addStorageTextureOutput(const std::string& name, PipelineStage stage = PipelineStage::ComputeShader);
+		//RenderGraphBufferResource* addStorageOutput(const std::string& name, PipelineStage stage = PipelineStage::ComputeShader);
 
 		void setRenderFunction(RenderFunction&& function);
 

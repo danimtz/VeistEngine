@@ -46,7 +46,7 @@ namespace Veist
 		builder.addColorOutput("gbuffer_albedo_metallic", gbuff_albedo_metallic_info);
 		builder.addColorOutput("gbuffer_normal_roughness", gbuff_normal_roughness_info);
 		builder.addColorOutput("gbuffer_emmissive_occlusion", gbuff_emmissive_occlusion_info);
-		builder.addDepthOutput("depth_attachment", depth_attachment_info);
+		builder.addDepthOutput("gbuffer_depth_attachment", depth_attachment_info);
 		
 		builder.setRenderFunction([=](CommandBuffer& cmd, const RenderGraphPass* pass) {
 			
@@ -143,11 +143,11 @@ namespace Veist
 		builder.addTextureInput("gbuffer_albedo_metallic");
 		builder.addTextureInput("gbuffer_normal_roughness");
 		builder.addTextureInput("gbuffer_emmissive_occlusion");
-		builder.addDepthInput("depth_attachment");
+		builder.addDepthInput("gbuffer_depth_attachment");
 
-		builder.addDepthOutput("depth_attachment");
+		
 
-		auto output_image = builder.addColorOutput("output_image", output_image_info);
+		auto output_image = builder.addColorOutput("output_image", output_image_info, "gbuffer_albedo_metallic");
 
 		renderer.m_editor_target = output_image;
 
@@ -179,6 +179,12 @@ namespace Veist
 
 			//TODO lighting rendering
 
+			cmd.bindMaterialType(EngineResources::MaterialTypes::DeferredLightingMaterial);
+
+			cmd.bindDescriptorSet(pass->getDescriptorSets()[0]);
+
+			cmd.drawVertices(3);
+
 		});
 
 
@@ -193,6 +199,9 @@ namespace Veist
 
 		addGBufferPass(render_graph, scene_registry);
 		addLightingPass(render_graph, scene_registry, deferred_renderer);
+
+
+
 
 
 		return deferred_renderer;

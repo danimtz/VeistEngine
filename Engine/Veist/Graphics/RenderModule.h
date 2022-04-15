@@ -6,7 +6,7 @@
 #include "Veist/Graphics/Renderer.h"
 //#include "Logger.h"
 #include "Veist/Scenes/ECS/EntityRegistry.h"
-
+#include "Veist/Resources/EngineResources.h"
 
 namespace Veist
 {

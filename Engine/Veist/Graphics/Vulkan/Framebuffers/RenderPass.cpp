@@ -78,13 +78,13 @@ namespace Veist
 		VkImageLayout initial_layout = getImageLayout(attachment.usage & (~ImageUsage::SwapchainImage)); //layout without swapchain bit
 		VkImageLayout final_layout = getImageLayout(attachment.usage);
 	
-	
+		/*
 		//If usage is swapchain and depth attachment, set final layout to depth stencil and initial to undefined
 		if ((attachment.usage & (ImageUsage::DepthAttachment | ImageUsage::SwapchainImage)) == attachment.usage)
 		{
 			initial_layout = VK_IMAGE_LAYOUT_UNDEFINED;
 			final_layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-		}
+		}*/
 
 		//If renderpass being used for swapchain present, set initial layout is undefined
 		if (final_layout == VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
@@ -104,7 +104,7 @@ namespace Veist
 		VkAttachmentLoadOp stencil_load_op = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 		if ((attachment.usage & ImageUsage::DepthAttachment) != ImageUsage::None) 
 		{
-			stencil_load_op = VK_ATTACHMENT_LOAD_OP_CLEAR;
+			stencil_load_op = VkAttachmentLoadOp(attachment.load_op);
 		} 
 		description.stencilLoadOp = stencil_load_op;
 		description.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;

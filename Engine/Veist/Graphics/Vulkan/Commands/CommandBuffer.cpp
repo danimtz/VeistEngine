@@ -362,6 +362,15 @@ void CommandBuffer::drawIndexed(uint32_t size)
 }
 
 
+void CommandBuffer::bindMaterialType(uint32_t type)
+{
+	MaterialType* material = RenderModule::resources()->getMaterialType(EngineResources::MaterialTypes(type));
+	m_bound_pipeline = material->getPipeline(m_current_renderpass);
+
+	vkCmdBindPipeline(m_cmd_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_bound_pipeline->pipeline());
+
+}
+
 void CommandBuffer::bindMaterial(Material& material)
 {
 
@@ -374,19 +383,7 @@ void CommandBuffer::bindMaterial(Material& material)
 	}
 
 	bindDescriptorSet(material.descriptorSet(), 0, nullptr);
-	
-	
-	/*GraphicsPipeline* pipeline = material.pipeline().get();
-
-	if (pipeline != m_bound_pipeline)
-	{
-		bindPipeline(*pipeline);
-		m_bound_pipeline = pipeline;
 	}
-
-	bindDescriptorSet(*pipeline, material.descriptorSet(), 0, nullptr);
-	*/
-}
 
 
 void CommandBuffer::bindPipeline(GraphicsPipeline& pipeline)

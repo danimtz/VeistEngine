@@ -132,7 +132,7 @@ namespace Veist
 		* Possible performance improvements: hash renderpass and framebuffer objects and reuse them if rendergraph doesnt change with respect to previous frames
 		* If the renderpass/framebuffer is not used after a couple of frames (8 or so) then it could be deleted		
  		*/
-		for (auto pass_idx : m_pass_stack)
+ 		for (auto pass_idx : m_pass_stack)
 		{
 			m_passes[pass_idx]->buildFramebuffer();
 			m_passes[pass_idx]->buildDescriptors();
@@ -274,7 +274,7 @@ namespace Veist
 
 	void RenderGraph::allocatePhysicalResources()
 	{
-		//Must do aliasing of read modify write resources. dont assign different physical resources
+		//TODO Must do aliasing of read modify write resources. dont assign different physical resources
 
 		for (auto& resource : m_resources)
 		{

@@ -11,7 +11,9 @@
 #include "Veist/Graphics/Vulkan/ShaderAndPipelines/GraphicsPipeline.h"
 #include "Veist/Graphics/Vulkan/Images/Image.h"
 #include "Veist/Graphics/Vulkan/Barriers/Barrier.h"
+//#include "Veist/Resources/EngineResources.h"
 #include "Veist/Material/Material.h"
+
 
 namespace Veist
 {
@@ -68,6 +70,7 @@ public:
 	void bindIndexBuffer(const IndexBuffer& index_buffer);
 	void drawVertices(uint32_t size);
 	void drawIndexed(uint32_t size);
+	void bindMaterialType(uint32_t type);
 	void bindMaterial(Material& material);
 
 	void bindPipeline(GraphicsPipeline& pipeline);//maybe combine bindPipeline and bindDescriptorSet

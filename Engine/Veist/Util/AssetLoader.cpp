@@ -11,13 +11,12 @@
 #include <memory>
 #include "AssetLoader.h"
 
-#include "Veist/Material/Material.h"
+//#include "Veist/Material/Material.h"
 //#include "Veist/Material/PBRMaterial.h"
 //#include "Veist/Material/SkyboxMaterial.h"
 
 #include "Veist/Graphics/RenderModule.h"
 
-#include "Veist/Resources/EngineResources.h"
 
 namespace Veist
 {
@@ -660,7 +659,7 @@ std::shared_ptr<Material> AssetLoader::loadPBRMaterialFromGLTF(const char* gltf_
 	CONSOLE_LOG(" ===================== EMMISSIVE TEXTURE");
 	
 
-	return std::make_shared<Material>(RenderModule::resources()->getMaterialType(EngineResources::MaterialTypes::PBRMaterial), MaterialData({albedo, normal, occlusionRoughnessMetallic, emmissive}));
+	return std::make_shared<Material>(RenderModule::resources()->getMaterialType(EngineResources::MaterialTypes::DeferredGBufferMaterial), MaterialData({albedo, normal, occlusionRoughnessMetallic, emmissive}));
 }
 
 

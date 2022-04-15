@@ -81,17 +81,27 @@ namespace Veist
 		
 		Framebuffer::Attachment depth;
 		std::vector<Framebuffer::Attachment> colors;
+
+		if (m_color_outputs.size() != m_color_inputs.size())
+		{
+			CRITICAL_ERROR_LOG("Rendergraph pass color outputs array does not match color inputs array");
+		}
+
+		for (int i = 0; i < m_color_outputs.size(); i++)
+		{
+			RenderPass::LoadOp load_op = (m_color_inputs[i] == nullptr) ? RenderPass::LoadOp::Clear : RenderPass::LoadOp::Load;
+			colors.emplace_back( getPhysicalImage(m_color_outputs[i]), load_op );
+		}
+		/*
 		for (auto* img_res_ptr : m_color_outputs)
 		{
-			colors.emplace_back(getPhysicalImage(img_res_ptr));
-		}
-		depth = getPhysicalImage(m_depth_output);
+			
+		}*/
+		
+		//get physical image from either depth_input or depth_output (both should be the same physical image TODO check that in validation)
+		depth.image = (m_depth_output != nullptr) ? getPhysicalImage(m_depth_output) : getPhysicalImage(m_depth_input);
+		depth.load_op = (m_depth_input == nullptr) ? RenderPass::LoadOp::Clear : RenderPass::LoadOp::Load;
 
-		//Calculate load-op for resources
-		{
-			//TODO calculate loadop for framebuffer. check useage of that resource
-			//for now it is using default of clear
-		}
 		m_framebuffer = Framebuffer(colors, depth);
 
 	}

@@ -150,8 +150,15 @@ namespace Veist
 	RenderGraphImageResource* RenderGraphPassBuilder::addDepthInput(const std::string& name, const RenderGraphImageInfo& info, SamplerType sampler_type,
 		PipelineStage stage, uint32_t d_set_index)
 	{
+		//Only 1 depth image per renderpass
+		if (m_graph_pass->m_depth_input != nullptr)
+		{
+			CRITICAL_ERROR_LOG("RenderGraphPass attempting to read multiple depth inputs in pass: " + name);
+		}
+
 		auto* image_res = addImageToPass(ResourceAction::Read, name, info, stage, ImageUsage::DepthAttachment);
-		m_graph_pass->addDescriptorTemplate(d_set_index, image_res->index(), VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, sampler_type);
+		//m_graph_pass->addDescriptorTemplate(d_set_index, image_res->index(), VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, sampler_type);
+		m_graph_pass->m_depth_input = image_res;
 		return image_res;
 	}
 	RenderGraphImageResource* RenderGraphPassBuilder::addDepthInput(const std::string& name, SamplerType sampler_type,
@@ -173,19 +180,31 @@ namespace Veist
 
 	//============== Render graph pass writes/output ===================//
 
-	RenderGraphImageResource* RenderGraphPassBuilder::addColorOutput(const std::string& name, const RenderGraphImageInfo& info)
+	RenderGraphImageResource* RenderGraphPassBuilder::addColorOutput(const std::string& name, const RenderGraphImageInfo& info, const std::string& input)
 	{
 		//texture as well so that it can be sampled TODO remove when editor pass is created i guess
 		auto* image_res = addImageToPass(ResourceAction::Write, name, info, PipelineStage::ColorAttachment, (ImageUsage::ColorAttachment | ImageUsage::Texture));
 		m_graph_pass->m_color_outputs.emplace_back(image_res);
+
+		if (!input.empty())
+		{
+			auto* input_res = m_graph_pass->m_graph->addImageResource(name).second;
+			m_graph_pass->m_color_inputs.emplace_back(input_res);
+		}
+		else
+		{
+			m_graph_pass->m_color_inputs.emplace_back(nullptr);
+		}
+
+
 		return image_res;
 	}
-	RenderGraphImageResource* RenderGraphPassBuilder::addColorOutput(const std::string& name)
+	/*RenderGraphImageResource* RenderGraphPassBuilder::addColorOutput(const std::string& name)
 	{
 		//texture as well so that it can be sampled TODO remove when editor pass is created i guess
 		RenderGraphImageInfo NOT_USED;
 		return addColorOutput(name, NOT_USED);
-	}
+	}*/
 
 
 	RenderGraphImageResource* RenderGraphPassBuilder::addDepthOutput(const std::string& name, const RenderGraphImageInfo& info)
@@ -202,38 +221,41 @@ namespace Veist
 		m_graph_pass->m_depth_output = image_res;
 		return image_res;
 	}
-
+	/*
 	RenderGraphImageResource* RenderGraphPassBuilder::addDepthOutput(const std::string& name)
 	{
 		RenderGraphImageInfo NOT_USED;
 		return addDepthOutput(name, NOT_USED);
-	}
+	}*/
 
 
-	RenderGraphImageResource* RenderGraphPassBuilder::addStorageTextureOutput(const std::string& name, const RenderGraphImageInfo& info, PipelineStage stage)
+	RenderGraphImageResource* RenderGraphPassBuilder::addStorageTextureOutput(const std::string& name, const RenderGraphImageInfo& info, const std::string& input, PipelineStage stage)
 	{
 		auto* image_res = addImageToPass(ResourceAction::Write, name, info, stage, ImageUsage::Storage);
 		return image_res;
 	}
+	/*
 	RenderGraphImageResource* RenderGraphPassBuilder::addStorageTextureOutput(const std::string& name, PipelineStage stage)
 	{
 		RenderGraphImageInfo NOT_USED;
 		return addStorageTextureOutput(name, NOT_USED, stage);
-	}
+	}*/
 
 
-	RenderGraphBufferResource* RenderGraphPassBuilder::addStorageOutput(const std::string& name, const RenderGraphBufferInfo& info, PipelineStage stage)
+	RenderGraphBufferResource* RenderGraphPassBuilder::addStorageOutput(const std::string& name, const RenderGraphBufferInfo& info, const std::string& input, PipelineStage stage)
 	{
 		auto* buffer_res = addBufferToPass(ResourceAction::Write, name, info, stage, ShaderBufferUsage::Storage);
 		return buffer_res;
 	}
+
+	/*
 	RenderGraphBufferResource* RenderGraphPassBuilder::addStorageOutput(const std::string& name, PipelineStage stage)
 	{
 
 		RenderGraphBufferInfo NOT_USED;
 		return addStorageOutput(name, NOT_USED, stage);
 
-	}
+	}*/
 
 
 }

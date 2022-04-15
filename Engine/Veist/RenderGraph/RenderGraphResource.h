@@ -89,6 +89,7 @@ namespace Veist
 		std::unordered_set<uint32_t> m_written_in_passes;
 		std::unordered_set<uint32_t> m_read_in_passes;
 		std::string m_name;
+
 		bool m_used_in_graph;
 		//add more here
 	};

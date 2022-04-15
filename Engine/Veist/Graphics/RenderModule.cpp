@@ -1,7 +1,6 @@
 #include "pch.h"
 #include "Veist/Graphics/RenderModule.h"
 #include "Veist/Graphics/ForwardRenderer.h"
-#include "Veist/Resources/EngineResources.h"
 
 
 namespace Veist

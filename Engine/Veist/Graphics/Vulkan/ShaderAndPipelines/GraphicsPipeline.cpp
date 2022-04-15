@@ -9,7 +9,7 @@
 namespace Veist
 {
 
-GraphicsPipelineBuilder::GraphicsPipelineBuilder(const std::string& shader_name, const VertexDescription& vertex_desc, DepthTest depth_test, VkPrimitiveTopology topology,
+GraphicsPipelineBuilder::GraphicsPipelineBuilder(const std::string& shader_name, const VertexDescription& vertex_desc, uint32_t attachment_count, DepthTest depth_test, VkPrimitiveTopology topology,
 	VkPolygonMode polygon_mode, VkCullModeFlags cull_mode, VkFrontFace front_face) :
 	m_depth_test(depth_test),
 	m_topology(topology), 
@@ -23,7 +23,7 @@ GraphicsPipelineBuilder::GraphicsPipelineBuilder(const std::string& shader_name,
 
 	setVertexInputDescriptions(vertex_desc);
 
-	createPipelineStates();
+	createPipelineStates(attachment_count);
 	createPipelineLayout();
 	
 }
@@ -42,42 +42,48 @@ void GraphicsPipelineBuilder::setVertexInputDescriptions(const VertexDescription
 	//Parse Vertexdescription into vulkan vertex attribute and vertex binding descriptors
 	uint32_t location_count = 0;
 	
-	VkVertexInputBindingDescription binding_desc = {};
-	binding_desc.binding = 0;//vertex_desc.getBinding();
-	binding_desc.stride = vertex_desc.getStride();
-	binding_desc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-	
-	m_vertex_bindings.push_back(binding_desc);
+	if (!vertex_desc.getVertexAttributes().empty())
+	{
+		VkVertexInputBindingDescription binding_desc = {};
+		binding_desc.binding = 0;//vertex_desc.getBinding();
+		binding_desc.stride = vertex_desc.getStride();
+		binding_desc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
-	auto attributes = vertex_desc.getVertexAttributes();
-	for (uint32_t j = 0; j < attributes.size(); j++) {
+		m_vertex_bindings.push_back(binding_desc);
 
-		VkVertexInputAttributeDescription attribute_desc = {};
-		attribute_desc.binding = 0;//vertex_desc.getBinding();
-		attribute_desc.location = location_count;
-		location_count++;
-		attribute_desc.offset = attributes[j].m_offset;
+		auto attributes = vertex_desc.getVertexAttributes();
+		for (uint32_t j = 0; j < attributes.size(); j++)
+		{
 
-		switch (attributes[j].m_type) {
-		case VertexAttributeType::Float:
-			attribute_desc.format = VK_FORMAT_R32_SFLOAT;
-			break;
-		case VertexAttributeType::Float2:
-			attribute_desc.format = VK_FORMAT_R32G32_SFLOAT;
-			break;
-		case VertexAttributeType::Float3:
-			attribute_desc.format = VK_FORMAT_R32G32B32_SFLOAT;
-			break;
-		case VertexAttributeType::Float4:
-			attribute_desc.format = VK_FORMAT_R32G32B32A32_SFLOAT;
-			break;
-		//More can be added later
-		default:
-			CRITICAL_ERROR_LOG("Vertex Attribute Type invalid on Pipeline creation");
+			VkVertexInputAttributeDescription attribute_desc = {};
+			attribute_desc.binding = 0;//vertex_desc.getBinding();
+			attribute_desc.location = location_count;
+			location_count++;
+			attribute_desc.offset = attributes[j].m_offset;
+
+			switch (attributes[j].m_type)
+			{
+			case VertexAttributeType::Float:
+				attribute_desc.format = VK_FORMAT_R32_SFLOAT;
+				break;
+			case VertexAttributeType::Float2:
+				attribute_desc.format = VK_FORMAT_R32G32_SFLOAT;
+				break;
+			case VertexAttributeType::Float3:
+				attribute_desc.format = VK_FORMAT_R32G32B32_SFLOAT;
+				break;
+			case VertexAttributeType::Float4:
+				attribute_desc.format = VK_FORMAT_R32G32B32A32_SFLOAT;
+				break;
+				//More can be added later
+			default:
+				CRITICAL_ERROR_LOG("Vertex Attribute Type invalid on Pipeline creation");
+			}
+
+			m_vertex_attributes.push_back(attribute_desc);
 		}
-
-		m_vertex_attributes.push_back(attribute_desc);
 	}
+	
 	
 	
 
@@ -88,7 +94,7 @@ void GraphicsPipelineBuilder::setVertexInputDescriptions(const VertexDescription
 
 
 
-void GraphicsPipelineBuilder::createPipelineStates()
+void GraphicsPipelineBuilder::createPipelineStates(uint32_t attachment_count)
 {
 	////////////////////////////////////////
 	//Vertex input state                  //
@@ -98,10 +104,10 @@ void GraphicsPipelineBuilder::createPipelineStates()
 
 
 	m_vertex_input_info.vertexBindingDescriptionCount = m_vertex_bindings.size();
-	m_vertex_input_info.pVertexBindingDescriptions = m_vertex_bindings.data();
+	m_vertex_input_info.pVertexBindingDescriptions = m_vertex_bindings.empty() ? nullptr : m_vertex_bindings.data();
 
 	m_vertex_input_info.vertexAttributeDescriptionCount = m_vertex_attributes.size();
-	m_vertex_input_info.pVertexAttributeDescriptions = m_vertex_attributes.data();
+	m_vertex_input_info.pVertexAttributeDescriptions = m_vertex_attributes.empty() ? nullptr : m_vertex_attributes.data();
 
 
 
@@ -123,8 +129,8 @@ void GraphicsPipelineBuilder::createPipelineStates()
 	m_rasterizer_info.rasterizerDiscardEnable = VK_FALSE;
 	m_rasterizer_info.polygonMode = m_polygon_mode;
 	m_rasterizer_info.lineWidth = 1.0f;
-	m_rasterizer_info.cullMode = m_cull_mode;
-	m_rasterizer_info.frontFace = m_front_face;
+	m_rasterizer_info.cullMode = m_vertex_bindings.empty() ? VK_CULL_MODE_FRONT_BIT : m_cull_mode; //if vertex description empty (rendering a quad) use front face bit
+	m_rasterizer_info.frontFace = m_vertex_bindings.empty() ? VK_FRONT_FACE_COUNTER_CLOCKWISE : m_front_face;
 	//no depth bias
 	m_rasterizer_info.depthBiasEnable = VK_FALSE;
 	m_rasterizer_info.depthBiasConstantFactor = 0.0f;
@@ -150,27 +156,34 @@ void GraphicsPipelineBuilder::createPipelineStates()
 	/////////////////////////
 	//Color blending state //
 	/////////////////////////
-	m_color_blend_attachment_state.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+	m_color_blend_attachment_state.reserve(attachment_count);
 
-	m_color_blend_attachment_state.blendEnable = VK_TRUE;
-	//Alpha blending
-	m_color_blend_attachment_state.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
-	m_color_blend_attachment_state.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-	m_color_blend_attachment_state.colorBlendOp = VK_BLEND_OP_ADD; 
-	m_color_blend_attachment_state.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE; 
-	m_color_blend_attachment_state.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO; 
-	m_color_blend_attachment_state.alphaBlendOp = VK_BLEND_OP_ADD; 
+	for (int i = 0; i < attachment_count; i++)
+	{
+		VkPipelineColorBlendAttachmentState color_blend_state;
+		color_blend_state.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
 
+		color_blend_state.blendEnable = VK_TRUE;
+		//Alpha blending
+		color_blend_state.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+		color_blend_state.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+		color_blend_state.colorBlendOp = VK_BLEND_OP_ADD;
+		color_blend_state.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+		color_blend_state.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+		color_blend_state.alphaBlendOp = VK_BLEND_OP_ADD;
+
+		m_color_blend_attachment_state.emplace_back(color_blend_state);
+	}
+	
 	m_color_blend_state_info.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
 	m_color_blend_state_info.logicOpEnable = VK_FALSE;
 	m_color_blend_state_info.logicOp = VK_LOGIC_OP_COPY;
-	m_color_blend_state_info.attachmentCount = 1; //Only 1 attachment for now
-	m_color_blend_state_info.pAttachments = &m_color_blend_attachment_state;
-	m_color_blend_state_info.blendConstants[0] = 0.0f; 
-	m_color_blend_state_info.blendConstants[1] = 0.0f; 
-	m_color_blend_state_info.blendConstants[2] = 0.0f; 
-	m_color_blend_state_info.blendConstants[3] = 0.0f; 
-
+	m_color_blend_state_info.attachmentCount = attachment_count; //Only 1 attachment for now
+	m_color_blend_state_info.pAttachments = m_color_blend_attachment_state.data();
+	m_color_blend_state_info.blendConstants[0] = 0.0f;
+	m_color_blend_state_info.blendConstants[1] = 0.0f;
+	m_color_blend_state_info.blendConstants[2] = 0.0f;
+	m_color_blend_state_info.blendConstants[3] = 0.0f;
 
 
 	/////////////////////////
