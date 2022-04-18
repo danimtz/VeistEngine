@@ -55,8 +55,8 @@ namespace Veist
 		case PipelineStage::DepthAttachment:
 			return VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
 
-		//case PipelineStage::ColorAttachment:
-			//return VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		case PipelineStage::ColorAttachment:
+			return VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 
 		case PipelineStage::Host:
 			return VK_ACCESS_HOST_READ_BIT;

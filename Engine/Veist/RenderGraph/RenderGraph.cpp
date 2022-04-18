@@ -148,8 +148,6 @@ namespace Veist
 		//Execute rendergraph passes
 		for (auto pass_idx : m_pass_stack)
 		{
-
-			//TODO NEXT barriers. 
 			//build and execute barriers;
 			createBarriers(pass_idx, cmd);
 
@@ -157,8 +155,6 @@ namespace Veist
 			m_passes[pass_idx]->executePass(cmd);
 			
 		}
-
-
 
 
 	}
@@ -330,6 +326,19 @@ namespace Veist
 
 					image_barriers.emplace_back(image, src_stage, dst_stage, old_layout, new_layout);
 				}
+				else
+				{
+					ImageBase* image = m_passes[pass_idx]->getPhysicalImage(img_res);
+					PipelineStage src_stage = PipelineStage::TopOfPipe;
+					PipelineStage dst_stage = img_res->getStageInPass(pass_idx);
+					VkImageLayout old_layout = VK_IMAGE_LAYOUT_UNDEFINED;
+					VkImageLayout new_layout = getImageLayout(img_res->imageUsageInPass(pass_idx));
+
+					image_barriers.emplace_back(image, src_stage, dst_stage, old_layout, new_layout);
+				}
+
+
+
 			}
 			else if (res->resourceType() == RenderGraphResource::ResourceType::Buffer)
 			{

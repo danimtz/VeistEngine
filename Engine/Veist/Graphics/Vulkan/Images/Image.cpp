@@ -142,7 +142,7 @@ namespace Veist
 
 
 	
-	
+	//TODO is this transition here necessary
 		//If storage image set layout to general
 		if ((usage & ImageUsage::Storage) == ImageUsage::Storage)
 		{
