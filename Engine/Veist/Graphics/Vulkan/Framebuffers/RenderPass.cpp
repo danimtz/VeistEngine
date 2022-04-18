@@ -12,63 +12,68 @@ namespace Veist
 
 	VkImageLayout getImageLayout(ImageUsage usage) {
 
-	switch (usage) //If usage only has one flag then use this
-	{
+		switch (usage) //If usage only has one flag then use this
+		{
 
-		case ImageUsage::ColorAttachment:
-			return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+			case ImageUsage::ColorAttachment:
+				return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
-		case ImageUsage::DepthAttachment:
-			return VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+			case ImageUsage::DepthAttachment:
+				return VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
-		case ImageUsage::Texture:
-			return VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+			case ImageUsage::DepthTexture:
+				return VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+	
+			case ImageUsage::Texture:
+				return VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
-		case ImageUsage::SwapchainImage:
+			case ImageUsage::SwapchainImage:
+				return VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+			case ImageUsage::TransferSrc:
+				return VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+
+			case ImageUsage::TransferDst:
+				return VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+
+			default:
+				break;
+		}
+
+		//If additional flags present bitwise and to remove them
+		if ((usage & ImageUsage::Storage) != ImageUsage::None)
+		{
+			return VK_IMAGE_LAYOUT_GENERAL;
+		}
+
+		if ((usage & ImageUsage::SwapchainImage) != ImageUsage::None) {
 			return VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+		}
 
-		case ImageUsage::TransferSrc:
-			return VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+		if ((usage & ImageUsage::Texture) != ImageUsage::None)
+		{
+			return VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		}
+	
+		if ((usage & ImageUsage::DepthAttachment) != ImageUsage::None)
+		{
+			return VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+		}	
 
-		case ImageUsage::TransferDst:
-			return VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+		if ((usage & ImageUsage::ColorAttachment) != ImageUsage::None) {
+			return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+		}
 
-		default:
-			break;
-	}
-
-	//If additional flags present bitwise and to remove them
-	if ((usage & ImageUsage::Storage) != ImageUsage::None)
-	{
-		return VK_IMAGE_LAYOUT_GENERAL;
-	}
-
-	if ((usage & ImageUsage::SwapchainImage) != ImageUsage::None) {
-		return VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-	}
-
-	if ((usage & ImageUsage::Texture) != ImageUsage::None)
-	{
-		return VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	}
-
-	if ((usage & ImageUsage::DepthAttachment) != ImageUsage::None) {
-		return VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-	}
-
-	if ((usage & ImageUsage::ColorAttachment) != ImageUsage::None) {
-		return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-	}
-
-	/*if ((usage & ImageUsage::Texture) != ImageUsage::None) {
-		return VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	}*/
+		/*
+		if ((usage & ImageUsage::Texture) != ImageUsage::None) {
+			return VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		}*/
 
 	
 
 
-	CRITICAL_ERROR_LOG("Unsuported image layout");
-}
+		CRITICAL_ERROR_LOG("Unsuported image layout");
+	}
 
 	//TODO rework layouts of renderpass attachments
 	static VkAttachmentDescription createAttachmentDescription(RenderPass::AttachmentProperties& attachment) 
@@ -117,8 +122,16 @@ namespace Veist
 
 	static VkAttachmentReference createAttachmentReference(uint32_t index, ImageUsage usage)
 	{
-		//Get layout of attachment reference (must be depth or color attachment)
-		VkImageLayout layout = getImageLayout(usage & (ImageUsage::DepthAttachment | ImageUsage::ColorAttachment));
+		//Get layout of attachment reference (must be depth or color attachment) (if its depth texture then put DEPTH_STENCIL_READ_ONLY_OPTIMAL)
+		VkImageLayout layout;
+		if (usage == ImageUsage::DepthTexture)
+		{
+			layout = getImageLayout(usage);
+		}
+		else
+		{
+			layout = getImageLayout(usage & (ImageUsage::DepthAttachment | ImageUsage::ColorAttachment));
+		}
 
 		//Ref to depth attchment
 		VkAttachmentReference reference = {};
@@ -129,7 +142,7 @@ namespace Veist
 	}
 
 
-	static VkSubpassDependency createSubpassDependency(bool has_depth) //TODO: depencencies dont really work well atm
+	static VkSubpassDependency createSubpassDependency(bool has_depth) //TODO: depencencies arent really used right now
 	{
 		VkAccessFlags access_mask = 0;
 		VkPipelineStageFlags stage_mask = 0;
@@ -239,7 +252,7 @@ namespace Veist
 		}
 
 
-		VkSubpassDependency dependency = createSubpassDependency(has_depth_attachment);
+		//VkSubpassDependency dependency = createSubpassDependency(has_depth_attachment);
 
 
 		//Create renderpass
@@ -249,8 +262,8 @@ namespace Veist
 		create_info.pAttachments = attachment_descriptions.data();
 		create_info.subpassCount = 1; 
 		create_info.pSubpasses = &subpass;
-		create_info.dependencyCount = 1;
-		create_info.pDependencies = &dependency;
+		//create_info.dependencyCount = 0;
+		//create_info.pDependencies = &dependency;
 
 		VkDevice device = RenderModule::getBackend()->getDevice();
 	

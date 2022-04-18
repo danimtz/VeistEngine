@@ -21,10 +21,13 @@ enum class ImageUsage : uint32_t
 	ColorAttachment = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
 	Storage = VK_IMAGE_USAGE_STORAGE_BIT,
 	
+	DepthTexture = Texture | DepthAttachment,
+
 	SwapchainImage = 0x00000400, //1024 bit flag (custom made not a part of vulkan. used to find layout in renderpass.cpp)
 
 	TransferSrc = VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
 	TransferDst = VK_IMAGE_USAGE_TRANSFER_DST_BIT,
+	Undefined = ~0u
 };
 
 inline constexpr ImageUsage operator|(ImageUsage left, ImageUsage right) {

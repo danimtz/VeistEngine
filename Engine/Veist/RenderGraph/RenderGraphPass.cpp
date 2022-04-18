@@ -47,7 +47,7 @@ namespace Veist
 
 	ShaderBuffer* RenderGraphPass::getPhysicalBuffer(RenderGraphResource* resource) const
 	{
-		if(resource->physicalIndex() == RenderGraphResource::Unset)
+		if(resource->physicalIndex() == RenderGraphResource::Unused)
 		{
 			CRITICAL_ERROR_LOG("Buffer resource does not have a phisical resource assigned to it");
 		}
@@ -58,7 +58,7 @@ namespace Veist
 
 	ImageBase* RenderGraphPass::getPhysicalImage(RenderGraphResource* resource) const
 	{
-		if (resource->physicalIndex() == RenderGraphResource::Unset)
+		if (resource->physicalIndex() == RenderGraphResource::Unused)
 		{
 			CRITICAL_ERROR_LOG("Image resource does not have a phisical resource assigned to it");
 		}
@@ -90,19 +90,24 @@ namespace Veist
 		for (int i = 0; i < m_color_outputs.size(); i++)
 		{
 			RenderPass::LoadOp load_op = (m_color_inputs[i] == nullptr) ? RenderPass::LoadOp::Clear : RenderPass::LoadOp::Load;
-			colors.emplace_back( getPhysicalImage(m_color_outputs[i]), load_op );
+			colors.emplace_back( getPhysicalImage(m_color_outputs[i]), load_op, m_color_outputs[i]->imageUsageInPass(m_pass_index));
 		}
-		/*
-		for (auto* img_res_ptr : m_color_outputs)
-		{
-			
-		}*/
 		
-		//get physical image from either depth_input or depth_output (both should be the same physical image TODO check that in validation)
-		depth.image = (m_depth_output != nullptr) ? getPhysicalImage(m_depth_output) : getPhysicalImage(m_depth_input);
-		depth.load_op = (m_depth_input == nullptr) ? RenderPass::LoadOp::Clear : RenderPass::LoadOp::Load;
+		if (m_depth_input == nullptr && m_depth_output == nullptr)
+		{
+			m_framebuffer = Framebuffer(colors);
+		}
+		else
+		{
+			//get physical image from either depth_input or depth_output (both should be the same physical image TODO check that in validation)
+			depth.image = (m_depth_output != nullptr) ? getPhysicalImage(m_depth_output) : getPhysicalImage(m_depth_input);
+			depth.load_op = (m_depth_input == nullptr) ? RenderPass::LoadOp::Clear : RenderPass::LoadOp::Load;
+			depth.pass_usage = (m_depth_output != nullptr) ? m_depth_output->imageUsageInPass(m_pass_index) : m_depth_input->imageUsageInPass(m_pass_index);
 
-		m_framebuffer = Framebuffer(colors, depth);
+			m_framebuffer = Framebuffer(colors, depth);
+		}
+
+		
 
 	}
 

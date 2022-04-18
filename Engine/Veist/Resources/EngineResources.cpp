@@ -19,7 +19,7 @@ namespace Veist
 	static constexpr uint32_t material_attachment_count[] = {
 		1,//PBRMaterial
 		1,//SKyboxMaterial
-		3,//GBuffer
+		4,//GBuffer
 		1,//DeferredLighting
 	};
 

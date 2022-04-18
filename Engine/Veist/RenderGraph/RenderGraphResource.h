@@ -25,7 +25,7 @@ namespace Veist
 	class RenderGraphResource
 	{
 	public:
-		enum { Unset = ~0u };
+		enum { Unused = ~0u };
 
 		enum class ResourceType
 		{
@@ -40,6 +40,7 @@ namespace Veist
 
 		uint32_t physicalIndex() const { return m_physical_index; }
 		
+		uint32_t lastUsedPass() const { return m_last_pass_used; }
 
 		bool usedInGraph() const { return m_used_in_graph; }
 
@@ -66,6 +67,7 @@ namespace Veist
 			m_written_in_passes.emplace(pass_index);
 		}
 
+
 		void setReadInPass(uint32_t pass_index)
 		{
 			m_read_in_passes.emplace(pass_index);
@@ -79,16 +81,53 @@ namespace Veist
 		}
 		
 
+		void setLastUsedPass(uint32_t index)
+		{
+			m_last_pass_used = index;
+		}
+
+
+		void addStage(PipelineStage stage, uint32_t pass_index) 
+		{
+			auto& it = m_stage_in_pass.find(pass_index);
+			if (it == m_stage_in_pass.end())
+			{
+				m_stage_in_pass.emplace(pass_index, stage);
+			}
+			else
+			{
+				it->second = it->second | stage;
+			}
+		};
+
+		PipelineStage getStageInPass(uint32_t pass_index) const
+		{
+			auto it = m_stage_in_pass.find(pass_index);
+			if (it == m_stage_in_pass.end())
+			{
+				CRITICAL_ERROR_LOG("Resource does not have a stage assigned for this pass");
+			}
+			else
+			{
+				return it->second;
+			}
+		};
+
 
 	private:
 
 		ResourceType m_type;
 		uint32_t m_index;
-		unsigned m_physical_index = Unset;
+		unsigned m_physical_index = Unused;
 		uint32_t m_read_in_pass_count; //refcount of pass reads
 		std::unordered_set<uint32_t> m_written_in_passes;
 		std::unordered_set<uint32_t> m_read_in_passes;
 		std::string m_name;
+
+
+		uint32_t m_last_pass_used = Unused;
+		std::unordered_map<uint32_t, PipelineStage> m_stage_in_pass;
+	
 
 		bool m_used_in_graph;
 		//add more here
@@ -110,9 +149,19 @@ namespace Veist
 			}
 		}
 
-		void addImageUsage(ImageUsage usage)
+		void addImageUsage(ImageUsage usage, uint32_t pass_index)
 		{
 			m_usage = m_usage | usage;
+
+			auto it = m_usage_in_pass.find(pass_index);
+			if (it == m_usage_in_pass.end())
+			{
+				m_usage_in_pass.emplace(pass_index, usage);
+			}
+			else
+			{
+				it->second = it->second | usage;
+			}
 		}
 
 
@@ -121,10 +170,24 @@ namespace Veist
 		ImageProperties imageProperties() const {return m_info.properties;};
 		ImageViewType imageViewType() const {return m_info.view_type;};
 
+		ImageUsage imageUsageInPass(uint32_t pass_index) const 
+		{
+			auto it = m_usage_in_pass.find(pass_index);
+			if (it == m_usage_in_pass.end())
+			{
+				CRITICAL_ERROR_LOG("Resource not used in pass index queried");
+			}
+			else
+			{
+				return it->second;
+			}
+		};
+
 	private:
 
 		RenderGraphImageInfo m_info;
 		ImageUsage m_usage;
+		std::unordered_map<uint32_t, ImageUsage> m_usage_in_pass;
 	};
 
 

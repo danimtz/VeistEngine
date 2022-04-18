@@ -11,9 +11,10 @@ layout (location = 2) in vec3 inBitangent;
 layout (location = 3) in vec2 inUV;
 
 //Gbuffer targets vec3/float
-layout (location = 0) out vec4 outAlbedoMetallic;
-layout (location = 1) out vec4 outNormalRoughness;
-layout (location = 2) out vec4 outEmmissiveOcclusion;
+layout (location = 0) out vec4 outAlbedo;
+layout (location = 1) out vec4 outNormal;
+layout (location = 2) out vec4 outOccRoughMetal;
+layout (location = 3) out vec4 outEmmissive;
 
 //Material
 layout(set = 1, binding = 0) uniform sampler2D inAlbedo;
@@ -28,14 +29,10 @@ void main()
 	mat3 mTBN = mat3(normalize(inTangent), normalize(inBitangent), normalize(inNormal));
 	vec3 tex_normal = normalize(texture(inNormalTex, inUV).xyz * 2.0 - 1.0); //shift to -1 to 1 range from 0 to 1
 	
-	outAlbedoMetallic.rgb = texture(inAlbedo, inUV).xyz;
-	outAlbedoMetallic.a = texture(inOccRoughMetal, inUV).z;
-
-	outNormalRoughness.rgb = normalize(mTBN * tex_normal);
-	outNormalRoughness.a = texture(inOccRoughMetal, inUV).y;
-	
-	outEmmissiveOcclusion.rgb = texture(inEmmissive, inUV).xyz;
-	outEmmissiveOcclusion.a = texture(inOccRoughMetal, inUV).x;
+	outAlbedo = vec4(texture(inAlbedo, inUV).xyz, 1.0);
+	outNormal = vec4(normalize(mTBN * tex_normal), 1.0);
+	outOccRoughMetal = vec4(texture(inOccRoughMetal, inUV).xyz, 1.0);
+	outEmmissive = vec4(texture(inEmmissive, inUV).xyz, 1.0);
 
 	 
 }

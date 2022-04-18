@@ -12,7 +12,6 @@ namespace Veist
 		None = 0,
 
 		TopOfPipe = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-		BottomOfPipe = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
 		VertexInput = VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,
 		VertexShader = VK_PIPELINE_STAGE_VERTEX_SHADER_BIT,
 
@@ -30,7 +29,10 @@ namespace Veist
 		ComputeShader = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 		Transfer = VK_PIPELINE_STAGE_TRANSFER_BIT,
 
+		BottomOfPipe = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
 
+
+		DepthAttachment = DepthAttachmentEarly | DepthAttachmentLate,
 		AnyShader = FragmentShader | VertexShader | ComputeShader,
 		All = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
 
@@ -74,7 +76,7 @@ namespace Veist
 
 		static ImageBarrier createTransitionBarrier(const ImageBase* image, VkImageLayout old_layout, VkImageLayout new_layout);
 
-		ImageBarrier(const ImageBase* image, PipelineStage src, PipelineStage dst);
+		ImageBarrier(const ImageBase* image, PipelineStage src, PipelineStage dst, VkImageLayout old_layout = VK_IMAGE_LAYOUT_MAX_ENUM, VkImageLayout new_layout = VK_IMAGE_LAYOUT_MAX_ENUM);
 
 
 

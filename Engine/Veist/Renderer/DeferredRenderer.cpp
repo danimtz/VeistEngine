@@ -33,19 +33,21 @@ namespace Veist
 		camera_buffer_info.size = sizeof(RendererUniforms::CameraData);
 
 
-		RenderGraphImageInfo gbuff_albedo_metallic_info, gbuff_normal_roughness_info, gbuff_emmissive_occlusion_info, depth_attachment_info;
-		gbuff_albedo_metallic_info.properties = ImageProperties({ 1920,1080 }, { VK_FORMAT_R8G8B8A8_SRGB });
-		gbuff_normal_roughness_info.properties = ImageProperties({ 1920,1080 }, { VK_FORMAT_R8G8B8A8_SRGB });
-		gbuff_emmissive_occlusion_info.properties = ImageProperties({ 1920,1080 }, { VK_FORMAT_R8G8B8A8_SRGB });
+		RenderGraphImageInfo gbuff_albedo_info, gbuff_normal_info, gbuffer_occ_rough_metal_info, gbuff_emmissive_info, depth_attachment_info;
+		gbuff_albedo_info.properties = ImageProperties({ 1920,1080 }, { VK_FORMAT_R8G8B8A8_SRGB });
+		gbuff_normal_info.properties = ImageProperties({ 1920,1080 }, { VK_FORMAT_R8G8B8A8_UNORM });
+		gbuffer_occ_rough_metal_info.properties = ImageProperties({ 1920,1080 }, { VK_FORMAT_R8G8B8A8_UNORM });
+		gbuff_emmissive_info.properties = ImageProperties({ 1920,1080 }, { VK_FORMAT_R8G8B8A8_SRGB });
 		depth_attachment_info.properties = ImageProperties({ 1920,1080 }, { VK_FORMAT_D32_SFLOAT });
 
 		auto builder = render_graph.addPass("GbufferPass");
 
 		auto camera_buffer = builder.addUniformInput("camera_buffer", camera_buffer_info);
 
-		builder.addColorOutput("gbuffer_albedo_metallic", gbuff_albedo_metallic_info);
-		builder.addColorOutput("gbuffer_normal_roughness", gbuff_normal_roughness_info);
-		builder.addColorOutput("gbuffer_emmissive_occlusion", gbuff_emmissive_occlusion_info);
+		builder.addColorOutput("gbuffer_albedo", gbuff_albedo_info);
+		builder.addColorOutput("gbuffer_normal", gbuff_normal_info);
+		builder.addColorOutput("gbuffer_occ_rough_metal", gbuffer_occ_rough_metal_info);
+		builder.addColorOutput("gbuffer_emmissive", gbuff_emmissive_info);
 		builder.addDepthOutput("gbuffer_depth_attachment", depth_attachment_info);
 		
 		builder.setRenderFunction([=](CommandBuffer& cmd, const RenderGraphPass* pass) {
@@ -140,14 +142,17 @@ namespace Veist
 		builder.addExternalInput("IBLProbe_prefilt_map", Descriptor(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, light_probe->prefilterMap(), { SamplerType::RepeatLinear }));
 		builder.addExternalInput("IBLProbe_brdfLUT", Descriptor(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, light_probe->brdfLUT(), { SamplerType::RepeatLinear }));
 
-		builder.addTextureInput("gbuffer_albedo_metallic");
-		builder.addTextureInput("gbuffer_normal_roughness");
-		builder.addTextureInput("gbuffer_emmissive_occlusion");
+		builder.addTextureInput("gbuffer_albedo");
+		builder.addTextureInput("gbuffer_normal");
+		builder.addTextureInput("gbuffer_occ_rough_metal");
+		builder.addTextureInput("gbuffer_emmissive");
+
+		builder.addTextureInput("gbuffer_depth_attachment");//TODO adding these two lines should create layout DEPTH_STENCIL_READ_ONLY_OPTIMAL
 		builder.addDepthInput("gbuffer_depth_attachment");
 
 		
 
-		auto output_image = builder.addColorOutput("output_image", output_image_info, "gbuffer_albedo_metallic");
+		auto output_image = builder.addColorOutput("output_image", output_image_info, "gbuffer_albedo");
 
 		renderer.m_editor_target = output_image;
 
@@ -172,12 +177,13 @@ namespace Veist
 				camera_data.view = main_cam->viewMatrix();
 				camera_data.inverse_view = glm::inverse(glm::mat3(main_cam->viewMatrix()));
 				camera_data.view_projection = main_cam->viewProjectionMatrix();
+				camera_data.inverse_projection = glm::inverse(main_cam->projectionMatrix());
 
 				pass->getPhysicalBuffer(camera_buffer)->setData(&camera_data, sizeof(RendererUniforms::CameraData));
 			}
 
 
-			//TODO lighting rendering
+			
 
 			cmd.bindMaterialType(EngineResources::MaterialTypes::DeferredLightingMaterial);
 

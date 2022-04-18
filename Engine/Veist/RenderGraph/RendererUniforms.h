@@ -15,6 +15,7 @@ namespace Veist
 			glm::mat4 projection;
 			glm::mat4 view_projection;
 			glm::mat4 inverse_view;
+			glm::mat4 inverse_projection;
 		};
 
 		struct GPUDirLight

@@ -44,15 +44,8 @@ namespace Veist
 		void buildFramebuffer();
 		
 
-		std::vector<RenderGraphResource*> m_resource_reads;//Pointers to graph resource inputs, used when building graph
-		std::vector<RenderGraphResource*> m_resource_writes;//Pointers to graph resource outputs, used when building graph
-		uint32_t m_resource_write_count; //refcount of resource writes
-
-
-
 		std::vector<RenderGraphImageResource*> m_color_outputs;
 		std::vector<RenderGraphImageResource*> m_color_inputs;
-
 		RenderGraphImageResource* m_depth_output{nullptr};
 		RenderGraphImageResource* m_depth_input{nullptr};
 
@@ -66,6 +59,12 @@ namespace Veist
 		RenderGraph* m_graph;
 
 		uint32_t m_pass_index;
+
+		std::vector<RenderGraphResource*> m_resource_reads;//Pointers to graph resource inputs, used when building graph
+		std::vector<RenderGraphResource*> m_resource_writes;//Pointers to graph resource outputs, used when building graph
+		std::unordered_set<RenderGraphResource*> m_pass_resources; //Unique list of resources used in pass. used when building barriers
+		uint32_t m_resource_write_count; //refcount of resource writes
+
 
 		Framebuffer m_framebuffer;
 		std::vector<DescriptorSet> m_descriptor_sets;

@@ -148,7 +148,7 @@ namespace VeistEditor
 
 		RenderGraph render_graph(m_resource_pool);
 
-	//	BasicRenderer renderer = BasicRenderer::createRenderer(render_graph, m_active_scene->ecsRegistry());
+		//BasicRenderer renderer = BasicRenderer::createRenderer(render_graph, m_active_scene->ecsRegistry());
 		DeferredRenderer renderer = DeferredRenderer::createRenderer(render_graph, m_active_scene->ecsRegistry());
 		render_graph.execute(RenderModule::getBackend()->getCurrentCmdBuffer());
 	

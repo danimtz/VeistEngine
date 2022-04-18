@@ -16,14 +16,25 @@ namespace Veist
 
 		for (auto& attachment : colors)
 		{
-			color_properties.emplace_back(attachment.image, attachment.load_op);
+			color_properties.emplace_back(attachment.image->properties(), attachment.load_op, attachment.pass_usage);
 		}
-
-		RenderPass::AttachmentProperties depth_properties = {depth.image, depth.load_op};
-
+		RenderPass::AttachmentProperties depth_properties = { depth.image->properties(), depth.load_op, depth.pass_usage };
 		return std::make_unique<RenderPass>(color_properties, depth_properties);
+		
 	}
 
+
+	static std::unique_ptr<RenderPass> createRenderPass(std::vector<Framebuffer::Attachment>& colors)
+	{
+		std::vector<RenderPass::AttachmentProperties> color_properties;
+
+		for (auto& attachment : colors)
+		{
+			color_properties.emplace_back(attachment.image->properties(), attachment.load_op, attachment.pass_usage);
+		}
+		return std::make_unique<RenderPass>(color_properties);
+
+	}
 
 	//Creates a RenderPass that links ot an existing VkRenderPass (used for swapchain framebuffer)
 	/*static std::unique_ptr<RenderPass> setExistingRenderPass(VkRenderPass renderpass)
@@ -57,7 +68,7 @@ namespace Veist
 		framebuffer_info.height = fb_size.y;
 		framebuffer_info.layers = 1;
 
-		uint32_t attachment_count = colors.size() + 1;
+		uint32_t attachment_count = (depth.pass_usage == ImageUsage::None) ? colors.size() : colors.size() + 1;
 
 		std::vector<VkImageView> attachments;
 		//add color attachment imageview to vector
@@ -65,8 +76,12 @@ namespace Veist
 		{
 			attachments.push_back(colors[i].image->imageView());
 		}
+
 		//add depth attachment imageview to vector
-		attachments.push_back(depth.image->imageView());
+		if (depth.pass_usage != ImageUsage::None)
+		{
+			attachments.push_back(depth.image->imageView());
+		}
 
 		framebuffer_info.attachmentCount = attachment_count;
 		framebuffer_info.pAttachments = attachments.data();
@@ -96,6 +111,13 @@ namespace Veist
 		m_render_pass(createRenderPass(colors, depth)), m_color_attachment_count(colors.size())
 	{
 		createFramebuffer(colors, depth, m_framebuffer, m_render_pass.get(), m_size);
+	
+	}
+	Framebuffer::Framebuffer(std::vector<Attachment> & colors) :
+		m_render_pass(createRenderPass(colors)), m_color_attachment_count(colors.size())
+	{
+		Attachment empty_depth = {};
+		createFramebuffer(colors, empty_depth, m_framebuffer, m_render_pass.get(), m_size);
 	}
 
 

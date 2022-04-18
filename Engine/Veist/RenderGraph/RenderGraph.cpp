@@ -134,15 +134,10 @@ namespace Veist
  		*/
  		for (auto pass_idx : m_pass_stack)
 		{
+
 			m_passes[pass_idx]->buildFramebuffer();
 			m_passes[pass_idx]->buildDescriptors();
 		}
-
-
-
-		//TODO NEXT barriers. 
-
-
 
 		//TODO resource aliasing
 		//	FROM themaister.net: The algorithm is fairly straight forward. For each resource we figure out the first and last physical render pass where a resource is used. 																								
@@ -153,6 +148,12 @@ namespace Veist
 		//Execute rendergraph passes
 		for (auto pass_idx : m_pass_stack)
 		{
+
+			//TODO NEXT barriers. 
+			//build and execute barriers;
+			createBarriers(pass_idx, cmd);
+
+
 			m_passes[pass_idx]->executePass(cmd);
 			
 		}
@@ -280,7 +281,7 @@ namespace Veist
 		{
 			if(!resource->usedInGraph()) continue;
 
-			if (resource->physicalIndex() == RenderGraphResource::Unset)
+			if (resource->physicalIndex() == RenderGraphResource::Unused)
 			{
 
 				if (resource->resourceType() == RenderGraphResource::ResourceType::Image)
@@ -294,6 +295,90 @@ namespace Veist
 			}
 
 		}
+	}
+
+	
+
+	void RenderGraph::createBarriers(uint32_t pass_idx, CommandBuffer& cmd)
+	{
+		struct BarrierInfo
+		{
+			PipelineStage dst_stage;
+			//access?
+			VkImageLayout new_layout;
+		};
+
+		std::vector<ImageBarrier> image_barriers;
+		std::vector<BufferBarrier> buffer_barriers;
+		//std::unordered_map<RenderGraphImageResource*, BarrierInfo> image_barrier_info;
+		//std::unordered_map<RenderGraphBufferResource*, BarrierInfo> buffer_barrier_info;
+		
+
+		for (auto res : m_passes[pass_idx]->m_pass_resources)
+		{
+			if (res->resourceType() == RenderGraphResource::ResourceType::Image)
+			{
+				auto img_res = static_cast<RenderGraphImageResource*>(res);
+				if (img_res->lastUsedPass() != RenderGraphResource::Unused)
+				{
+					//src as late as possible and dst as early as possible to ensure sync
+					ImageBase* image = m_passes[pass_idx]->getPhysicalImage(img_res);
+					PipelineStage src_stage = img_res->getStageInPass(img_res->lastUsedPass());
+					PipelineStage dst_stage = img_res->getStageInPass(pass_idx);
+					VkImageLayout old_layout = getImageLayout(img_res->imageUsageInPass(img_res->lastUsedPass()));
+					VkImageLayout new_layout = getImageLayout(img_res->imageUsageInPass(pass_idx));
+
+					image_barriers.emplace_back(image, src_stage, dst_stage, old_layout, new_layout);
+				}
+			}
+			else if (res->resourceType() == RenderGraphResource::ResourceType::Buffer)
+			{
+				auto buff_res = static_cast<RenderGraphBufferResource*>(res);
+				if (buff_res->lastUsedPass() != RenderGraphResource::Unused)
+				{
+
+					//src as late as possible and dst as early as possible to ensure sync
+					ShaderBuffer* buffer = m_passes[pass_idx]->getPhysicalBuffer(buff_res);
+					PipelineStage src_stage = buff_res->getStageInPass(buff_res->lastUsedPass());
+					PipelineStage dst_stage = buff_res->getStageInPass(pass_idx);
+				
+					buffer_barriers.emplace_back(buffer, src_stage, dst_stage);
+				}
+			}
+
+			res->setLastUsedPass(pass_idx);
+		}
+
+		cmd.pipelineBarrier(image_barriers, buffer_barriers);
+
+		/*
+		//resource reads
+		for (auto res : m_passes[pass_idx]->m_resource_reads)
+		{
+			if (res->resourceType() == RenderGraphResource::ResourceType::Image)
+			{
+				auto img_res = static_cast<RenderGraphImageResource*>(res);
+				
+				//src as late as possible and dst as early as possible to ensure sync
+
+
+
+			}
+			else if(res->resourceType() == RenderGraphResource::ResourceType::Buffer)
+			{
+				auto buff_res = static_cast<RenderGraphBufferResource*>(res);
+
+
+			}
+
+
+		}
+		
+		//resource writes
+		for (auto res : m_passes[pass_idx]->m_resource_writes)
+		{
+
+		}*/
 	}
 
 

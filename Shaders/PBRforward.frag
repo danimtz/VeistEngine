@@ -1,24 +1,11 @@
 #version 450 
 
 #include "utils/brdf.glsl"
-
+#include "utils/utils.glsl"
 #define MAX_DIR_LIGHTS 4
 
 
 
-struct DirLights{
-	vec3 direction;
-	float intensity;
-	vec3 colour;
-	uint padding;//TODO REPLACE WITH PADDING.THIS IS DEPRECATED
-};
-
-struct PointLights{
-	vec3 position;
-	float intensity;
-	vec3 colour;
-	float radius;
-};
 
 layout (location = 0) in  vec3 inFragPos;
 
@@ -37,11 +24,8 @@ layout(set = 0, binding = 0) uniform  sceneInfo{
 
 layout(set = 0, binding = 1) uniform  cameraBuffer
 {
-	mat4 mV;
-	mat4 mP;
-	mat4 mVP;
-	mat4 mInvV;
-} camera_data;
+	Camera camera_data;
+};
 
 layout(set = 0, binding = 2) uniform  directionalLights{
 	DirLights dir_lights[MAX_DIR_LIGHTS];

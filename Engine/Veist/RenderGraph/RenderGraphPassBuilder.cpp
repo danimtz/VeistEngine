@@ -33,7 +33,8 @@ namespace Veist
 			m_graph_pass->m_resource_write_count++;
 		}
 		
-		//TODO Stage
+		//Stage
+		image_res->addStage(stage, m_graph_pass->m_pass_index);
 
 		//If image name was found and not newly addded
 		if (!found)
@@ -48,7 +49,9 @@ namespace Veist
 			image_res->setResourceName(name);
 		}
 
-		image_res->addImageUsage(usage);
+		image_res->addImageUsage(usage, m_graph_pass->m_pass_index);
+
+		m_graph_pass->m_pass_resources.emplace(image_res);
 
 		return image_res;
 	}
@@ -72,7 +75,8 @@ namespace Veist
 			m_graph_pass->m_resource_write_count++;
 		}
 
-		//TODO stage
+		//stage
+		buffer_res->addStage(stage, m_graph_pass->m_pass_index);
 
 		//If buffer name was found and not newly addded
 		if (!found)
@@ -88,6 +92,9 @@ namespace Veist
 		}
 
 		buffer_res->setBufferUsage(usage);
+
+		m_graph_pass->m_pass_resources.emplace(buffer_res);
+
 		return buffer_res;
 	}
 
@@ -217,7 +224,7 @@ namespace Veist
 		
 
 		//TODO decide on stage for depth attachment
-		auto* image_res = addImageToPass(ResourceAction::Write, name, info, (PipelineStage::DepthAttachmentEarly | PipelineStage::DepthAttachmentLate), ImageUsage::DepthAttachment);
+		auto* image_res = addImageToPass(ResourceAction::Write, name, info, (PipelineStage::DepthAttachment), ImageUsage::DepthAttachment);
 		m_graph_pass->m_depth_output = image_res;
 		return image_res;
 	}

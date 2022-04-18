@@ -21,6 +21,9 @@ namespace Veist
 			case PipelineStage::ColorAttachment:
 				return VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 
+			case PipelineStage::DepthAttachment:
+				return VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
 			case PipelineStage::Host:
 				return VK_ACCESS_HOST_WRITE_BIT;
 
@@ -48,6 +51,9 @@ namespace Veist
 		{
 		case PipelineStage::Transfer:
 			return VK_ACCESS_TRANSFER_READ_BIT;
+
+		case PipelineStage::DepthAttachment:
+			return VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
 
 		//case PipelineStage::ColorAttachment:
 			//return VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
@@ -146,16 +152,16 @@ namespace Veist
 
 
 
-	//Default arrier constructor
-	ImageBarrier::ImageBarrier(const ImageBase* image, PipelineStage src, PipelineStage dst) : m_src_stage(src), m_dst_stage(dst)
+	//Default barrier constructor
+	ImageBarrier::ImageBarrier(const ImageBase* image, PipelineStage src, PipelineStage dst, VkImageLayout old_layout, VkImageLayout new_layout) : m_src_stage(src), m_dst_stage(dst)
 	{
 		m_barrier = {};
 		m_barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
 		m_barrier.srcAccessMask = getSrcAccessMask(src);
 		m_barrier.dstAccessMask = getDstAccessMask(dst);
 		m_barrier.image = image->image();
-		m_barrier.newLayout = getImageLayout(image->imageUsage());
-		m_barrier.oldLayout = getImageLayout(image->imageUsage());
+		m_barrier.newLayout = (new_layout == VK_IMAGE_LAYOUT_MAX_ENUM) ? getImageLayout(image->imageUsage()) : new_layout;
+		m_barrier.oldLayout = (old_layout == VK_IMAGE_LAYOUT_MAX_ENUM) ? getImageLayout(image->imageUsage()) : old_layout;
 		m_barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		m_barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		
@@ -209,7 +215,7 @@ namespace Veist
 		m_barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		m_barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		m_barrier.size = buffer->size();
-		m_barrier.offset = buffer->offset();
+		m_barrier.offset = 0;//buffer->offset();
 	}
 
 

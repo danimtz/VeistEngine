@@ -643,8 +643,8 @@ void RenderBackend::createFramebuffers()
 		ImageBase* color_image = m_swapchain->images()[i].get();
 		ImageBase* depth_image = m_swapchain_depth_image.get();
 
-		auto colors = std::vector<Framebuffer::Attachment>{{color_image, RenderPass::LoadOp::Clear}};
-		auto depth = Framebuffer::Attachment(depth_image, RenderPass::LoadOp::Clear);
+		auto colors = std::vector<Framebuffer::Attachment>{{color_image}};
+		auto depth = Framebuffer::Attachment(depth_image);
 		m_framebuffers.emplace_back(colors, depth);
 	}
 

@@ -22,9 +22,9 @@ namespace Veist
 		
 			AttachmentProperties() = default;
 
-			AttachmentProperties(ImageProperties& props, LoadOp loadop, ImageUsage im_usage) : properties(props), load_op(loadop), usage(im_usage){};
+			AttachmentProperties(const ImageProperties& props, LoadOp loadop, ImageUsage im_usage) : properties(props), load_op(loadop), usage(im_usage){};
 		
-			AttachmentProperties(const ImageBase* image, LoadOp loadop) : properties(image->properties()), usage(image->imageUsage()), load_op(loadop) {};
+			//AttachmentProperties(const ImageBase* image, LoadOp loadop) : properties(image->properties()), usage(image->imageUsage()), load_op(loadop) {};
 
 			ImageProperties properties;
 			ImageUsage usage = ImageUsage::None;

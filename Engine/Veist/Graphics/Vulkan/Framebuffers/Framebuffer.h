@@ -18,20 +18,22 @@ class Framebuffer
 		{
 			Attachment() = default;
 
-			Attachment(ImageBase* img) : image(img)
+			Attachment(ImageBase* img) : image(img), pass_usage(img->imageUsage())
 			{}
 
-			Attachment(ImageBase* img, LoadOp loadop) : image(img), load_op(loadop)
+			Attachment(ImageBase* img, LoadOp loadop, ImageUsage usage) : image(img), load_op(loadop), pass_usage(usage)
 			{}
 
 			ImageBase* image;
 			LoadOp load_op = LoadOp::Clear;
+			ImageUsage pass_usage = ImageUsage::None;
 		};
 
 
 		Framebuffer() = default;
 		Framebuffer(std::vector<Attachment>& colors, Attachment& depth, std::shared_ptr<RenderPass> renderpass);
 		Framebuffer(std::vector<Attachment>& colors, Attachment& depth);
+		Framebuffer(std::vector<Attachment>& colors);
 		~Framebuffer();
 
 		Framebuffer(Framebuffer&& other);

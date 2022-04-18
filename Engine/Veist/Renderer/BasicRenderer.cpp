@@ -96,7 +96,7 @@ namespace Veist
 				camera_data.view = main_cam->viewMatrix();
 				camera_data.inverse_view = glm::inverse(glm::mat3(main_cam->viewMatrix()));
 				camera_data.view_projection = main_cam->viewProjectionMatrix();
-
+				camera_data.inverse_projection = glm::inverse(main_cam->projectionMatrix());
 				pass->getPhysicalBuffer(camera_buffer)->setData(&camera_data, sizeof(RendererUniforms::CameraData));
 			}
 

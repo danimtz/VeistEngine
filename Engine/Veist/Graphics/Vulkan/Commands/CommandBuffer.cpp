@@ -116,6 +116,8 @@ void CommandBuffer::pipelineBarrier(const std::vector<ImageBarrier>& image_barri
 		dst_stage_mask = dst_stage_mask | barrier.dstStage();
 	}
 
+	if (image_barriers.empty() && buffer_barriers.empty()) return;
+
 	vkCmdPipelineBarrier(m_cmd_buffer,
 		VkPipelineStageFlags(src_stage_mask), 
 		VkPipelineStageFlags(dst_stage_mask),

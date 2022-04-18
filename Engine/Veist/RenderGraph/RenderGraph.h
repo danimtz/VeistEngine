@@ -33,6 +33,7 @@ namespace Veist
 		bool validateGraph();
 		void setupGraphPassOrder(std::stack<uint32_t>& next_passes, std::stack<uint32_t>& next_resources);
 		void allocatePhysicalResources();
+		void createBarriers(uint32_t pass_idx, CommandBuffer& cmd);
 
 		std::stack<uint32_t> m_next_passes;
 		std::stack<uint32_t> m_next_resources;
