@@ -8,6 +8,8 @@ namespace Veist
 
 	static constexpr uint32_t material_types_count = uint32_t(EngineResources::MaterialTypes::MaxMaterialTypes);
 	
+
+	//TODO all these arrays should just be a "Material settings" struct
     static constexpr uint32_t material_descriptor_set_number[] = {
         1,//PBRMaterial
         0,//SKyboxMaterial
@@ -28,6 +30,13 @@ namespace Veist
 		"Skybox",
 		"GBuffer",
 		"DeferredLighting"
+	};
+
+	static constexpr DepthTest material_depth_settings[] = {
+		DepthTest::ReadWrite,
+		DepthTest::ReadWrite,
+		DepthTest::ReadWrite,
+		DepthTest::Read
 	};
 
 	static VertexDescription getVertexDescription(EngineResources::MaterialTypes type)
@@ -55,7 +64,11 @@ namespace Veist
 
 		for (uint32_t i = 0; i < material_types_count; i++)
 		{
-			m_material_types.get()->emplace_back(material_type_names[i], getVertexDescription(EngineResources::MaterialTypes(i)), material_attachment_count[i], material_descriptor_set_number[i]);
+			m_material_types.get()->emplace_back(material_type_names[i], 
+												 getVertexDescription(EngineResources::MaterialTypes(i)), 
+												 material_attachment_count[i], 
+												 material_descriptor_set_number[i], 
+											 	 material_depth_settings[i]);
 		}
 
 

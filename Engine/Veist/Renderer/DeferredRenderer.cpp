@@ -27,13 +27,13 @@ namespace Veist
 	}
 
 
-	static void addGBufferPass(RenderGraph& render_graph, ecs::EntityRegistry* scene_registry)
+	static void addGBufferPass(RenderGraph::RenderGraph& render_graph, ecs::EntityRegistry* scene_registry)
 	{
-		RenderGraphBufferInfo camera_buffer_info;
+		RenderGraph::BufferInfo camera_buffer_info;
 		camera_buffer_info.size = sizeof(RendererUniforms::CameraData);
 
 
-		RenderGraphImageInfo gbuff_albedo_info, gbuff_normal_info, gbuffer_occ_rough_metal_info, gbuff_emmissive_info, depth_attachment_info;
+		RenderGraph::ImageInfo gbuff_albedo_info, gbuff_normal_info, gbuffer_occ_rough_metal_info, gbuff_emmissive_info, depth_attachment_info;
 		gbuff_albedo_info.properties = ImageProperties({ 1920,1080 }, { VK_FORMAT_R8G8B8A8_SRGB });
 		gbuff_normal_info.properties = ImageProperties({ 1920,1080 }, { VK_FORMAT_R8G8B8A8_UNORM });
 		gbuffer_occ_rough_metal_info.properties = ImageProperties({ 1920,1080 }, { VK_FORMAT_R8G8B8A8_UNORM });
@@ -50,7 +50,7 @@ namespace Veist
 		builder.addColorOutput("gbuffer_emmissive", gbuff_emmissive_info);
 		builder.addDepthOutput("gbuffer_depth_attachment", depth_attachment_info);
 		
-		builder.setRenderFunction([=](CommandBuffer& cmd, const RenderGraphPass* pass) {
+		builder.setRenderFunction([=](CommandBuffer& cmd, const RenderGraph::RenderGraphPass* pass) {
 			
 
 			Camera* main_cam;
@@ -110,12 +110,12 @@ namespace Veist
 	}
 
 
-	static void addLightingPass(RenderGraph& render_graph, ecs::EntityRegistry* scene_registry, DeferredRenderer& renderer)
+	static void addLightingPass(RenderGraph::RenderGraph& render_graph, ecs::EntityRegistry* scene_registry)
 	{
 		static constexpr uint32_t max_dir_lights = 4;
 		static constexpr uint32_t max_point_lights = 100;
 
-		RenderGraphBufferInfo camera_buffer_info, scene_info_buffer_info, dir_lights_buffer_info, point_lights_buffer_info;
+		RenderGraph::BufferInfo camera_buffer_info, scene_info_buffer_info, dir_lights_buffer_info, point_lights_buffer_info;
 
 		camera_buffer_info.size = sizeof(RendererUniforms::CameraData);
 		scene_info_buffer_info.size = sizeof(RendererUniforms::SceneInfo);
@@ -123,7 +123,7 @@ namespace Veist
 		point_lights_buffer_info.size = sizeof(RendererUniforms::GPUPointLight) * max_point_lights;
 
 
-		RenderGraphImageInfo output_image_info;
+		RenderGraph::ImageInfo output_image_info;
 		output_image_info.properties = ImageProperties({ 1920,1080 }, { VK_FORMAT_R8G8B8A8_SRGB });
 
 		auto builder = render_graph.addPass("LightingPass");
@@ -152,14 +152,12 @@ namespace Veist
 
 		
 
-		auto output_image = builder.addColorOutput("output_image", output_image_info, "gbuffer_albedo");
+		builder.addColorOutput("lighting_output", output_image_info, "gbuffer_albedo");
 
-		renderer.m_editor_target = output_image;
+		//renderer.m_editor_target = output_image;
 
 
-		render_graph.setBackbuffer("output_image");
-
-		builder.setRenderFunction([=](CommandBuffer& cmd, const RenderGraphPass* pass) {
+		builder.setRenderFunction([=](CommandBuffer& cmd, const RenderGraph::RenderGraphPass* pass) {
 
 
 			Camera* main_cam;
@@ -197,15 +195,75 @@ namespace Veist
 	}
 
 
+	static void addSkyboxPass(RenderGraph::RenderGraph& render_graph, ecs::EntityRegistry* scene_registry, DeferredRenderer& renderer)
+	{
+		RenderGraph::ImageInfo output_image_info;
+		output_image_info.properties = ImageProperties({ 1920,1080 }, { VK_FORMAT_R8G8B8A8_SRGB });
 
-	DeferredRenderer DeferredRenderer::createRenderer(RenderGraph& render_graph, ecs::EntityRegistry* scene_registry)
+		auto builder = render_graph.addPass("SkyboxPass");
+
+		builder.addDepthInput("gbuffer_depth_attachment");
+		auto output_image = builder.addColorOutput("skybox_output", output_image_info, "lighting_output");
+		
+		//outputs of rendergraph
+		render_graph.setBackbuffer("skybox_output");
+
+		//SMALL PATCH TODO ADD THIS LATER AS AN EXTERNAL OUTPUT OF RENDERPASS
+		output_image->addImageUsage(ImageUsage::Texture, builder.getPassIndex());
+		renderer.m_editor_target = output_image;
+
+		builder.setRenderFunction([=](CommandBuffer& cmd, const RenderGraph::RenderGraphPass* pass)
+		{
+			//Get camera
+			Camera* main_cam;
+			{
+				auto& scene_view = scene_registry->view<CameraComponent>();
+				for (ecs::EntityId entity : scene_view)
+				{
+					auto& cam_comp = scene_view.get<CameraComponent>(entity);
+					main_cam = cam_comp.camera();
+					break;//Only first camera componenet being taken into consideration for now
+				}
+			}
+			//Render skybox
+			{
+				auto& scene_view = scene_registry->view<SkyboxComponent>();
+				for (ecs::EntityId entity : scene_view)
+				{
+					auto& skybox_comp = scene_view.get<SkyboxComponent>(entity);
+
+					Material* curr_material = skybox_comp.material();
+					Mesh* curr_mesh = skybox_comp.mesh();
+
+					cmd.bindMaterial(*curr_material);
+					MatrixPushConstant push_constant;
+					push_constant.mat1 = glm::mat3(main_cam->viewMatrix()); //view without tranlation
+					push_constant.mat2 = main_cam->projectionMatrix();	//projection
+					cmd.setPushConstants(push_constant);
+
+					cmd.bindVertexBuffer(*curr_mesh->getVertexBuffer());
+					cmd.bindIndexBuffer(*curr_mesh->getIndexBuffer());
+
+					cmd.drawIndexed(curr_mesh->getIndexBuffer()->getIndexCount());
+
+					break;//Only loop once
+				}
+			}
+		
+		});
+
+
+	}
+
+
+	DeferredRenderer DeferredRenderer::createRenderer(RenderGraph::RenderGraph& render_graph, ecs::EntityRegistry* scene_registry)
 	{
 		DeferredRenderer deferred_renderer;
 
 
 		addGBufferPass(render_graph, scene_registry);
-		addLightingPass(render_graph, scene_registry, deferred_renderer);
-
+		addLightingPass(render_graph, scene_registry);
+		addSkyboxPass(render_graph, scene_registry, deferred_renderer);
 
 
 

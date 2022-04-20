@@ -1,6 +1,6 @@
 #include <pch.h>
 
-#include "RenderGraphResourcePool.h"
+#include "ResourcePool.h"
 
 
 
@@ -8,9 +8,11 @@
 
 namespace Veist
 {
+namespace RenderGraph
+{
 
 
-	void RenderGraphResourcePool::createImage(RenderGraphImageResource* resource)
+	void ResourcePool::createImage(PhysicalImage* resource)
 	{
 
 		if (!reuseImageFromPool(resource))
@@ -25,7 +27,7 @@ namespace Veist
 
 
 
-	void RenderGraphResourcePool::createBuffer(RenderGraphBufferResource* resource)
+	void ResourcePool::createBuffer(PhysicalBuffer* resource)
 	{
 		if (!reuseBufferFromPool(resource))
 		{
@@ -39,7 +41,7 @@ namespace Veist
 
 
 
-	bool RenderGraphResourcePool::reuseImageFromPool(RenderGraphImageResource* resource)
+	bool ResourcePool::reuseImageFromPool(PhysicalImage* resource)
 	{
 		//Search unused list for viable resourcce (older resources appear at the front)
 		for (auto it = m_unused_image_pool.begin(); it != m_unused_image_pool.end(); it++)
@@ -62,7 +64,7 @@ namespace Veist
 
 
 
-	bool RenderGraphResourcePool::reuseBufferFromPool(RenderGraphBufferResource* resource)
+	bool ResourcePool::reuseBufferFromPool(PhysicalBuffer* resource)
 	{
 		for (auto it = m_unused_buffer_pool.begin(); it != m_unused_buffer_pool.end(); it++)
 		{
@@ -78,14 +80,13 @@ namespace Veist
 				return true;
 			}
 
-
 		}
 		return false;
 	}
 
 
 
-	void RenderGraphResourcePool::recycleRenderGraph()
+	void ResourcePool::recycleRenderGraph()
 	{
 		//Move unused resources from vector to pool
 		VkDevice device = RenderModule::getBackend()->getDevice();
@@ -95,6 +96,7 @@ namespace Veist
 			m_in_use_images.emplace_front(current_fence, std::move(image));
 		}
 		m_physical_images.clear();
+
 
 		for (auto& buffer : m_physical_buffers)
 		{
@@ -160,4 +162,5 @@ namespace Veist
 	}
 
 
+}
 }

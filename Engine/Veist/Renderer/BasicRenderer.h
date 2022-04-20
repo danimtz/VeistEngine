@@ -9,13 +9,9 @@ namespace Veist
 	{
 
 		//TODO this should be in editorPass or editor renderer not here
-		RenderGraphImageResource* m_editor_target{nullptr};
+		RenderGraph::ImageResource* m_editor_target{nullptr};
 
-
-		static BasicRenderer createRenderer(RenderGraph& render_graph, ecs::EntityRegistry* scene_registry);
-
-
-
+		static BasicRenderer createRenderer(RenderGraph::RenderGraph& render_graph, ecs::EntityRegistry* scene_registry);
 
 
 

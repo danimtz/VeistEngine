@@ -10,8 +10,8 @@ namespace Veist
 	{
 	public:
 		
-		MaterialType(const char* material_name, const VertexDescription& vertex_desc, uint32_t attachment_count = 1, uint32_t descriptor_set_number = 1) :
-			m_descriptor_set_number(descriptor_set_number), m_pipeline_builder(std::make_shared<GraphicsPipelineBuilder>(material_name, vertex_desc, attachment_count)) {}
+		MaterialType(const char* material_name, const VertexDescription& vertex_desc, uint32_t attachment_count = 1, uint32_t descriptor_set_number = 1, DepthTest depth = DepthTest::ReadWrite) :
+			m_descriptor_set_number(descriptor_set_number), m_pipeline_builder(std::make_shared<GraphicsPipelineBuilder>(material_name, vertex_desc, attachment_count, depth)) {}
 		//MaterialType() = default;
 		~MaterialType() = default;
 

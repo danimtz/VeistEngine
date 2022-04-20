@@ -15,11 +15,11 @@
 namespace Veist
 {
 
-	Descriptor::Descriptor(VkDescriptorType type, const ImageBase* image, SamplerType sampler_type, VkShaderStageFlags stage_flag) : m_type(type), m_stage_flag(stage_flag)
+	Descriptor::Descriptor(VkDescriptorType type, const ImageBase* image, SamplerType sampler_type,  VkShaderStageFlags stage_flag, ImageUsage pass_usage ) : m_type(type), m_stage_flag(stage_flag)
 	{
 
 		VkDescriptorImageInfo desc_img_info;
-		desc_img_info.imageLayout = getImageLayout(image->imageUsage());
+		desc_img_info.imageLayout = (pass_usage == ImageUsage::None) ? getImageLayout(image->imageUsage()) : getImageLayout(pass_usage);
 		desc_img_info.imageView = image->imageView();
 		if (sampler_type != SamplerType::None)
 		{

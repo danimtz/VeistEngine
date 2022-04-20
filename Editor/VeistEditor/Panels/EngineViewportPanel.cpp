@@ -30,7 +30,7 @@ namespace VeistEditor
 		ImageProperties img_props = ImageProperties({ m_viewport_size }, {VK_FORMAT_R8G8B8A8_SRGB});
 		ImageProperties depth_img_props = ImageProperties({ m_viewport_size }, { VK_FORMAT_D32_SFLOAT });
 
-		m_resource_pool = std::make_shared<RenderGraphResourcePool>();
+		m_resource_pool = std::make_shared<RenderGraph::ResourcePool>();
 
 		m_framebuffer_image = std::make_unique<ColorTextureAttachment>(img_props);
 		m_depth_image = std::make_unique<DepthTextureAttachment>(depth_img_props);
@@ -146,7 +146,7 @@ namespace VeistEditor
 			return;
 		}
 
-		RenderGraph render_graph(m_resource_pool);
+		RenderGraph::RenderGraph render_graph(m_resource_pool);
 
 		//BasicRenderer renderer = BasicRenderer::createRenderer(render_graph, m_active_scene->ecsRegistry());
 		DeferredRenderer renderer = DeferredRenderer::createRenderer(render_graph, m_active_scene->ecsRegistry());

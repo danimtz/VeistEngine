@@ -1,10 +1,12 @@
 #include "pch.h"
 #include "RenderGraph.h"
 #include "RenderGraphPass.h"
-#include "RenderGraphDescriptorTemplate.h"
+#include "DescriptorTemplate.h"
 
 
 namespace Veist
+{
+namespace RenderGraph
 {
 
 
@@ -22,7 +24,7 @@ namespace Veist
 		}
 		else
 		{
-			auto& desc_set = m_descriptor_set_templates.emplace(descriptor_set_number, std::vector<RenderGraphDescriptorTemplate>()).first->second;
+			auto& desc_set = m_descriptor_set_templates.emplace(descriptor_set_number, std::vector<DescriptorTemplate>()).first->second;
 			auto binding_number = desc_set.size();
 			desc_set.emplace_back(descriptor_set_number, binding_number, resource_index, descriptor_type, sampler_type);
 		}
@@ -39,31 +41,31 @@ namespace Veist
 		}
 		else
 		{
-			auto& desc_set = m_descriptor_set_templates.emplace(descriptor_set_number, std::vector<RenderGraphDescriptorTemplate>()).first->second;
+			auto& desc_set = m_descriptor_set_templates.emplace(descriptor_set_number, std::vector<DescriptorTemplate>()).first->second;
 			auto binding_number = desc_set.size();
 			desc_set.emplace_back(descriptor_set_number, binding_number, descriptor);
 		}
 	}
 
-	ShaderBuffer* RenderGraphPass::getPhysicalBuffer(RenderGraphResource* resource) const
+	ShaderBuffer* RenderGraphPass::getPhysicalBuffer(BufferResource* resource) const
 	{
-		if(resource->physicalIndex() == RenderGraphResource::Unused)
+		if(resource->physicalResource() == nullptr)
 		{
 			CRITICAL_ERROR_LOG("Buffer resource does not have a phisical resource assigned to it");
 		}
 
-		return m_graph->resourcePool()->getBuffer(static_cast<RenderGraphBufferResource*>(resource));
+		return m_graph->resourcePool()->getBuffer(static_cast<PhysicalBuffer*>(resource->physicalResource()));
 		 
 	}
 
-	ImageBase* RenderGraphPass::getPhysicalImage(RenderGraphResource* resource) const
+	ImageBase* RenderGraphPass::getPhysicalImage(ImageResource* resource) const
 	{
-		if (resource->physicalIndex() == RenderGraphResource::Unused)
+		if (resource->physicalResource() == nullptr)
 		{
 			CRITICAL_ERROR_LOG("Image resource does not have a phisical resource assigned to it");
 		}
 
-		return m_graph->resourcePool()->getImage(static_cast<RenderGraphImageResource*>(resource));
+		return m_graph->resourcePool()->getImage(static_cast<PhysicalImage*>(resource->physicalResource()));
 	}
 
 
@@ -90,7 +92,8 @@ namespace Veist
 		for (int i = 0; i < m_color_outputs.size(); i++)
 		{
 			RenderPass::LoadOp load_op = (m_color_inputs[i] == nullptr) ? RenderPass::LoadOp::Clear : RenderPass::LoadOp::Load;
-			colors.emplace_back( getPhysicalImage(m_color_outputs[i]), load_op, m_color_outputs[i]->imageUsageInPass(m_pass_index));
+			PhysicalImage* phys_img = static_cast<PhysicalImage*>(m_color_outputs[i]->physicalResource());
+			colors.emplace_back( getPhysicalImage(m_color_outputs[i]), load_op, phys_img->imageUsageInPass(m_pass_index));
 		}
 		
 		if (m_depth_input == nullptr && m_depth_output == nullptr)
@@ -102,7 +105,10 @@ namespace Veist
 			//get physical image from either depth_input or depth_output (both should be the same physical image TODO check that in validation)
 			depth.image = (m_depth_output != nullptr) ? getPhysicalImage(m_depth_output) : getPhysicalImage(m_depth_input);
 			depth.load_op = (m_depth_input == nullptr) ? RenderPass::LoadOp::Clear : RenderPass::LoadOp::Load;
-			depth.pass_usage = (m_depth_output != nullptr) ? m_depth_output->imageUsageInPass(m_pass_index) : m_depth_input->imageUsageInPass(m_pass_index);
+			
+			PhysicalImage* phys_img = (m_depth_output != nullptr) ? static_cast<PhysicalImage*>(m_depth_output->physicalResource()) : static_cast<PhysicalImage*>(m_depth_input->physicalResource());
+
+			depth.pass_usage = phys_img->imageUsageInPass(m_pass_index);
 
 			m_framebuffer = Framebuffer(colors, depth);
 		}
@@ -113,7 +119,7 @@ namespace Veist
 
 	void RenderGraphPass::buildDescriptors()
 	{
-
+	
 		for (auto& desc_set_template : m_descriptor_set_templates)
 		{
 			std::vector<Descriptor> descriptor_bindings;
@@ -122,13 +128,7 @@ namespace Veist
 			int binding_num = 0;
 			for (auto& d_template : descriptor_templates)
 			{
-				//Check descriptor binding is in correct order. 
-				//For this check to work, pass descriptors would have to have binding number stated, for now binding number is equal to declaration order
-				/*
-				if (binding_num != d_template.m_binding_number)
-				{
-					CRITICAL_ERROR_LOG("RenderGraphPass resource inputs not declared in the same binding order as the shader")
-				}*/
+				
 				//check if external descriptor
 				if (d_template.is_external_descriptor)
 				{
@@ -139,19 +139,22 @@ namespace Veist
 
 				//Create descriptor binding
 				auto res_type = m_graph->getResource(d_template.m_resource_index)->resourceType();
-				if (res_type == RenderGraphResource::ResourceType::Image)
+				if (res_type == ResourceType::Image)
 				{
-					ImageBase* image = getPhysicalImage(m_graph->getResource(d_template.m_resource_index));
-					descriptor_bindings.emplace_back(Descriptor(d_template.m_descriptor_type, image, d_template.m_sampler_type));
+					ImageResource* img_res = static_cast<ImageResource*>(m_graph->getResource(d_template.m_resource_index));
+					ImageBase* image = getPhysicalImage(img_res);
+					PhysicalImage* phys_img_res = static_cast<PhysicalImage*>(img_res->physicalResource());
+					ImageUsage usage = phys_img_res->imageUsageInPass(m_pass_index);
+					descriptor_bindings.emplace_back( Descriptor(d_template.m_descriptor_type, image, d_template.m_sampler_type, VK_SHADER_STAGE_ALL, usage) );
 				}
-				else if (res_type == RenderGraphResource::ResourceType::Buffer)
+				else if (res_type == ResourceType::Buffer)
 				{
-					ShaderBuffer* buffer = getPhysicalBuffer(m_graph->getResource(d_template.m_resource_index));
+					ShaderBuffer* buffer = getPhysicalBuffer(static_cast<BufferResource*>(m_graph->getResource(d_template.m_resource_index)));
 					descriptor_bindings.emplace_back(Descriptor(d_template.m_descriptor_type, buffer));
 				}
 				else
 				{
-					CRITICAL_ERROR_LOG("Unidentified resource type in RenderGraphResource");
+					CRITICAL_ERROR_LOG("Unidentified resource type in Resource");
 				}
 
 				binding_num++;
@@ -166,5 +169,5 @@ namespace Veist
 
 
 
-
+}
 }

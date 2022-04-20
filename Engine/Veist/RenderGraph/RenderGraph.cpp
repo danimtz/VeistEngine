@@ -1,14 +1,16 @@
 #include "pch.h"
 #include "RenderGraph.h"
 
-//#include "RenderGraphPassBuilder.h"
+//#include "PassBuilder.h"
 
 
 namespace Veist
 {
+namespace RenderGraph
+{
 
 
-	RenderGraphPassBuilder RenderGraph::addPass(std::string_view name)
+	PassBuilder RenderGraph::addPass(std::string_view name)
 	{
 
 		uint32_t index = m_passes.size();
@@ -28,12 +30,12 @@ namespace Veist
 		}
 
 
-		return RenderGraphPassBuilder(pass);
+		return PassBuilder(pass);
 
 	}
 
 
-	std::pair<bool, RenderGraphBufferResource*> RenderGraph::addBufferResource(const std::string& name)
+	std::pair<bool, BufferResource*> RenderGraph::addBufferResource(const std::string& name)
 	{
 		auto it = m_resource_to_idx_map.find(name);
 		if (it != m_resource_to_idx_map.end())
@@ -41,7 +43,7 @@ namespace Veist
 			//todo? assert if its the correct type of resource
 			uint32_t index = it->second;
 
-			return {true, static_cast<RenderGraphBufferResource*>(m_resources[index].get())};
+			return {true, static_cast<BufferResource*>(m_resources[index].get())};
 		}
 		else
 		{
@@ -49,9 +51,9 @@ namespace Veist
 
 			m_resource_to_idx_map.emplace(name, index);
 
-			auto& resource = m_resources.emplace_back(std::make_unique<RenderGraphBufferResource>(RenderGraphBufferResource(index)));
+			auto& resource = m_resources.emplace_back(std::make_unique<BufferResource>(BufferResource(index)));
 			
-			return {false, static_cast<RenderGraphBufferResource*>(resource.get())};
+			return {false, static_cast<BufferResource*>(resource.get())};
 		}
 	}
 	
@@ -59,7 +61,7 @@ namespace Veist
 
 
 
-	std::pair<bool, RenderGraphImageResource*> RenderGraph::addImageResource(const std::string& name)
+	std::pair<bool, ImageResource*> RenderGraph::addImageResource(const std::string& name)
 	{
 		auto it = m_resource_to_idx_map.find(name);
 		if (it != m_resource_to_idx_map.end()) //found
@@ -67,7 +69,7 @@ namespace Veist
 			//todo? assert if its the correct type of resource
 			uint32_t index = it->second;
 
-			return {true, static_cast<RenderGraphImageResource*>(m_resources[index].get())};
+			return {true, static_cast<ImageResource*>(m_resources[index].get())};
 		}
 		else //added
 		{
@@ -75,9 +77,9 @@ namespace Veist
 
 			m_resource_to_idx_map.emplace(name, index);
 
-			auto& resource = m_resources.emplace_back(std::make_unique<RenderGraphImageResource>(RenderGraphImageResource(index)));
+			auto& resource = m_resources.emplace_back(std::make_unique<ImageResource>(ImageResource(index)));
 
-			return {false, static_cast<RenderGraphImageResource*>(resource.get())};
+			return {false, static_cast<ImageResource*>(resource.get())};
 		}
 	}
 
@@ -102,7 +104,7 @@ namespace Veist
 	}
 
 
-	RenderGraphResource* RenderGraph::getResource(uint32_t index)
+	Resource* RenderGraph::getResource(uint32_t index)
 	{
 		return m_resources[index].get(); 
 	}
@@ -123,6 +125,9 @@ namespace Veist
 		setupGraphPassOrder(m_next_passes, m_next_resources);
 
 
+		aliasResources();
+
+
 		//Allocate physical resources 
 		allocatePhysicalResources();
 
@@ -139,11 +144,7 @@ namespace Veist
 			m_passes[pass_idx]->buildDescriptors();
 		}
 
-		//TODO resource aliasing
-		//	FROM themaister.net: The algorithm is fairly straight forward. For each resource we figure out the first and last physical render pass where a resource is used. 																								
-		//	If we find another resource with the same dimensions/format, and their pass range does not overlap, presto, we can alias! 
-		//	We inject some information where we can transition “ownership” between resources.
-
+		
 
 		//Execute rendergraph passes
 		for (auto pass_idx : m_pass_stack)
@@ -265,28 +266,134 @@ namespace Veist
 	}
 	
 
+	
 
+
+
+	void RenderGraph::aliasResources()
+	{
+
+		//TODO: Fill m_physical_resources with aliased versions of resources
+
+		//if(!resource->usedInGraph()) continue; TODO use this in aliasing resources (when resource list is converted to PhysicalResources)
+
+
+
+
+		//Aliasing of Read Modify Write resources
+		/*for (auto pass_idx : m_pass_stack)
+		{
+			auto* pass = m_passes[pass_idx].get();
+
+			//Color inputs/outputs
+			for (int i = 0; i < pass->m_color_inputs.size(); i++)
+			{
+				if (pass->m_color_inputs[i] == nullptr || pass->m_color_outputs[i] == nullptr) continue;
+
+				auto* main_image = pass->m_color_outputs[i];
+				auto* aliased_image = pass->m_color_inputs[i];
+
+				auto& main_image_name = main_image->name();
+				auto& aliased_image_name = aliased_image->name();;
+
+				main_image->aliasImageResource(aliased_image);
+				m_resource_to_idx_map[aliased_image_name] = m_resource_to_idx_map[main_image_name];
+			}
+
+			//Depth input/output
+
+			if (pass->m_depth_input != nullptr && pass->m_depth_output != nullptr)
+			{
+				auto* main_image = pass->m_depth_output;
+				auto* aliased_image = pass->m_depth_input;
+
+				auto& main_image_name = main_image->name();
+				auto& aliased_image_name = aliased_image->name();;
+
+				main_image->aliasImageResource(aliased_image);
+				m_resource_to_idx_map[aliased_image_name] = m_resource_to_idx_map[main_image_name];
+			}
+
+		
+			//Rest
+			//TODO buffer/storage/etc rmw aliasing
+
+		}*/
+		
+		
+		//TODO resource aliasing
+		//	FROM themaister.net: The algorithm is fairly straight forward. For each resource we figure out the first and last physical render pass where a resource is used. 																								
+		//	If we find another resource with the same dimensions/format, and their pass range does not overlap, presto, we can alias! 
+		//	We inject some information where we can transition “ownership” between resources.
+
+
+
+
+
+		//Update aliased resource pointers in each rendergraphpass
+		/*for (auto pass_idx : m_pass_stack)
+		{
+			auto* pass = m_passes[pass_idx].get();
+
+			//Add resources to pass resources for barrier 
+			for (auto res : pass->m_pass_resources)
+			{
+				if (res->usedInGraph())
+				{
+					pass->m_pass_physical_resources.emplace(res);
+				}
+			}
+
+			//Fix color/depth inputs/outputs for framebuffer creation
+			for (int i = 0; i < pass->m_color_outputs.size(); i++)
+			{
+				if (pass->m_color_inputs[i] != nullptr && !pass->m_color_inputs[i]->usedInGraph())
+				{
+					auto& name = pass->m_color_inputs[i]->name();
+					pass->m_color_inputs[i] = static_cast<ImageResource*>(m_resources[m_resource_to_idx_map[name]].get());
+				}
+
+				if (!pass->m_color_outputs[i]->usedInGraph())
+				{
+					auto& name = pass->m_color_outputs[i]->name();
+					pass->m_color_outputs[i] = static_cast<ImageResource*>(m_resources[m_resource_to_idx_map[name]].get());
+				}
+			}
+				
+			if (pass->m_depth_input != nullptr && pass->m_depth_input->usedInGraph())
+			{
+				auto& name = pass->m_depth_input->name();
+				pass->m_depth_input = static_cast<ImageResource*>(m_resources[m_resource_to_idx_map[name]].get());
+			}
+
+			if (pass->m_depth_output != nullptr && pass->m_depth_output->usedInGraph())
+			{
+				auto& name = pass->m_depth_output->name();
+				pass->m_depth_output = static_cast<ImageResource*>(m_resources[m_resource_to_idx_map[name]].get());
+			}
+
+		}*/
+	}
 
 
 
 	void RenderGraph::allocatePhysicalResources()
 	{
-		//TODO Must do aliasing of read modify write resources. dont assign different physical resources
 
-		for (auto& resource : m_resources)
+		//Assign an Image/Buffer to the set of physical resources
+		for (auto& resource : m_physical_resources)
 		{
-			if(!resource->usedInGraph()) continue;
 
-			if (resource->physicalIndex() == RenderGraphResource::Unused)
+			if (resource->physicalIndex() == PhysicalResource::Unused)
 			{
 
-				if (resource->resourceType() == RenderGraphResource::ResourceType::Image)
+				if (resource->resourceType() == ResourceType::Image)
 				{
-					m_resource_pool->createImage(static_cast<RenderGraphImageResource*>(resource.get()));
+					m_resource_pool->createImage(static_cast<PhysicalImage*>(resource.get()));
 				}
-				else if (resource->resourceType() == RenderGraphResource::ResourceType::Buffer)
+				else if (resource->resourceType() == ResourceType::Buffer)
 				{
-					m_resource_pool->createBuffer(static_cast<RenderGraphBufferResource*>(resource.get()));
+					m_resource_pool->createBuffer(static_cast<PhysicalBuffer*>(resource.get()));
 				}
 			}
 
@@ -306,19 +413,16 @@ namespace Veist
 
 		std::vector<ImageBarrier> image_barriers;
 		std::vector<BufferBarrier> buffer_barriers;
-		//std::unordered_map<RenderGraphImageResource*, BarrierInfo> image_barrier_info;
-		//std::unordered_map<RenderGraphBufferResource*, BarrierInfo> buffer_barrier_info;
-		
 
-		for (auto res : m_passes[pass_idx]->m_pass_resources)
+		for (auto res : m_passes[pass_idx]->m_pass_physical_resources)
 		{
-			if (res->resourceType() == RenderGraphResource::ResourceType::Image)
+			if (res->resourceType() == ResourceType::Image)
 			{
-				auto img_res = static_cast<RenderGraphImageResource*>(res);
-				if (img_res->lastUsedPass() != RenderGraphResource::Unused)
+				auto img_res = static_cast<PhysicalImage*>(res);
+				if (img_res->lastUsedPass() != PhysicalResource::Unused)
 				{
 					//src as late as possible and dst as early as possible to ensure sync
-					ImageBase* image = m_passes[pass_idx]->getPhysicalImage(img_res);
+					ImageBase* image = m_resource_pool->getImage(img_res);
 					PipelineStage src_stage = img_res->getStageInPass(img_res->lastUsedPass());
 					PipelineStage dst_stage = img_res->getStageInPass(pass_idx);
 					VkImageLayout old_layout = getImageLayout(img_res->imageUsageInPass(img_res->lastUsedPass()));
@@ -328,7 +432,7 @@ namespace Veist
 				}
 				else
 				{
-					ImageBase* image = m_passes[pass_idx]->getPhysicalImage(img_res);
+					ImageBase* image = m_resource_pool->getImage(img_res);
 					PipelineStage src_stage = PipelineStage::TopOfPipe;
 					PipelineStage dst_stage = img_res->getStageInPass(pass_idx);
 					VkImageLayout old_layout = VK_IMAGE_LAYOUT_UNDEFINED;
@@ -340,14 +444,14 @@ namespace Veist
 
 
 			}
-			else if (res->resourceType() == RenderGraphResource::ResourceType::Buffer)
+			else if (res->resourceType() == ResourceType::Buffer)
 			{
-				auto buff_res = static_cast<RenderGraphBufferResource*>(res);
-				if (buff_res->lastUsedPass() != RenderGraphResource::Unused)
+				auto buff_res = static_cast<PhysicalBuffer*>(res);
+				if (buff_res->lastUsedPass() != PhysicalResource::Unused)
 				{
 
 					//src as late as possible and dst as early as possible to ensure sync
-					ShaderBuffer* buffer = m_passes[pass_idx]->getPhysicalBuffer(buff_res);
+					ShaderBuffer* buffer = m_resource_pool->getBuffer(buff_res);
 					PipelineStage src_stage = buff_res->getStageInPass(buff_res->lastUsedPass());
 					PipelineStage dst_stage = buff_res->getStageInPass(pass_idx);
 				
@@ -364,18 +468,18 @@ namespace Veist
 		//resource reads
 		for (auto res : m_passes[pass_idx]->m_resource_reads)
 		{
-			if (res->resourceType() == RenderGraphResource::ResourceType::Image)
+			if (res->resourceType() == Resource::ResourceType::Image)
 			{
-				auto img_res = static_cast<RenderGraphImageResource*>(res);
+				auto img_res = static_cast<ImageResource*>(res);
 				
 				//src as late as possible and dst as early as possible to ensure sync
 
 
 
 			}
-			else if(res->resourceType() == RenderGraphResource::ResourceType::Buffer)
+			else if(res->resourceType() == Resource::ResourceType::Buffer)
 			{
-				auto buff_res = static_cast<RenderGraphBufferResource*>(res);
+				auto buff_res = static_cast<BufferResource*>(res);
 
 
 			}
@@ -397,4 +501,5 @@ namespace Veist
 		m_resource_pool->recycleRenderGraph();
 	}
 
+}
 }

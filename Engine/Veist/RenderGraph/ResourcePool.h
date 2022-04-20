@@ -2,34 +2,36 @@
 
 
 #include <Veist/Graphics/RenderModule.h>
-#include "RenderGraphResource.h"
+#include "Resource.h"
 
 
 namespace Veist
 {
+namespace RenderGraph
+{
 
 
 
-	class RenderGraphResourcePool
+	class ResourcePool
 	{
 	public:
 		static constexpr uint32_t cull_after_x_frames = 8;
 
-		RenderGraphResourcePool() = default;
+		ResourcePool() = default;
 
-		void createImage(RenderGraphImageResource* resource);
-		void createBuffer(RenderGraphBufferResource* resource);
+		void createImage(PhysicalImage* resource);
+		void createBuffer(PhysicalBuffer* resource);
 
-		ImageBase* getImage(RenderGraphImageResource* resource) { return m_physical_images[resource->physicalIndex()].get();};
-		ShaderBuffer* getBuffer(RenderGraphBufferResource* resource) { return m_physical_buffers[resource->physicalIndex()].get(); };
+		ImageBase* getImage(PhysicalImage* resource) { return m_physical_images[resource->physicalIndex()].get();};
+		ShaderBuffer* getBuffer(PhysicalBuffer* resource) { return m_physical_buffers[resource->physicalIndex()].get(); };
 
 		void recycleRenderGraph();
 
 	private:
 	
 		
-		bool reuseImageFromPool(RenderGraphImageResource* resource);
-		bool reuseBufferFromPool(RenderGraphBufferResource* resource);
+		bool reuseImageFromPool(PhysicalImage* resource);
+		bool reuseBufferFromPool(PhysicalBuffer* resource);
 		
 
 		std::vector<std::unique_ptr<ImageBase>> m_physical_images;
@@ -47,6 +49,6 @@ namespace Veist
 
 	};
 
-
+}
 }
 

@@ -26,21 +26,21 @@ namespace Veist
 		return light_probe;
 	}
 
-	BasicRenderer BasicRenderer::createRenderer(RenderGraph& render_graph, ecs::EntityRegistry* scene_registry)
+	BasicRenderer BasicRenderer::createRenderer(RenderGraph::RenderGraph& render_graph, ecs::EntityRegistry* scene_registry)
 	{
 		BasicRenderer basic_renderer;
 
 		static constexpr uint32_t max_dir_lights = 4;
 		static constexpr uint32_t max_point_lights = 100;
 
-		RenderGraphBufferInfo camera_buffer_info, scene_info_buffer_info, dir_lights_buffer_info, point_lights_buffer_info;
+		RenderGraph::BufferInfo camera_buffer_info, scene_info_buffer_info, dir_lights_buffer_info, point_lights_buffer_info;
 
 		camera_buffer_info.size = sizeof(RendererUniforms::CameraData);
 		scene_info_buffer_info.size = sizeof(RendererUniforms::SceneInfo);
 		dir_lights_buffer_info.size = sizeof(RendererUniforms::GPUDirLight) * max_dir_lights;
 		point_lights_buffer_info.size = sizeof(RendererUniforms::GPUPointLight) * max_point_lights;
 
-		RenderGraphImageInfo output_image_info, depth_attachment_info;
+		RenderGraph::ImageInfo output_image_info, depth_attachment_info;
 
 		output_image_info.properties = ImageProperties({ 1920,1080 }, { VK_FORMAT_R8G8B8A8_SRGB });
 		depth_attachment_info.properties = ImageProperties({ 1920,1080 }, { VK_FORMAT_D32_SFLOAT });
@@ -73,7 +73,7 @@ namespace Veist
 		//End rendergraph tests
 
 
-		builder.setRenderFunction([=](CommandBuffer& cmd, const RenderGraphPass* pass) {
+		builder.setRenderFunction([=](CommandBuffer& cmd, const RenderGraph::RenderGraphPass* pass) {
 
 			
 			uint32_t frame_num = RenderModule::getBackend()->getSwapchainImageNumber();
