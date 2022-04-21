@@ -25,6 +25,7 @@ namespace RenderGraph
 		ImageBase* getImage(PhysicalImage* resource) { return m_physical_images[resource->physicalIndex()].get();};
 		ShaderBuffer* getBuffer(PhysicalBuffer* resource) { return m_physical_buffers[resource->physicalIndex()].get(); };
 
+		//TODO: fix that when GPU is slow, fences can loop around and end up with images from 3 fences ago taht have the same fence as the curent fence but it is not in use
 		void recycleRenderGraph();
 
 	private:

@@ -190,7 +190,7 @@ void Swapchain::beginNextFrame()
 {
 	VkDevice device = RenderModule::getBackend()->getDevice();
 	uint32_t frame_count = RenderModule::getBackend()->getFrameNumber();
-
+	
 	VK_CHECK(vkWaitForFences(device, 1, &RenderModule::getBackend()->getCurrentCmdBuffer().fence(), true, 1000000000)); //1 second timeout 1000000000ns
 	VK_CHECK(vkResetFences(device, 1, &RenderModule::getBackend()->getCurrentCmdBuffer().fence()));
 

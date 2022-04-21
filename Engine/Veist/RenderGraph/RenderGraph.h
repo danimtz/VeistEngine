@@ -35,6 +35,7 @@ namespace RenderGraph
 
 		bool validateGraph();
 		void setupGraphPassOrder(std::stack<uint32_t>& next_passes, std::stack<uint32_t>& next_resources);
+		void setupPhysicalResources();
 		void aliasResources();
 		void allocatePhysicalResources();
 		void createBarriers(uint32_t pass_idx, CommandBuffer& cmd);

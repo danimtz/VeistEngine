@@ -166,11 +166,13 @@ namespace RenderGraph
 	public:
 		enum { Unused = ~0u };
 
-		PhysicalResource(ResourceType type) : m_type(type) {};
+		
 
 		ResourceType resourceType() const { return m_type; }
 		uint32_t physicalIndex() const { return m_physical_index; }
 		uint32_t lastUsedPass() const { return m_last_pass_used; }
+		const std::unordered_set<uint32_t>& usedInPasses() const {return m_used_in_passes;};
+		bool isUnused() const {return m_resource_aliases.empty();}
 
 		void setPhysicalIndex(uint32_t index) { m_physical_index = index; }
 		void setLastUsedPass(uint32_t index) { m_last_pass_used = index; }
@@ -178,6 +180,8 @@ namespace RenderGraph
 		PipelineStage getStageInPass(uint32_t pass_index) const;
 
 	protected:
+
+		PhysicalResource(ResourceType type) : m_type(type) {};
 
 		void aliasResource(Resource* resource);
 
@@ -187,7 +191,8 @@ namespace RenderGraph
 		uint32_t m_physical_index = Unused;
 
 		std::unordered_map<uint32_t, PipelineStage> m_stage_in_pass;
-		std::vector<Resource*> m_resource_aliases;
+		std::unordered_set<Resource*> m_resource_aliases;
+		std::unordered_set<uint32_t> m_used_in_passes;
 	};
 
 

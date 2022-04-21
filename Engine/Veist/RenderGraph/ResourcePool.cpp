@@ -105,11 +105,11 @@ namespace RenderGraph
 		m_physical_buffers.clear();
 
 		
-
+		
 		//Once command buffer is finished move buffers and images to unused pool to the back of the list
 		for (auto& it = m_in_use_images.begin(); it != m_in_use_images.end(); )
 		{
-			if (vkGetFenceStatus(device,it->first) == VK_SUCCESS)
+			if (vkGetFenceStatus(device, it->first) == VK_SUCCESS)
 			{
 				m_unused_image_pool.emplace_back(0, std::move(it->second));
 				it = m_in_use_images.erase(it);
@@ -133,6 +133,11 @@ namespace RenderGraph
 			}
 		}
 
+
+		/*if (m_in_use_images.size() > 7)
+		{
+			CONSOLE_LOG("SOMETHING WENT WRONG HERE");
+		}*/
 
 
 		//Cull resources not used for 8 frames

@@ -124,11 +124,12 @@ namespace RenderGraph
 		m_next_resources.push(m_backbuffer_idx);
 		setupGraphPassOrder(m_next_passes, m_next_resources);
 
+		//Setup physical resources info
+		setupPhysicalResources();
 
 		aliasResources();
 
-
-		//Allocate physical resources 
+		//Allocate the actual images/buffers
 		allocatePhysicalResources();
 
 
@@ -266,20 +267,39 @@ namespace RenderGraph
 	}
 	
 
-	
+
+
+
+	void RenderGraph::setupPhysicalResources()
+	{
+
+		//TODO: Fill m_physical_resources with aliased versions of resources
+
+		for (auto& resource : m_resources)
+		{
+			if (!resource->usedInGraph()) continue;
+
+			if (resource->resourceType() == ResourceType::Image)
+			{
+				Resource* res_ptr = resource.get();
+				ImageResource* phys_img = static_cast<ImageResource*>(res_ptr);
+				m_physical_resources.emplace_back(std::make_unique<PhysicalImage>(phys_img));
+			}
+			else if (resource->resourceType() == ResourceType::Buffer)
+			{
+				Resource* res_ptr = resource.get();
+				BufferResource* phys_buff = static_cast<BufferResource*>(res_ptr);
+				m_physical_resources.emplace_back(std::make_unique<PhysicalBuffer>(phys_buff));
+			}
+		}
+	}
 
 
 
 	void RenderGraph::aliasResources()
 	{
 
-		//TODO: Fill m_physical_resources with aliased versions of resources
-
-		//if(!resource->usedInGraph()) continue; TODO use this in aliasing resources (when resource list is converted to PhysicalResources)
-
-
-
-
+		
 		//Aliasing of Read Modify Write resources
 		/*for (auto pass_idx : m_pass_stack)
 		{
@@ -381,9 +401,39 @@ namespace RenderGraph
 	{
 
 		//Assign an Image/Buffer to the set of physical resources
+
+		for (auto& it = m_physical_resources.begin(); it != m_physical_resources.end(); )
+		{
+			auto resource = it->get();
+			if (resource->isUnused())
+			{
+				//If physical resource unused due to being aliased away remove it
+				it = m_physical_resources.erase(it);
+			}
+			else
+			{
+				if (resource->resourceType() == ResourceType::Image)
+				{
+					m_resource_pool->createImage(static_cast<PhysicalImage*>(resource));
+				}
+				else if (resource->resourceType() == ResourceType::Buffer)
+				{
+					m_resource_pool->createBuffer(static_cast<PhysicalBuffer*>(resource));
+				}
+
+				//Add physical resource to passes that use it
+				for (auto pass_idx : resource->usedInPasses())
+				{
+					m_passes[pass_idx]->m_pass_physical_resources.emplace(resource);
+				}
+				it++;
+			}
+		}
+
+		/*
 		for (auto& resource : m_physical_resources)
 		{
-
+			
 			if (resource->physicalIndex() == PhysicalResource::Unused)
 			{
 
@@ -397,7 +447,7 @@ namespace RenderGraph
 				}
 			}
 
-		}
+		}*/
 	}
 
 	

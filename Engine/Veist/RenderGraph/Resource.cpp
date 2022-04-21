@@ -68,9 +68,18 @@ namespace RenderGraph
 			{
 				it->second = it->second | stage;
 			}
+
+			m_used_in_passes.emplace(index);
 		}
 
-		m_resource_aliases.emplace_back(resource);
+		//Remove physical resource pointer from resource if it had one (and from alias list in the old physical resource)
+		if(resource->m_physical_resource != nullptr)
+		{
+			resource->m_physical_resource->m_resource_aliases.erase(resource);
+		}
+
+		m_resource_aliases.emplace(resource);
+		resource->m_physical_resource = this;
 	}
 
 
@@ -90,10 +99,10 @@ namespace RenderGraph
 
 
 
-	PhysicalImage::PhysicalImage(ImageResource* resource) : PhysicalResource(ResourceType::Image)
+	PhysicalImage::PhysicalImage(ImageResource* resource) : PhysicalResource(ResourceType::Image), m_usage(ImageUsage::None)
 	{
 		m_info = resource->m_info;
-		aliasResource(resource);
+		aliasImageResource(resource);
 	}
 
 
@@ -120,8 +129,8 @@ namespace RenderGraph
 			}
 		}
 
-		m_resource_aliases.emplace_back(resource);
-		resource->m_physical_resource = this;
+		
+		aliasResource(resource);
 	}
 
 
@@ -147,7 +156,7 @@ namespace RenderGraph
 	{
 		m_info = resource->m_info;
 		m_usage = resource->m_usage;
-		aliasResource(resource);
+		aliasBufferResource(resource);
 	}
 
 
@@ -159,7 +168,6 @@ namespace RenderGraph
 		//TODO check that aliased resource can be aliased (compare info)
 
 		aliasResource(resource);
-		resource->m_physical_resource = this;
 	}
 
 
