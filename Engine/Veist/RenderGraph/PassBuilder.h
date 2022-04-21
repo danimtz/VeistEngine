@@ -42,6 +42,7 @@ namespace RenderGraph
 
 		//Pass writes:
 
+		//TODO: prevent resource used as a texture input in a pass from being able to set as an input here
 		ImageResource* addColorOutput(const std::string& name, const ImageInfo& info = {}, const std::string& input = "");
 		ImageResource* addDepthOutput(const std::string& name, const ImageInfo& info = {}, const std::string& input = "");
 

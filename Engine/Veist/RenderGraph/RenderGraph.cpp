@@ -301,7 +301,7 @@ namespace RenderGraph
 
 		
 		//Aliasing of Read Modify Write resources
-		/*for (auto pass_idx : m_pass_stack)
+		for (auto pass_idx : m_pass_stack)
 		{
 			auto* pass = m_passes[pass_idx].get();
 
@@ -310,43 +310,34 @@ namespace RenderGraph
 			{
 				if (pass->m_color_inputs[i] == nullptr || pass->m_color_outputs[i] == nullptr) continue;
 
-				auto* main_image = pass->m_color_outputs[i];
-				auto* aliased_image = pass->m_color_inputs[i];
+				auto* physical_image = static_cast<PhysicalImage*>(pass->m_color_outputs[i]->physicalResource());
+				auto* resource_to_alias = pass->m_color_inputs[i];
 
-				auto& main_image_name = main_image->name();
-				auto& aliased_image_name = aliased_image->name();;
+				physical_image->aliasImageResource(resource_to_alias);
 
-				main_image->aliasImageResource(aliased_image);
-				m_resource_to_idx_map[aliased_image_name] = m_resource_to_idx_map[main_image_name];
 			}
 
 			//Depth input/output
 
 			if (pass->m_depth_input != nullptr && pass->m_depth_output != nullptr)
 			{
-				auto* main_image = pass->m_depth_output;
-				auto* aliased_image = pass->m_depth_input;
+				auto* physical_image = static_cast<PhysicalImage*>(pass->m_depth_output->physicalResource());
+				auto* resource_to_alias = pass->m_depth_input;
 
-				auto& main_image_name = main_image->name();
-				auto& aliased_image_name = aliased_image->name();;
-
-				main_image->aliasImageResource(aliased_image);
-				m_resource_to_idx_map[aliased_image_name] = m_resource_to_idx_map[main_image_name];
+				physical_image->aliasImageResource(resource_to_alias);
 			}
 
 		
 			//Rest
 			//TODO buffer/storage/etc rmw aliasing
 
-		}*/
+		}
 		
 		
 		//TODO resource aliasing
 		//	FROM themaister.net: The algorithm is fairly straight forward. For each resource we figure out the first and last physical render pass where a resource is used. 																								
 		//	If we find another resource with the same dimensions/format, and their pass range does not overlap, presto, we can alias! 
 		//	We inject some information where we can transition “ownership” between resources.
-
-
 
 
 

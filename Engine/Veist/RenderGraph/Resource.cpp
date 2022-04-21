@@ -54,31 +54,76 @@ namespace RenderGraph
 	void PhysicalResource::aliasResource( Resource* resource)
 	{
 		//Merge stage in passes
-		for (auto idx_stage_pair : resource->m_stage_in_pass)
+		if (resource->m_physical_resource != nullptr)
 		{
-			auto index = idx_stage_pair.first;
-			auto stage = idx_stage_pair.second;
-
-			auto it = m_stage_in_pass.find(index);
-			if (it == m_stage_in_pass.end())
+			auto phys_resource = resource->m_physical_resource;
+			for (auto idx_stage_pair : phys_resource->m_stage_in_pass)
 			{
-				m_stage_in_pass.emplace(index, stage);
-			}
-			else
-			{
-				it->second = it->second | stage;
+				auto index = idx_stage_pair.first;
+				auto stage = idx_stage_pair.second;
+
+				auto it = m_stage_in_pass.find(index);
+				if (it == m_stage_in_pass.end())
+				{
+					m_stage_in_pass.emplace(index, stage);
+				}
+				else
+				{
+					it->second = it->second | stage;
+				}
+
+				m_used_in_passes.emplace(index);
 			}
 
-			m_used_in_passes.emplace(index);
+			
+			
+			//Merge physical resource aliases together
+			PhysicalResource* res_ptr = resource->m_physical_resource;
+			for (auto& res : resource->m_physical_resource->m_resource_aliases)
+			{
+				m_resource_aliases.emplace(res);
+				res->m_physical_resource = this;
+			}
+			res_ptr->m_resource_aliases.clear();
+
+
+			/*if (resource->m_physical_resource != nullptr)//////
+			{////
+				resource->m_physical_resource->m_resource_aliases.erase(resource);/////
+			}/////
+
+			m_resource_aliases.emplace(resource);////*/
+
 		}
-
-		//Remove physical resource pointer from resource if it had one (and from alias list in the old physical resource)
-		if(resource->m_physical_resource != nullptr)
+		else
 		{
-			resource->m_physical_resource->m_resource_aliases.erase(resource);
-		}
+			for (auto idx_stage_pair : resource->m_stage_in_pass)
+			{
+				auto index = idx_stage_pair.first;
+				auto stage = idx_stage_pair.second;
 
-		m_resource_aliases.emplace(resource);
+				auto it = m_stage_in_pass.find(index);
+				if (it == m_stage_in_pass.end())
+				{
+					m_stage_in_pass.emplace(index, stage);
+				}
+				else
+				{
+					it->second = it->second | stage;
+				}
+
+				m_used_in_passes.emplace(index);
+			}
+
+			m_resource_aliases.emplace(resource);
+		}
+		
+
+		
+
+		//m_resource_aliases.emplace(resource);////
+
+
 		resource->m_physical_resource = this;
 	}
 
@@ -110,25 +155,49 @@ namespace RenderGraph
 	{
 		//TODO check that aliased resource can be aliased (compare info)
 
-		//Merge usage in passes
-		m_usage = m_usage | resource->m_usage;
-
-		//Merge image usage
-		for (auto idx_usage_pair : resource->m_usage_in_pass)
+		if (resource->m_physical_resource != nullptr)
 		{
-			auto index = idx_usage_pair.first;
-			auto usage = idx_usage_pair.second;
-			auto it = m_usage_in_pass.find(index);
-			if (it == m_usage_in_pass.end())
+			auto phys_resource = static_cast<PhysicalImage*>(resource->m_physical_resource);
+			//Merge usage in passes
+			m_usage = m_usage | phys_resource->m_usage;
+
+			//Merge image usage
+			for (auto idx_usage_pair : phys_resource->m_usage_in_pass)
 			{
-				m_usage_in_pass.emplace(index, usage);
-			}
-			else
-			{
-				it->second = it->second | usage;
+				auto index = idx_usage_pair.first;
+				auto usage = idx_usage_pair.second;
+				auto it = m_usage_in_pass.find(index);
+				if (it == m_usage_in_pass.end())
+				{
+					m_usage_in_pass.emplace(index, usage);
+				}
+				else
+				{
+					it->second = it->second | usage;
+				}
 			}
 		}
+		else
+		{
+			//Merge usage in passes
+			m_usage = m_usage | resource->m_usage;
 
+			//Merge image usage
+			for (auto idx_usage_pair : resource->m_usage_in_pass)
+			{
+				auto index = idx_usage_pair.first;
+				auto usage = idx_usage_pair.second;
+				auto it = m_usage_in_pass.find(index);
+				if (it == m_usage_in_pass.end())
+				{
+					m_usage_in_pass.emplace(index, usage);
+				}
+				else
+				{
+					it->second = it->second | usage;
+				}
+			}
+		}
 		
 		aliasResource(resource);
 	}

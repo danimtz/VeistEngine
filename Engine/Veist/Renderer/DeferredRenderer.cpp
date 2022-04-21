@@ -152,7 +152,7 @@ namespace Veist
 
 		
 
-		builder.addColorOutput("lighting_output", output_image_info, "gbuffer_albedo");
+		builder.addColorOutput("lighting_output", output_image_info);
 
 		//renderer.m_editor_target = output_image;
 
