@@ -81,8 +81,8 @@ namespace RenderGraph
 	{
 		//check depth attachment is valid
 		
-		Framebuffer::Attachment depth;
-		std::vector<Framebuffer::Attachment> colors;
+		//Framebuffer::Attachment depth;
+		std::vector<Framebuffer::Attachment> attachments;
 
 		if (m_color_outputs.size() != m_color_inputs.size())
 		{
@@ -93,16 +93,13 @@ namespace RenderGraph
 		{
 			RenderPass::LoadOp load_op = (m_color_inputs[i] == nullptr) ? RenderPass::LoadOp::Clear : RenderPass::LoadOp::Load;
 			PhysicalImage* phys_img = static_cast<PhysicalImage*>(m_color_outputs[i]->physicalResource());
-			colors.emplace_back( getPhysicalImage(m_color_outputs[i]), load_op, phys_img->imageUsageInPass(m_pass_index));
+			attachments.emplace_back( getPhysicalImage(m_color_outputs[i]), load_op, phys_img->imageUsageInPass(m_pass_index));
 		}
 		
-		if (m_depth_input == nullptr && m_depth_output == nullptr)
-		{
-			m_framebuffer = Framebuffer(colors);
-		}
-		else
+		if (m_depth_input != nullptr || m_depth_output != nullptr)
 		{
 			//get physical image from either depth_input or depth_output (both should be the same physical image TODO check that in validation)
+			Framebuffer::Attachment depth;
 			depth.image = (m_depth_output != nullptr) ? getPhysicalImage(m_depth_output) : getPhysicalImage(m_depth_input);
 			depth.load_op = (m_depth_input == nullptr) ? RenderPass::LoadOp::Clear : RenderPass::LoadOp::Load;
 			
@@ -110,9 +107,11 @@ namespace RenderGraph
 
 			depth.pass_usage = phys_img->imageUsageInPass(m_pass_index);
 
-			m_framebuffer = Framebuffer(colors, depth);
+			attachments.emplace_back(depth);
+
 		}
 
+		m_framebuffer = Framebuffer(attachments);
 		
 
 	}

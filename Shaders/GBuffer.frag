@@ -27,10 +27,14 @@ void main()
 
     //Normal mapping
 	mat3 mTBN = mat3(normalize(inTangent), normalize(inBitangent), normalize(inNormal));
-	vec3 tex_normal = normalize(texture(inNormalTex, inUV).xyz * 2.0 - 1.0); //shift to -1 to 1 range from 0 to 1
+	vec3 tex_normal = texture(inNormalTex, inUV).xyz; //shift to -1 to 1 range from 0 to 1
+	vec3 normal_ts = normalize( tex_normal* 2.0 - vec3(1.0)); //shift to -1 to 1 range from 0 to 1
 	
+	vec3 normal = normalize(mTBN * normal_ts);
+	vec3 packed_normal = (normal * 0.5) + vec3(0.5);
+
 	outAlbedo = vec4(texture(inAlbedo, inUV).xyz, 1.0);
-	outNormal = vec4(normalize(mTBN * tex_normal), 1.0);
+	outNormal = vec4(packed_normal, 1.0);
 	outOccRoughMetal = vec4(texture(inOccRoughMetal, inUV).xyz, 1.0);
 	outEmmissive = vec4(texture(inEmmissive, inUV).xyz, 1.0);
 

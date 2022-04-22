@@ -623,11 +623,11 @@ void RenderBackend::createDefaultRenderPass()
 	ImageProperties depth_props = m_swapchain_depth_image->properties();//{ ImageSize{m_swapchain_extent.width,m_swapchain_extent.height}, ImageFormat{VK_FORMAT_D32_SFLOAT} };
 
 
-	std::vector<RenderPass::AttachmentProperties> main_color_attachments;
-	main_color_attachments.push_back({ color_props, RenderPass::LoadOp::Clear, ImageUsage::SwapchainImage | ImageUsage::ColorAttachment });
+	std::vector<RenderPass::AttachmentProperties> main_attachments;
+	main_attachments.push_back({ color_props, RenderPass::LoadOp::Clear, ImageUsage::SwapchainImage | ImageUsage::ColorAttachment });
+	main_attachments.push_back({ depth_props, RenderPass::LoadOp::Clear, ImageUsage::SwapchainImage | ImageUsage::DepthAttachment });
 
-	RenderPass::AttachmentProperties main_depth_attachment{ depth_props, RenderPass::LoadOp::Clear, ImageUsage::SwapchainImage | ImageUsage::DepthAttachment };
-	m_render_pass = std::make_shared<RenderPass>( main_color_attachments, main_depth_attachment );
+	m_render_pass = std::make_shared<RenderPass>( main_attachments );
 }
 
 
@@ -643,9 +643,9 @@ void RenderBackend::createFramebuffers()
 		ImageBase* color_image = m_swapchain->images()[i].get();
 		ImageBase* depth_image = m_swapchain_depth_image.get();
 
-		auto colors = std::vector<Framebuffer::Attachment>{{color_image}};
-		auto depth = Framebuffer::Attachment(depth_image);
-		m_framebuffers.emplace_back(colors, depth);
+		auto attachments = std::vector<Framebuffer::Attachment>{ {color_image}, {depth_image}};
+		//auto depth = Framebuffer::Attachment(depth_image);
+		m_framebuffers.emplace_back(attachments);
 	}
 
 }

@@ -8,7 +8,7 @@
 
 namespace Veist
 {
-
+/*
 	static std::unique_ptr<RenderPass> createRenderPass(std::vector<Framebuffer::Attachment>& colors, Framebuffer::Attachment& depth)
 	{
 	
@@ -36,11 +36,6 @@ namespace Veist
 
 	}
 
-	//Creates a RenderPass that links ot an existing VkRenderPass (used for swapchain framebuffer)
-	/*static std::unique_ptr<RenderPass> setExistingRenderPass(VkRenderPass renderpass)
-	{
-		return std::make_unique<RenderPass>(renderpass);
-	}*/
 
 
 	static glm::u32vec2 calculateFramebufferSize(ImageBase* image)
@@ -92,17 +87,7 @@ namespace Veist
 		VK_CHECK(vkCreateFramebuffer(device, &framebuffer_info, nullptr, &framebuffer));
 
 	
-	/*
-		if ((colors[0].image->imageUsage() & ImageUsage::SwapchainImage) != ImageUsage::None)
-		{
-			RenderModule::getBackend()->pushToSwapchainDeletionQueue([=]() { vkDestroyFramebuffer(device, framebuffer, nullptr);	});
-		}
-		else 
-		{
-			RenderModule::getBackend()->pushToDeletionQueue([=]() { vkDestroyFramebuffer(device, framebuffer, nullptr);	});
-		}
-	*/
-	
+
 	
 	}
 
@@ -126,9 +111,92 @@ namespace Veist
 	{
 		createFramebuffer(colors, depth, m_framebuffer, m_render_pass.get(), m_size);
 	}
+	
+
+	*/
+
+	static std::unique_ptr<RenderPass> createRenderPass(std::vector<Framebuffer::Attachment>& attachments)
+	{
+
+		std::vector<RenderPass::AttachmentProperties> attachment_properties;
+
+		for (auto& attachment : attachments)
+		{
+			attachment_properties.emplace_back(attachment.image->properties(), attachment.load_op, attachment.pass_usage);
+		}
+
+		return std::make_unique<RenderPass>(attachment_properties);
+
+	}
 
 
 
+	static glm::u32vec2 calculateFramebufferSize(ImageBase* image)
+	{
+		uint32_t width = image->properties().imageSize().width;
+		uint32_t height = image->properties().imageSize().height;
+
+		return glm::u32vec2{ width, height };
+	}
+
+
+	static void createFramebuffer(std::vector<Framebuffer::Attachment>& attachments, VkFramebuffer& framebuffer, RenderPass* renderpass, glm::u32vec2& fb_size, size_t& color_attachment_count)
+	{
+		//TODO:check that all color attachments and depth are the same width and height
+
+		fb_size = calculateFramebufferSize(attachments[0].image);
+
+		color_attachment_count = attachments.size();
+
+		VkFramebufferCreateInfo framebuffer_info = {};
+		framebuffer_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+		framebuffer_info.pNext = nullptr;
+
+		framebuffer_info.renderPass = renderpass->vk_renderpass();
+
+		framebuffer_info.width = fb_size.x;
+		framebuffer_info.height = fb_size.y;
+		framebuffer_info.layers = 1;
+
+		uint32_t attachment_count = attachments.size();
+
+		std::vector<VkImageView> image_views;
+		
+
+		for (uint32_t i = 0; i < attachments.size(); i++)
+		{
+			image_views.push_back(attachments[i].image->imageView());
+
+			//if depth attachment remove count form color attachment count
+			if ((attachments[i].pass_usage & ImageUsage::DepthAttachment) != ImageUsage::None)
+			{
+				color_attachment_count--;
+			}
+		}
+
+		framebuffer_info.attachmentCount = attachment_count;
+		framebuffer_info.pAttachments = image_views.data();
+
+
+		VkDevice device = RenderModule::getBackend()->getDevice();
+
+		VK_CHECK(vkCreateFramebuffer(device, &framebuffer_info, nullptr, &framebuffer));
+
+	}
+
+
+	Framebuffer::Framebuffer(std::vector<Attachment>& attachments) :
+		m_render_pass(createRenderPass(attachments))
+	{
+		createFramebuffer(attachments, m_framebuffer, m_render_pass.get(), m_size, m_color_attachment_count);
+
+	}
+
+	Framebuffer::Framebuffer(std::vector<Attachment>& attachments, std::shared_ptr<RenderPass> renderpass) :
+		m_render_pass(renderpass)
+	{
+		createFramebuffer(attachments, m_framebuffer, m_render_pass.get(), m_size, m_color_attachment_count);
+	}
 
 	Framebuffer::~Framebuffer()
 	{

@@ -41,7 +41,7 @@ namespace Veist
 			//registry->emplaceComponent<TransformComponent>(point_light_1, pos);
 
 
-			registry->emplaceComponent<DirectionalLightComponent>(sun_light, glm::normalize(glm::vec3(0.0, 1.0, -1.0)), glm::vec3(1.0), 1.0);
+			registry->emplaceComponent<DirectionalLightComponent>(sun_light, glm::normalize(glm::vec3(0.0, 1.0, 0.0)), glm::vec3(1.0), 1.0);
 
 			registry->emplaceComponent<MeshComponent>(waterbottle, Model("..\\assets\\GLTF_models\\Bottle\\", "WaterBottle.gltf"));
 			registry->emplaceComponent<TransformComponent>(waterbottle, glm::vec3{ 2.0, 0.0, 0.0 }, glm::vec3{ 0.0, 0.0, 0.0 }, glm::vec3{ 8.0, 8.0, 8.0 });

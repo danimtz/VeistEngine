@@ -18,6 +18,9 @@ namespace Veist
 			Clear
 		};
 
+	
+
+
 		struct AttachmentProperties {
 		
 			AttachmentProperties() = default;
@@ -31,7 +34,7 @@ namespace Veist
 			LoadOp load_op = LoadOp::Clear;
 		};
 
-		struct FormatLayout
+		/*struct FormatLayout
 		{
 			FormatLayout() : m_depth_format(VK_FORMAT_UNDEFINED) {};
 			FormatLayout(const AttachmentProperties& depth_props, const std::vector<AttachmentProperties>& color_properties);
@@ -45,16 +48,32 @@ namespace Veist
 
 			ImageFormat m_depth_format;
 			std::vector<ImageFormat> m_color_formats;
+		};*/
+
+		struct FormatLayout
+		{
+			FormatLayout() = default;
+			FormatLayout(const std::vector<AttachmentProperties>& attachment_properties);
+
+
+			//map key functions
+			uint64_t hash() const;
+			bool operator <(const FormatLayout const& rhs) const;
+
+
+			std::vector<ImageFormat> m_attachment_formats;
 		};
 
-
-		RenderPass(std::vector<AttachmentProperties>& color_properties, AttachmentProperties& depth_properties);
-		RenderPass(std::vector<AttachmentProperties>& color_properties); //Renderpass without depth attachment
+		//RenderPass(std::vector<AttachmentProperties>& color_properties, AttachmentProperties& depth_properties);
+		//RenderPass(std::vector<AttachmentProperties>& color_properties); //Renderpass without depth attachment
+		
+		RenderPass(std::vector<AttachmentProperties>& attachment_properties); 
+		
 		~RenderPass();
 		RenderPass& operator=(RenderPass&& other);
 		RenderPass(RenderPass&& other);
+		
 		//RenderPass(VkRenderPass renderpass) : m_render_pass(renderpass) {};
-	
 		//RenderPass(RenderPass* other) : m_render_pass(other->vk_renderpass()), m_format_layout(other->formatLayout()) {}; //This should really be a copy constructor
 
 		VkRenderPass vk_renderpass() const { return m_render_pass; };

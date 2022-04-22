@@ -171,7 +171,7 @@ namespace Veist
 	}
 
 
-
+	/*
 	RenderPass::FormatLayout::FormatLayout(const AttachmentProperties& depth_props, const std::vector<AttachmentProperties>& color_properties)
 	: m_depth_format(depth_props.properties.imageFormat())
 	{
@@ -179,15 +179,22 @@ namespace Veist
 		{
 			m_color_formats.emplace_back(props.properties.imageFormat());
 		}
-	}
+	}*/
 
+	RenderPass::FormatLayout::FormatLayout(const std::vector<AttachmentProperties>& attachment_properties)
+	{
+		for (auto& props : attachment_properties)
+		{
+			m_attachment_formats.emplace_back(props.properties.imageFormat());
+		}
+	}
 
 	uint64_t RenderPass::FormatLayout::hash() const
 	{
-		uint64_t hash_code = uint64_t(m_depth_format.format());
-		for (const auto& color_format : m_color_formats)
+		uint64_t hash_code = 0;
+		for (const auto& format : m_attachment_formats)
 		{
-			Utils::hash_combine(hash_code, uint64_t(color_format.format()));
+			Utils::hash_combine(hash_code, uint64_t(format.format()));
 		}
 		return hash_code;
 	}
@@ -199,7 +206,7 @@ namespace Veist
 	}
 
 
-
+	/*
 	RenderPass::RenderPass(std::vector<AttachmentProperties>& color_properties, AttachmentProperties& depth_properties) : m_format_layout(depth_properties, color_properties)
 	{
 
@@ -279,6 +286,73 @@ namespace Veist
 	RenderPass::RenderPass(std::vector<AttachmentProperties>& color_properties) : 
 		RenderPass(color_properties, AttachmentProperties()) {};//Renderpass without depth attachment
 
+	*/
+	RenderPass::RenderPass(std::vector<AttachmentProperties>& attachment_properties) : m_format_layout(attachment_properties)
+	{
+
+
+		std::vector<VkAttachmentDescription> attachment_descriptions;
+		std::vector<VkAttachmentReference> attachment_references;
+
+		uint32_t attachment_count = attachment_properties.size();
+		bool has_depth_attachment = false;
+		uint32_t depth_attachment_index;
+		uint32_t index_count = 0;
+		for (uint32_t i = 0; i < attachment_count; i++)
+		{
+			if ((attachment_properties[i].usage & ImageUsage::DepthAttachment) != ImageUsage::None)
+			{
+				has_depth_attachment = true;
+				depth_attachment_index = i;
+				continue;
+			}
+
+			attachment_descriptions.push_back(createAttachmentDescription(attachment_properties[i]));
+			attachment_references.push_back(createAttachmentReference(index_count, attachment_properties[i].usage));
+			index_count++;
+		}
+
+		if (has_depth_attachment)
+		{
+			uint32_t idx = attachment_descriptions.size();
+			attachment_descriptions.push_back(createAttachmentDescription(attachment_properties[depth_attachment_index]));
+			attachment_references.push_back(createAttachmentReference(idx, attachment_properties[depth_attachment_index].usage));
+		}
+
+		//Create subpass
+		VkSubpassDescription subpass = {};
+		subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+		subpass.colorAttachmentCount = has_depth_attachment ? (attachment_count-1) : attachment_count;
+		subpass.pColorAttachments = attachment_references.data();
+
+		if (has_depth_attachment)
+		{
+			subpass.pDepthStencilAttachment = &attachment_references[attachment_count - 1];
+		}
+
+
+		//VkSubpassDependency dependency = createSubpassDependency(has_depth_attachment);
+
+
+		//Create renderpass
+		VkRenderPassCreateInfo create_info = {};
+		create_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+		create_info.attachmentCount = attachment_descriptions.size();
+		create_info.pAttachments = attachment_descriptions.data();
+		create_info.subpassCount = 1;
+		create_info.pSubpasses = &subpass;
+		//create_info.dependencyCount = 0;
+		//create_info.pDependencies = &dependency;
+
+		VkDevice device = RenderModule::getBackend()->getDevice();
+
+		VK_CHECK(vkCreateRenderPass(device, &create_info, nullptr, &m_render_pass));
+
+		VkRenderPass renderpass = m_render_pass;
+
+
+
+	}
 
 
 

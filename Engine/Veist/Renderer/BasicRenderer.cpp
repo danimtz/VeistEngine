@@ -195,6 +195,7 @@ namespace Veist
 			}
 
 
+			/*
 			//Render skybox
 			{
 				auto& scene_view = scene_registry->view<SkyboxComponent>();
@@ -218,7 +219,7 @@ namespace Veist
 
 					break;//Only loop once
 				}
-			}
+			}*/
 			});
 
 

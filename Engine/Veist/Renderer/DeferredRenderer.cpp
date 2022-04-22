@@ -45,14 +45,14 @@ namespace Veist
 		auto camera_buffer = builder.addUniformInput("camera_buffer", camera_buffer_info);
 
 		builder.addColorOutput("gbuffer_albedo", gbuff_albedo_info);
-		builder.addColorOutput("gbuffer_normal", gbuff_normal_info);
+		auto output_test = builder.addColorOutput("gbuffer_normal", gbuff_normal_info);
 		builder.addColorOutput("gbuffer_occ_rough_metal", gbuffer_occ_rough_metal_info);
 		builder.addColorOutput("gbuffer_emmissive", gbuff_emmissive_info);
 		builder.addDepthOutput("gbuffer_depth_attachment", depth_attachment_info);
 		
 
 		//builder.setRenderGraphImGuiBackbuffer("gbuffer_normal");
-		//renderer.m_editor_target = output_image;
+		//renderer.m_editor_target = output_test;
 
 		builder.setRenderFunction([=](CommandBuffer& cmd, const RenderGraph::RenderGraphPass* pass) {
 			
@@ -160,8 +160,8 @@ namespace Veist
 
 		
 		//builder.setRenderGraphBackbuffer("lighting_output");
-		builder.setRenderGraphImGuiBackbuffer("lighting_output");
-		renderer.m_editor_target = lighting_output;
+		//builder.setRenderGraphImGuiBackbuffer("lighting_output");
+		//renderer.m_editor_target = lighting_output;
 
 
 
@@ -318,7 +318,7 @@ namespace Veist
 
 		addGBufferPass(render_graph, scene_registry, deferred_renderer);
 		addLightingPass(render_graph, scene_registry, deferred_renderer);
-		//addSkyboxPass(render_graph, scene_registry, deferred_renderer);
+		addSkyboxPass(render_graph, scene_registry, deferred_renderer);
 
 
 

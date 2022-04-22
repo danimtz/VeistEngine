@@ -39,6 +39,7 @@ namespace RenderGraph
 		enum { Unused = ~0u };
 
 		Resource(uint32_t index, ResourceType type) : m_type(type), m_index(index), m_read_in_pass_count(0), m_used_in_graph(false) {};
+		virtual ~Resource() = default;
 
 		ResourceType resourceType() const {return m_type;}
 		uint32_t index() const { return m_index; }
@@ -166,7 +167,7 @@ namespace RenderGraph
 	public:
 		enum { Unused = ~0u };
 
-		
+		virtual ~PhysicalResource() = default;
 
 		ResourceType resourceType() const { return m_type; }
 		uint32_t physicalIndex() const { return m_physical_index; }

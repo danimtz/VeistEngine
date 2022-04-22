@@ -31,9 +31,13 @@ class Framebuffer
 
 
 		Framebuffer() = default;
-		Framebuffer(std::vector<Attachment>& colors, Attachment& depth, std::shared_ptr<RenderPass> renderpass);
-		Framebuffer(std::vector<Attachment>& colors, Attachment& depth);
-		Framebuffer(std::vector<Attachment>& colors);
+		//Framebuffer(std::vector<Attachment>& colors, Attachment& depth, std::shared_ptr<RenderPass> renderpass);
+		//Framebuffer(std::vector<Attachment>& colors, Attachment& depth);
+		//Framebuffer(std::vector<Attachment>& colors);
+		
+		Framebuffer(std::vector<Attachment>& attachments, std::shared_ptr<RenderPass> renderpass);
+		Framebuffer(std::vector<Attachment>& attachments);
+
 		~Framebuffer();
 
 		Framebuffer(Framebuffer&& other);
