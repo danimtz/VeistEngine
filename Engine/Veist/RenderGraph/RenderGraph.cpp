@@ -85,6 +85,39 @@ namespace RenderGraph
 
 
 
+	BufferResource* RenderGraph::getBufferResource(const std::string& name)
+	{
+		auto it = m_resource_to_idx_map.find(name);
+		if (it != m_resource_to_idx_map.end())
+		{
+			uint32_t index = it->second;
+
+			return static_cast<BufferResource*>(m_resources[index].get()) ;
+		}
+		else
+		{
+			CRITICAL_ERROR_LOG("Buffer Resource was not found");
+		}
+	}
+
+
+
+	ImageResource* RenderGraph::getImageResource(const std::string& name)
+	{
+		auto it = m_resource_to_idx_map.find(name);
+		if (it != m_resource_to_idx_map.end()) //found
+		{
+			uint32_t index = it->second;
+
+			return  static_cast<ImageResource*>(m_resources[index].get()) ;
+		}
+		else 
+		{
+			CRITICAL_ERROR_LOG("Image Resource was not found");
+		}
+	}
+
+
 
 	bool RenderGraph::setBackbuffer(const std::string& name)
 	{
@@ -102,6 +135,7 @@ namespace RenderGraph
 			return false;
 		}
 	}
+
 
 
 	Resource* RenderGraph::getResource(uint32_t index)

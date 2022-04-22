@@ -661,6 +661,7 @@ std::shared_ptr<Material> AssetLoader::loadPBRMaterialFromGLTF(const char* gltf_
 
 	//TODO change how material type is selected here
 	return std::make_shared<Material>(RenderModule::resources()->getMaterialType(EngineResources::MaterialTypes::DeferredGBufferMaterial), MaterialData({albedo, normal, occlusionRoughnessMetallic, emmissive}));
+	//return std::make_shared<Material>(RenderModule::resources()->getMaterialType(EngineResources::MaterialTypes::PBRMaterial), MaterialData({ albedo, normal, occlusionRoughnessMetallic, emmissive }));
 
 }
 

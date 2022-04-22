@@ -45,6 +45,34 @@ layout (set = 0, binding = 11) uniform sampler2D inDepth;
 
 
 
+//PBR Lo (outgoing radiance) calculation
+
+vec3 calcDiffuseSpecPBR(vec3 normal, vec3 light_dir, vec3 view_dir, vec3 albedo, float roughness, float metallic){
+
+	vec3 H = normalize(light_dir + view_dir);
+	float NdotV = max(dot(normal, view_dir), 0.0);
+	float NdotL = max(dot(normal, light_dir), 0.0);
+	float NdotH = max(dot(normal, H), 0.0);
+	float HdotV = max(dot(H, view_dir), 0.0);
+
+	vec3 F0 = approximateFO(albedo, metallic);
+
+	vec3 F = F_Schlick(HdotV, F0);
+	float G = G_Smith(NdotV, NdotL, roughness);
+	float NDF = D_GGX(NdotH, roughness);
+
+	vec3 Ks = F;
+	vec3 Kd = (1.0 - Ks) * (1.0 - metallic);
+	
+	vec3 specular = Ks * max(NDF*G/getCookTorranceDenom(NdotL,NdotV), 0.0);
+	vec3 diffuse = Kd * albedo / PI;
+
+	return NdotL * (diffuse + specular);
+
+}
+
+
+
 float calcAttenuation(float radius, vec3 light_pos, vec3 fragPos){
 	float dist = length(light_pos-fragPos);
 	float k_linear = 2.0/radius;
@@ -60,21 +88,6 @@ vec3 positionFromDepth(vec2 uv, float depth, mat4 inv_mat)
 	//perpesctive divide
 	vec4 pos = view_space_pos/view_space_pos.w;
 	return pos.xyz;
-}
-
-
-
-vec3 calculateDiffuseSpec(vec3 N, vec3 V, vec3 L, vec3 albedo)
-{
-
-	vec3 H = normalize(L + V);
-
-	float diffuse = max(dot(N, L), 0.0);
-	float spec = pow(max(dot(N, H), 0.0), 128.0);
-
-	vec3 color = (diffuse * albedo) + (spec * albedo);
-
-	return color;
 }
 
 
@@ -104,7 +117,7 @@ void main()
 	{
 		vec3 L = dir_lights[i].direction;
 		vec3 radiance = dir_lights[i].colour * dir_lights[i].intensity;
-		Lo += radiance * calculateDiffuseSpec(N, L, V, albedo);
+		Lo += radiance * calcDiffuseSpecPBR(N, L, V, albedo, roughness, metallic);
 
 	}
 
@@ -115,15 +128,32 @@ void main()
 		float attenuation = calcAttenuation(point_lights[i].radius, point_lights[i].position, frag_pos);
 		
 		vec3 radiance = point_lights[i].colour * attenuation * point_lights[i].intensity;
-		Lo += radiance * calculateDiffuseSpec(N, L, V, albedo);
+		Lo += radiance * calcDiffuseSpecPBR(N, L, V, albedo, roughness, metallic);
 
 	}
 
+	//IBL
+	vec3 F0 = approximateFO(albedo, metallic);
+	vec3 F = F_SchlickRoughness(max(dot(N, V), 0.0), F0, roughness);
+    vec3 kS =  F;
+	vec3 kD = 1.0 - kS;
+	kD *= 1.0 - metallic;	
+	vec3 irradiance = texture(inIrradianceMap, N).rgb;
+	vec3 ambient_diffuse = irradiance * albedo; //Diffuse
+
+    const float MAX_REFLECTION_LOD = 4.0;
+    vec3 prefilteredColor = textureLod(inPrefilterMap, worldR,  roughness * MAX_REFLECTION_LOD).rgb;
+	vec2 envBRDF  = texture(inBRDF_LUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
+	vec3 ambient_specular = prefilteredColor * (F * envBRDF.x + envBRDF.y); //Specular
+
+
+	vec3 ambient = (kD * ambient_diffuse + ambient_specular ) * occlusion;
+	
 	
 	if(depth == 1.0) //Small patch not really needed, this should really be handled with light volumes etc, 
 	{//If theres no fragment on depth buffer, the entire shader shouldnt be running anyway.
-		//ambient = vec3(0.0,0.0,0.0);
-		//emmissive = vec3(0.0,0.0,0.0);
+		ambient = vec3(0.0,0.0,0.0);
+		emmissive = vec3(0.0,0.0,0.0);
 	}
 
 	vec3 color = Lo ;//+ ambient + emmissive;

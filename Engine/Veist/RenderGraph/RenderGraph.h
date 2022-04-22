@@ -23,15 +23,22 @@ namespace RenderGraph
 
 		void execute(CommandBuffer& cmd);
 
-		bool setBackbuffer(const std::string& name);
+
+		
 
 		std::pair<bool, BufferResource*> addBufferResource(const std::string& name);
 		std::pair<bool, ImageResource*> addImageResource(const std::string& name);
+
+		BufferResource* getBufferResource(const std::string& name);
+		ImageResource* getImageResource(const std::string& name);
+
 		Resource* getResource(uint32_t index);
 
 		ResourcePool* resourcePool() { return m_resource_pool.get();};
 
 	private:
+
+		bool setBackbuffer(const std::string& name);
 
 		bool validateGraph();
 		void setupGraphPassOrder(std::stack<uint32_t>& next_passes, std::stack<uint32_t>& next_resources);

@@ -59,6 +59,8 @@ namespace RenderGraph
 
 		void setRenderFunction(RenderFunction&& function);
 
+		void setRenderGraphBackbuffer(const std::string& name);
+		void setRenderGraphImGuiBackbuffer(const std::string& name);
 
 		//TODO remove this later when find a better way to transition output image for rendering to a texture in gui
 		uint32_t getPassIndex() {return m_graph_pass->m_pass_index;};

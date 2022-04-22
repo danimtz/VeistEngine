@@ -27,7 +27,7 @@ namespace Veist
 	}
 
 
-	static void addGBufferPass(RenderGraph::RenderGraph& render_graph, ecs::EntityRegistry* scene_registry)
+	static void addGBufferPass(RenderGraph::RenderGraph& render_graph, ecs::EntityRegistry* scene_registry, DeferredRenderer& renderer)
 	{
 		RenderGraph::BufferInfo camera_buffer_info;
 		camera_buffer_info.size = sizeof(RendererUniforms::CameraData);
@@ -50,6 +50,10 @@ namespace Veist
 		builder.addColorOutput("gbuffer_emmissive", gbuff_emmissive_info);
 		builder.addDepthOutput("gbuffer_depth_attachment", depth_attachment_info);
 		
+
+		//builder.setRenderGraphImGuiBackbuffer("gbuffer_normal");
+		//renderer.m_editor_target = output_image;
+
 		builder.setRenderFunction([=](CommandBuffer& cmd, const RenderGraph::RenderGraphPass* pass) {
 			
 
@@ -110,7 +114,7 @@ namespace Veist
 	}
 
 
-	static void addLightingPass(RenderGraph::RenderGraph& render_graph, ecs::EntityRegistry* scene_registry)
+	static void addLightingPass(RenderGraph::RenderGraph& render_graph, ecs::EntityRegistry* scene_registry, DeferredRenderer& renderer)
 	{
 		static constexpr uint32_t max_dir_lights = 4;
 		static constexpr uint32_t max_point_lights = 100;
@@ -152,9 +156,13 @@ namespace Veist
 
 		
 
-		builder.addColorOutput("lighting_output", output_image_info);
+		auto lighting_output = builder.addColorOutput("lighting_output", output_image_info);
 
-		//renderer.m_editor_target = output_image;
+		
+		//builder.setRenderGraphBackbuffer("lighting_output");
+		builder.setRenderGraphImGuiBackbuffer("lighting_output");
+		renderer.m_editor_target = lighting_output;
+
 
 
 		builder.setRenderFunction([=](CommandBuffer& cmd, const RenderGraph::RenderGraphPass* pass) {
@@ -181,7 +189,56 @@ namespace Veist
 			}
 
 
+			RendererUniforms::SceneInfo scene_info_data;
+
+			//Fill point light buffer
+			{
+
+				RendererUniforms::GPUPointLight point_lights[max_point_lights];
+				uint32_t light_count = 0;
+				auto& scene_view = scene_registry->view<PointLightComponent, TransformComponent>();
+				for (ecs::EntityId entity : scene_view)
+				{
+					auto& light_comp = scene_view.get<PointLightComponent>(entity);
+					auto& transform_comp = scene_view.get<TransformComponent>(entity);
+
+					point_lights[light_count].colour = light_comp.colour();
+					point_lights[light_count].intensity = light_comp.intensity();
+					point_lights[light_count].radius = light_comp.radius();
+					point_lights[light_count].position = main_cam->viewMatrix() * glm::vec4(transform_comp.translation(), 1.0);
+
+					light_count++;
+				}
+
+				pass->getPhysicalBuffer(point_lights_buffer)->setData(&point_lights, sizeof(RendererUniforms::GPUPointLight) * max_point_lights);
+				scene_info_data.point_lights_count = light_count;
+			}
+
+
+			//Fill directional light buffer
+			{
+
+				RendererUniforms::GPUDirLight directional_lights[max_dir_lights];
+				uint32_t light_count = 0;
+				auto& scene_view = scene_registry->view<DirectionalLightComponent>();
+				glm::mat4 world2view_mat = glm::mat4(glm::mat3(main_cam->viewMatrix()));
+				for (ecs::EntityId entity : scene_view)
+				{
+					auto& light_comp = scene_view.get<DirectionalLightComponent>(entity);
+
+					directional_lights[light_count].colour = light_comp.colour();
+					directional_lights[light_count].intensity = light_comp.intensity();
+					directional_lights[light_count].direction = world2view_mat * glm::vec4(light_comp.direction(), 1.0);
+					light_count++;
+				}
+				pass->getPhysicalBuffer(dir_lights_buffer)->setData(&directional_lights, sizeof(RendererUniforms::GPUDirLight) * max_dir_lights);
+				scene_info_data.dir_lights_count = light_count;
+			}
 			
+			//Scene info buffer
+			{
+				pass->getPhysicalBuffer(scene_info_buffer)->setData(&scene_info_data, sizeof(RendererUniforms::SceneInfo));
+			}
 
 			cmd.bindMaterialType(EngineResources::MaterialTypes::DeferredLightingMaterial);
 
@@ -206,10 +263,8 @@ namespace Veist
 		auto output_image = builder.addColorOutput("skybox_output", output_image_info, "lighting_output");
 		
 		//outputs of rendergraph
-		render_graph.setBackbuffer("skybox_output");
+		builder.setRenderGraphImGuiBackbuffer("skybox_output");
 
-		//SMALL PATCH TODO ADD THIS LATER AS AN EXTERNAL OUTPUT OF RENDERPASS
-		output_image->addImageUsage(ImageUsage::Texture, builder.getPassIndex());
 		renderer.m_editor_target = output_image;
 
 		builder.setRenderFunction([=](CommandBuffer& cmd, const RenderGraph::RenderGraphPass* pass)
@@ -261,9 +316,9 @@ namespace Veist
 		DeferredRenderer deferred_renderer;
 
 
-		addGBufferPass(render_graph, scene_registry);
-		addLightingPass(render_graph, scene_registry);
-		addSkyboxPass(render_graph, scene_registry, deferred_renderer);
+		addGBufferPass(render_graph, scene_registry, deferred_renderer);
+		addLightingPass(render_graph, scene_registry, deferred_renderer);
+		//addSkyboxPass(render_graph, scene_registry, deferred_renderer);
 
 
 

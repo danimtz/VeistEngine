@@ -18,6 +18,19 @@ namespace RenderGraph
 	}
 
 
+	void PassBuilder::setRenderGraphBackbuffer(const std::string& name)
+	{
+		m_graph_pass->m_graph->setBackbuffer(name);
+	}
+
+	void PassBuilder::setRenderGraphImGuiBackbuffer(const std::string& name)
+	{
+		auto img_res = m_graph_pass->m_graph->getImageResource(name);
+		img_res->addImageUsage(ImageUsage::Texture, m_graph_pass->m_pass_index);
+		m_graph_pass->m_graph->setBackbuffer(name);
+	}
+
+
 	ImageResource* PassBuilder::addImageToPass(ResourceAction action, const std::string& name, const ImageInfo& info, PipelineStage stage, ImageUsage usage)
 	{
 		//Get resource

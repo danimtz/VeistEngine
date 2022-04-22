@@ -37,8 +37,8 @@ namespace Veist
 
 			glm::vec3 pos = glm::vec3(3.0, 0.0, 0.0);
 			glm::vec3 col = glm::vec3(0.1, 0.13, 0.81);
-			registry->emplaceComponent<PointLightComponent>(point_light_1, col);
-			registry->emplaceComponent<TransformComponent>(point_light_1, pos);
+			//registry->emplaceComponent<PointLightComponent>(point_light_1, col);
+			//registry->emplaceComponent<TransformComponent>(point_light_1, pos);
 
 
 			registry->emplaceComponent<DirectionalLightComponent>(sun_light, glm::normalize(glm::vec3(0.0, 1.0, -1.0)), glm::vec3(1.0), 1.0);

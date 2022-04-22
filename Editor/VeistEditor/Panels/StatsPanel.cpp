@@ -27,6 +27,14 @@ namespace VeistEditor
 		*/
 		ImGui::Text("Engine stats:");
 		ImGui::Text("Frame time: %f ms", (float)m_editor_app->getFrametime().getMilliseconds());
+		
+		ImGui::Text("Last large frame spike: %f ms", m_last_spike);
+		
+		if ((float)m_editor_app->getFrametime().getMilliseconds() > 32.0)
+		{
+			//printf("Frame time: %f ms\n", (float)m_editor_app->getFrametime().getMilliseconds());
+			m_last_spike = (float)m_editor_app->getFrametime().getMilliseconds();
+		}
 
 		ImGui::End();
 

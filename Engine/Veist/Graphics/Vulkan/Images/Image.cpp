@@ -150,7 +150,7 @@ namespace Veist
 		}
 		else if((usage & ImageUsage::SwapchainImage) != ImageUsage::SwapchainImage)
 		{
-			transitionImageLayout(getImageLayout(usage));
+			//transitionImageLayout(getImageLayout(usage));
 		}
 
 	}

@@ -68,7 +68,7 @@ namespace Veist
 		basic_renderer.m_editor_target = output_image;
 
 
-		render_graph.setBackbuffer("Color");
+		builder.setRenderGraphImGuiBackbuffer("Color");
 
 		//End rendergraph tests
 
@@ -104,7 +104,7 @@ namespace Veist
 			RendererUniforms::SceneInfo scene_info_data;
 
 			//Global light probe for IBL
-			LightProbeComponent* global_light_probe;
+			LightProbeComponent* global_light_probe; //TODO is this even needed here?
 			{
 				auto& scene_view = scene_registry->view<LightProbeComponent>();
 				for (ecs::EntityId entity : scene_view)
