@@ -155,7 +155,7 @@ namespace VeistEditor
 
 		//TODO this should be part of an editor pass (and its pretty bad especially the static cast to get the image base)
 		std::vector<Descriptor> descriptor;
-		ImageBase* target = render_graph.resourcePool()->getImage(static_cast<RenderGraph::PhysicalImage*>(renderer.m_editor_target->physicalResource()));
+		ImageBase* target = render_graph.resourcePool()->getImage(static_cast<RenderGraph::PhysicalImage*>(renderer.m_editor_target->physicalResource()))->image.get();
 		descriptor.emplace_back(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, target, SamplerType::RepeatLinear, VK_SHADER_STAGE_FRAGMENT_BIT);
 
 		DescriptorSet desc_set{0, descriptor};

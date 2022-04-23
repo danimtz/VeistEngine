@@ -134,7 +134,8 @@ namespace RenderGraph
 		auto it = m_stage_in_pass.find(pass_index);
 		if (it == m_stage_in_pass.end())
 		{
-			CRITICAL_ERROR_LOG("Resource does not have a stage assigned for this pass");
+			//If no stage return top of pipe
+			return PipelineStage::TopOfPipe;
 		}
 		else
 		{
@@ -217,6 +218,27 @@ namespace RenderGraph
 		}
 	};
 
+	
+
+	PipelineStage PhysicalResource::getLastStageInFrame(const std::vector<uint32_t>& pass_stack)
+	{
+		for (auto idx_it = pass_stack.rbegin(); idx_it != pass_stack.rend(); idx_it++)
+		{
+			uint32_t idx = *idx_it;
+			auto it = m_stage_in_pass.find(*idx_it);
+			if (it == m_stage_in_pass.end())
+			{
+				continue;
+			}
+			else
+			{
+				return it->second;
+			}
+		}
+		
+		return PipelineStage::TopOfPipe;
+
+	}
 
 
 

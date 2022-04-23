@@ -439,7 +439,11 @@ namespace RenderGraph
 			{
 				if (resource->resourceType() == ResourceType::Image)
 				{
-					m_resource_pool->createImage(static_cast<PhysicalImage*>(resource));
+					//get last used pipeline stage
+					auto stage = resource->getLastStageInFrame(m_pass_stack);
+
+					m_resource_pool->createImage(static_cast<PhysicalImage*>(resource), stage);
+
 				}
 				else if (resource->resourceType() == ResourceType::Buffer)
 				{
@@ -497,23 +501,27 @@ namespace RenderGraph
 				if (img_res->lastUsedPass() != PhysicalResource::Unused)
 				{
 					//src as late as possible and dst as early as possible to ensure sync
-					ImageBase* image = m_resource_pool->getImage(img_res);
+					auto image = m_resource_pool->getImage(img_res);
 					PipelineStage src_stage = img_res->getStageInPass(img_res->lastUsedPass());
 					PipelineStage dst_stage = img_res->getStageInPass(pass_idx);
 					VkImageLayout old_layout = getImageLayout(img_res->imageUsageInPass(img_res->lastUsedPass()));
 					VkImageLayout new_layout = getImageLayout(img_res->imageUsageInPass(pass_idx));
 
-					image_barriers.emplace_back(image, src_stage, dst_stage, old_layout, new_layout);
+					image_barriers.emplace_back(image->image.get(), src_stage, dst_stage, old_layout, new_layout);
 				}
 				else
 				{
-					ImageBase* image = m_resource_pool->getImage(img_res);
-					PipelineStage src_stage = PipelineStage::TopOfPipe;
+					auto image = m_resource_pool->getImage(img_res);
+
+					PipelineStage src_stage = image->last_stage; //get pipeline stage of last time image resource was used
 					PipelineStage dst_stage = img_res->getStageInPass(pass_idx);
 					VkImageLayout old_layout = VK_IMAGE_LAYOUT_UNDEFINED;
 					VkImageLayout new_layout = getImageLayout(img_res->imageUsageInPass(pass_idx));
 
-					image_barriers.emplace_back(image, src_stage, dst_stage, old_layout, new_layout);
+					//Update last used stage of resource
+					image->last_stage = img_res->getLastStageInFrame(m_pass_stack);
+
+					image_barriers.emplace_back(image->image.get(), src_stage, dst_stage, old_layout, new_layout);
 				}
 
 

@@ -12,13 +12,13 @@ namespace RenderGraph
 {
 
 
-	void ResourcePool::createImage(PhysicalImage* resource)
+	void ResourcePool::createImage(PhysicalImage* resource, PipelineStage stage)
 	{
 
 		if (!reuseImageFromPool(resource))
 		{
 			uint32_t index = m_physical_images.size();
-			m_physical_images.emplace_back(std::make_unique<ImageBase>(resource->imageProperties(), resource->imageUsage(), resource->imageViewType()));
+			m_physical_images.emplace_back(std::make_unique<ImageData>(resource->imageProperties(), resource->imageUsage(), resource->imageViewType(), stage));
 			resource->setPhysicalIndex(index);
 
 		}
@@ -47,7 +47,7 @@ namespace RenderGraph
 		for (auto it = m_unused_image_pool.begin(); it != m_unused_image_pool.end(); it++)
 		{
 			auto& image = it->second;
-			if ((image->properties() == resource->imageProperties()) && (image->imageUsage() == resource->imageUsage()))
+			if ((image->image->properties() == resource->imageProperties()) && (image->image->imageUsage() == resource->imageUsage()))
 			{
 				uint32_t index = m_physical_images.size();
 				m_physical_images.emplace_back(std::move(image)); //move contruct image to used images vector
@@ -91,7 +91,9 @@ namespace RenderGraph
 		//Move unused resources from vector to pool
 		VkDevice device = RenderModule::getBackend()->getDevice();
 		VkFence current_fence = RenderModule::getBackend()->getCurrentCmdBuffer().fence();
-		for (auto& image : m_physical_images)
+		
+		
+		/*for (auto& image : m_physical_images)
 		{
 			m_in_use_images.emplace_front(current_fence, std::move(image));
 		}
@@ -131,13 +133,39 @@ namespace RenderGraph
 			{
 				it++;
 			}
+		}*/
+
+
+
+		for (auto& image : m_physical_images)
+		{
+			m_unused_image_pool.emplace_back(0, std::move(image));
+		}
+		m_physical_images.clear();
+
+
+		for (auto& buffer : m_physical_buffers)
+		{
+			m_in_use_buffers.emplace_front(0, std::move(buffer));
+		}
+		m_physical_buffers.clear();
+
+
+
+		uint32_t frames_in_flight = RenderModule::getBackend()->getSwapchainImageCount();
+		for (auto& it = m_in_use_buffers.begin(); it != m_in_use_buffers.end(); )
+		{
+			if (it->first++ >= frames_in_flight)
+			{
+				m_unused_buffer_pool.emplace_back(0, std::move(it->second));
+				it = m_in_use_buffers.erase(it);
+			}
+			else
+			{
+				it++;
+			}
 		}
 
-
-		/*if (m_in_use_images.size() > 7)
-		{
-			CONSOLE_LOG("SOMETHING WENT WRONG HERE");
-		}*/
 
 
 		//Cull resources not used for 8 frames

@@ -197,12 +197,14 @@ namespace Veist
 		while (!next_free_found) //I could use a queue here isntead of iterating through bitset finding next free index but its fine
 		{
 			m_next_free_idx++;
-			next_free_found = m_free_descriptors.test(m_next_free_idx);
 
-			if (m_next_free_idx > descriptor_pool_size)
+			if (m_next_free_idx >= descriptor_pool_size)
 			{
 				CRITICAL_ERROR_LOG("Descriptor pool full, could not find free descriptor");
 			}
+
+			next_free_found = m_free_descriptors.test(m_next_free_idx);
+
 		}
 
 		return index;
@@ -213,35 +215,35 @@ namespace Veist
 
 	void DescriptorSetPool::recycleDescriptor(uint32_t index)
 	{
-		VkDevice device = RenderModule::getBackend()->getDevice();
+		//VkDevice device = RenderModule::getBackend()->getDevice();
 		
 		//Add descriptor to recycle queue along with current command buffer fence 
 		
-		VkFence fence = RenderModule::getBackend()->getCurrentCmdBuffer().fence();
-		m_descriptor_recycle_list.emplace_back(index, fence);
+		//VkFence fence = RenderModule::getBackend()->getCurrentCmdBuffer().fence();
+		//m_descriptor_recycle_list.emplace_back(index, 0);
 		
-		//Attempt to free all descriptors in queue if their fence is not signalled
-		for (auto it = m_descriptor_recycle_list.begin(); it != m_descriptor_recycle_list.end();)
-		{
-			uint32_t free_idx = it->first;
-			fence = it->second;
+		//uint32_t frame_overlap_count
+		//for (auto it = m_descriptor_recycle_list.begin(); it != m_descriptor_recycle_list.end();)
+		//{
+			//uint32_t free_idx = it->first;
+			//uint32_t frame_in_flight_idx = it->second;
 
 			//Attempt to recycle descriptor if its not in use
-			if (vkGetFenceStatus(device, fence) == VK_SUCCESS)
-			{
-				m_free_descriptors.set(free_idx, true);
-				if (m_next_free_idx > free_idx)
-				{
-					m_next_free_idx = free_idx;
-				}
-				it = m_descriptor_recycle_list.erase(it); //Delete descriptor from recycle list since it succeeded
-			}
-			else
-			{
-				it++;
-			}
-
+			//if (vkGetFenceStatus(device, fence) == VK_SUCCESS)
+			//{
+		m_free_descriptors.set(index, true);
+		if (m_next_free_idx > index)
+		{
+			m_next_free_idx = index;
 		}
+				//it = m_descriptor_recycle_list.erase(it); //Delete descriptor from recycle list since it succeeded
+			//}
+			//else
+			//{
+			//	it++;
+			//}
+
+		
 
 		
 		//TODO: for global descriptors(eg materials) what comand buffer fence is used or does it not matter since they will be deleted at program end

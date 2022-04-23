@@ -65,7 +65,7 @@ namespace RenderGraph
 			CRITICAL_ERROR_LOG("Image resource does not have a phisical resource assigned to it");
 		}
 
-		return m_graph->resourcePool()->getImage(static_cast<PhysicalImage*>(resource->physicalResource()));
+		return m_graph->resourcePool()->getImage(static_cast<PhysicalImage*>(resource->physicalResource()))->image.get();
 	}
 
 

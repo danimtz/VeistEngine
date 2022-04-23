@@ -179,6 +179,7 @@ namespace RenderGraph
 		void setLastUsedPass(uint32_t index) { m_last_pass_used = index; }
 
 		PipelineStage getStageInPass(uint32_t pass_index) const;
+		PipelineStage getLastStageInFrame(const std::vector<uint32_t>& pass_stack);
 
 	protected:
 
@@ -210,6 +211,7 @@ namespace RenderGraph
 		ImageProperties imageProperties() const { return m_info.properties; };
 		ImageViewType imageViewType() const { return m_info.view_type; };
 		ImageUsage imageUsageInPass(uint32_t pass_index) const;
+
 
 	private:
 		ImageInfo m_info;
