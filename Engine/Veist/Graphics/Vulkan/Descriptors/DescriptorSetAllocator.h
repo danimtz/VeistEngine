@@ -53,7 +53,7 @@ namespace Veist
 		std::array<VkDescriptorSet, descriptor_pool_size> m_descriptor_sets;
 
 
-		//std::list<std::pair<uint32_t, uint32_t>> m_descriptor_recycle_list;
+		std::list<std::pair<uint32_t, uint32_t>> m_descriptor_recycle_list;
 
 		//std::vector<VkDescriptorSetLayoutBinding> TESTLAYOUT;
 

@@ -2,6 +2,8 @@
 
 #include "Veist/Graphics/Vulkan/ShaderAndPipelines/Shader.h"
 
+#include "Veist/Material/MaterialType.h"
+
 #include "spirv_cross.hpp"
 
 #include "Veist/Graphics/RenderModule.h"
@@ -80,25 +82,57 @@ static shaderc_shader_kind shaderStageFlagToShaderc(ShaderStageFlag stage)
 }
 
 
-std::shared_ptr<ShaderProgram> ShaderProgram::Create(const std::string& shader_name, bool isCompute)
+std::shared_ptr<ShaderProgram> ShaderProgram::Create(const MaterialSettings& settings)
 {
 
 	//Check if shader with that name exists, if it does return pointer to it
 			//TODO
 
 	//Else create new shader
-	return std::make_shared<ShaderProgram>(shader_name, isCompute);
+
+
+	std::unordered_map<ShaderStageFlag, std::string> shader_names;
+
+	if (!settings.vertex_shader_name.empty())
+	{
+		shader_names.emplace(ShaderStageFlag::Vertex, settings.vertex_shader_name);
+	}
+	if (!settings.fragment_shader_name.empty())
+	{
+		shader_names.emplace(ShaderStageFlag::Fragment, settings.fragment_shader_name);
+	}
+
+	if (shader_names.empty())
+	{
+		CRITICAL_ERROR_LOG("Error building shaders. No valid shader material names in material settings");
+	}
+	
+
+	/*shader_names.emplace(ShaderStageFlag::Geometry, settings.);
+	shader_names.emplace(ShaderStageFlag::TessC, settings.);
+	shader_names.emplace(ShaderStageFlag::TessE, settings.);*/
+
+	return std::make_shared<ShaderProgram>(shader_names);
 
 }
 
 
+std::shared_ptr<ShaderProgram> ShaderProgram::Create(const std::string& compute_shader_name)
+{
 
-ShaderProgram::ShaderProgram(const std::string& shader_name, bool isCompute)
+	
+	std::unordered_map<ShaderStageFlag, std::string> shader_names;
+	shader_names.emplace(ShaderStageFlag::Compute, compute_shader_name);
+
+	return std::make_shared<ShaderProgram>(shader_names);
+}
+
+ShaderProgram::ShaderProgram(const std::unordered_map<ShaderStageFlag, std::string>& shader_names)
 {
 
 	
 
-	compileOrGetSpirV(shader_name, isCompute);
+	compileOrGetSpirV(shader_names);
 
 	createShaderModules();
 	
@@ -109,25 +143,14 @@ ShaderProgram::ShaderProgram(const std::string& shader_name, bool isCompute)
 }
 
 
-void ShaderProgram::compileOrGetSpirV(const std::string& shader_name, bool isCompute)
+void ShaderProgram::compileOrGetSpirV(const std::unordered_map<ShaderStageFlag, std::string>& shader_names)
 {
 
-	std::unordered_map<ShaderStageFlag, std::string> shader_names;
-
-	if (isCompute)
-	{
-		shader_names.emplace(ShaderStageFlag::Compute, shader_name + ".comp");
-	}
-	else
-	{
-		shader_names.emplace(ShaderStageFlag::Vertex, shader_name + ".vert");
-		shader_names.emplace(ShaderStageFlag::Fragment, shader_name + ".frag");
-		shader_names.emplace(ShaderStageFlag::Geometry, shader_name + ".geom");
-		shader_names.emplace(ShaderStageFlag::TessC, shader_name + ".tesc");
-		shader_names.emplace(ShaderStageFlag::TessE, shader_name + ".tese");
-
-	}
 	
+
+	//TODO sanity check that Shader name extension .vert .frag .comp... etc matches SHaderStageFlag
+
+
 	
 	for (auto& it : shader_names)
 	{
@@ -220,10 +243,10 @@ void ShaderProgram::compileOrGetSpirV(const std::string& shader_name, bool isCom
 
 	}
 
-	if (m_spirv_source.size() == 0)
+	/*if (m_spirv_source.size() == 0)
 	{
-		CRITICAL_ERROR_LOG("Error building shaders. No shader exists with name: " + shader_name);
-	}
+		CRITICAL_ERROR_LOG("Error building shaders. No shader exists with name: ");
+	}*/
 
 }
 

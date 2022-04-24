@@ -497,7 +497,7 @@ std::shared_ptr<Cubemap> AssetLoader::loadCubemapFromEquirectMap(const char* fil
 
 
 		//Use compute shader to convert equirectangular image to cubemap
-		ComputePipeline compute_program = { "equirectToCubemapHDR" };
+		ComputePipeline compute_program = { "equirectToCubemapHDR.comp" };
 		
 
 		std::vector<Descriptor> bindings;
@@ -554,7 +554,7 @@ std::shared_ptr<Cubemap> AssetLoader::loadCubemapFromEquirectMap(const char* fil
 
 
 		//Use compute shader to convert equirectangular image to cubemap
-		ComputePipeline compute_program = { "equirectToCubemapRGB8" };
+		ComputePipeline compute_program = { "equirectToCubemapRGB8.comp" };
 		
 
 		std::vector<Descriptor> bindings;

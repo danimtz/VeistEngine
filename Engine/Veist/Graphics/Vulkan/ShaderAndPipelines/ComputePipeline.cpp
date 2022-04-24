@@ -22,7 +22,7 @@ ComputePipeline::ComputePipeline(const std::string& shader_name)
 void ComputePipeline::createShaderProgram(const std::string& shader_name)
 {
 
-	m_shader_program = ShaderProgram::Create(shader_name, true);
+	m_shader_program = ShaderProgram::Create(shader_name);
 
 
 }

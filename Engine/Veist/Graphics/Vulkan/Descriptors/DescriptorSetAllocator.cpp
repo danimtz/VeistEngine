@@ -215,43 +215,42 @@ namespace Veist
 
 	void DescriptorSetPool::recycleDescriptor(uint32_t index)
 	{
-		//VkDevice device = RenderModule::getBackend()->getDevice();
 		
-		//Add descriptor to recycle queue along with current command buffer fence 
+		uint32_t frames_in_flight = RenderModule::getBackend()->getSwapchainImageCount()-1;
 		
-		//VkFence fence = RenderModule::getBackend()->getCurrentCmdBuffer().fence();
-		//m_descriptor_recycle_list.emplace_back(index, 0);
-		
-		//uint32_t frame_overlap_count
-		//for (auto it = m_descriptor_recycle_list.begin(); it != m_descriptor_recycle_list.end();)
-		//{
-			//uint32_t free_idx = it->first;
-			//uint32_t frame_in_flight_idx = it->second;
+		m_descriptor_recycle_list.emplace_back(0, index);
 
-			//Attempt to recycle descriptor if its not in use
-			//if (vkGetFenceStatus(device, fence) == VK_SUCCESS)
-			//{
-		m_free_descriptors.set(index, true);
-		if (m_next_free_idx > index)
+
+		for (auto& it = m_descriptor_recycle_list.begin(); it != m_descriptor_recycle_list.end(); )
 		{
-			m_next_free_idx = index;
+			if (it->first++ >= frames_in_flight)
+			{
+				uint32_t desc_index = it->second;
+				m_free_descriptors.set(desc_index, true);
+				if (m_next_free_idx > desc_index)
+				{
+					m_next_free_idx = desc_index;
+				}
+				
+				it = m_descriptor_recycle_list.erase(it);
+			}
+			else
+			{
+				it++;
+			}
 		}
-				//it = m_descriptor_recycle_list.erase(it); //Delete descriptor from recycle list since it succeeded
-			//}
-			//else
-			//{
-			//	it++;
-			//}
 
+
+
+
+
+		
 		
 
 		
 		//TODO: for global descriptors(eg materials) what comand buffer fence is used or does it not matter since they will be deleted at program end
 		
 		
-		
-
-
 		
 	}
 

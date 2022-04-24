@@ -15,30 +15,21 @@ namespace Veist
 			SkyboxMaterial,
 			DeferredGBufferMaterial,
 			DeferredLightingMaterial,
-			
+
 			MaxMaterialTypes
 		};
 
-
-        /*enum ShaderNames
-        {
-            //EquirecConvolutionComp,
-            //CubemapConvolutionComp,
-            
-			PBRShaderVert,
-			PBRShaderFrag,
-
-            MaxShaders
-        };*/
+		//TODO add compute programs here too?
 
 		EngineResources();
-		~EngineResources(){};
+		~EngineResources() {};
 
 
 		MaterialType* getMaterialType(MaterialTypes type);
 
 	private:
 
+		std::vector<MaterialSettings> m_material_settings;
 
 		std::unique_ptr< std::vector<MaterialType> > m_material_types;
 		//std::unique_ptr<Material[]> m_materials;
@@ -48,5 +39,3 @@ namespace Veist
 	};
 
 }
-
-

@@ -22,14 +22,16 @@ enum class ShaderStageFlag : uint32_t {
 };
 
 
+struct MaterialSettings;
 
 class ShaderProgram
 {
 public:
 
-    static std::shared_ptr<ShaderProgram> Create(const std::string& shader_name, bool isCompute = false);
+    static std::shared_ptr<ShaderProgram> Create(const MaterialSettings& settings);
+    static std::shared_ptr<ShaderProgram> Create(const std::string& compute_shader_name);
 
-    ShaderProgram(const std::string& file_path, bool isCompute);
+    ShaderProgram(const std::unordered_map<ShaderStageFlag, std::string>& shader_names);
 
     std::vector<VkShaderModule>& shaderModules() { return m_shader_module; };
     std::vector<VkPipelineShaderStageCreateInfo>& pipelineStages() { return m_pipeline_stages; };
@@ -42,7 +44,7 @@ public:
 private:
     
 
-    void compileOrGetSpirV(const std::string& shader_name, bool isCompute);
+    void compileOrGetSpirV(const std::unordered_map<ShaderStageFlag, std::string>& shader_names);
     void createShaderModules();
     void reflectShaderModules();
     void createDescriptorSetLayouts();

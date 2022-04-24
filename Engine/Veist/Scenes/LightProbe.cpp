@@ -34,7 +34,7 @@ static VkImageView getMipmapImageView(uint32_t mip_level, const ImageBase& image
 
 static std::shared_ptr<Cubemap> calculateIrradianceMap(const Cubemap& HDRcubemap, uint32_t map_size)
 {
-	ComputePipeline compute_irradiance = {"IBLIrradianceMap"};
+	ComputePipeline compute_irradiance = {"IBLIrradianceMap.comp"};
 
 	ImageProperties cubemap_properties = { {map_size, map_size}, HDRcubemap.properties().imageFormat(), 1, 6 }; //32x32 cubemap
 	StorageCubemap cubemap{cubemap_properties}; 
@@ -69,7 +69,7 @@ static std::shared_ptr<Cubemap> calculateEnvironmentMap(const Cubemap& HDRcubema
 	uint32_t mip_levels = 5; //calculate mip levels for env map
 	assert(max_mips > mip_levels);
 
-	ComputePipeline compute_IBLenvironment = { "IBLEnvironmentMap" };
+	ComputePipeline compute_IBLenvironment = { "IBLEnvironmentMap.comp" };
 	
 	ImageProperties cubemap_properties = { {map_size, map_size}, HDRcubemap.properties().imageFormat(), mip_levels, 6 }; //32x32 cubemap
 	StorageCubemap cubemap{cubemap_properties};
@@ -134,7 +134,7 @@ static std::shared_ptr<Cubemap> calculateEnvironmentMap(const Cubemap& HDRcubema
 static std::shared_ptr<Texture> calculateBRDF_LUT(const Cubemap& HDRcubemap, uint32_t map_size)
 {
 
-	ComputePipeline compute_BRDF = { "IntegrateBRDF" };
+	ComputePipeline compute_BRDF = { "IntegrateBRDF.comp" };
 
 	ImageProperties texture_properties = { {map_size, map_size}, HDRcubemap.properties().imageFormat(), 1, 1 }; 
 	StorageTexture brdf_lut{ texture_properties };

@@ -6,7 +6,11 @@
 namespace Veist
 {
 
-	
+
+	MaterialType::MaterialType(const MaterialSettings& settings) :
+		m_descriptor_set_number(settings.descriptor_set_number), m_pipeline_builder(std::make_shared<GraphicsPipelineBuilder>(settings))
+	{
+	}
 
 	GraphicsPipeline* MaterialType::getPipeline(const RenderPass* renderpass)
 	{

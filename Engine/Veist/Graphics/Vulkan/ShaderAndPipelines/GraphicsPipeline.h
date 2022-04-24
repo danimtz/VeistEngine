@@ -51,13 +51,14 @@ private:
 
 };
 
+struct MaterialSettings;
 
 class GraphicsPipelineBuilder
 {
 public:
 
 	//Create graphics pipeline builder, but dont build the pipeline yet. lazy initialization of vkPipeline
-	GraphicsPipelineBuilder(const std::string& shader_name, const VertexDescription& vertex_desc, uint32_t attachment_count = 1, DepthTest depth_test = DepthTest::ReadWrite, VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
+	GraphicsPipelineBuilder(const MaterialSettings& settings, VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
 		VkPolygonMode polygon_mode = VK_POLYGON_MODE_FILL, VkCullModeFlags cull_mode = VK_CULL_MODE_BACK_BIT,/*VK_CULL_MODE_BACK_BIT*//*VK_CULL_MODE_NONE*/
 		VkFrontFace front_face = VK_FRONT_FACE_COUNTER_CLOCKWISE);
 
@@ -68,7 +69,7 @@ public:
 	
 private:
 
-	void createShaderProgram(const std::string& shader_name);
+	void createShaderProgram(const MaterialSettings& settings);
 	void setVertexInputDescriptions(const VertexDescription& vertex_desc);
 	void createPipelineStates(uint32_t attachment_count);
 	void createPipelineLayout();
