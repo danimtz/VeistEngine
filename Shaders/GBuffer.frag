@@ -14,13 +14,13 @@ layout (location = 3) in vec2 inUV;
 layout (location = 0) out vec4 outAlbedo;
 layout (location = 1) out vec4 outNormal;
 layout (location = 2) out vec4 outOccRoughMetal;
-layout (location = 3) out vec4 outEmmissive;
+//layout (location = 3) out vec4 outEmmissive;
 
 //Material
-layout(set = 1, binding = 0) uniform sampler2D inAlbedo;
-layout(set = 1, binding = 1) uniform sampler2D inNormalTex;
-layout(set = 1, binding = 2) uniform sampler2D inOccRoughMetal;
-layout(set = 1, binding = 3) uniform sampler2D inEmmissive;
+layout(set = 2, binding = 0) uniform sampler2D inAlbedo;
+layout(set = 2, binding = 1) uniform sampler2D inNormalTex;
+layout(set = 2, binding = 2) uniform sampler2D inOccRoughMetal;
+//layout(set = 2, binding = 3) uniform sampler2D inEmmissive;
 
 void main()
 {
@@ -36,7 +36,7 @@ void main()
 	outAlbedo = vec4(texture(inAlbedo, inUV).xyz, 1.0);
 	outNormal = vec4(packed_normal, 1.0);
 	outOccRoughMetal = vec4(texture(inOccRoughMetal, inUV).xyz, 1.0);
-	outEmmissive = vec4(texture(inEmmissive, inUV).xyz, 1.0);
+	//outEmmissive = vec4(texture(inEmmissive, inUV).xyz, 1.0);
 
 	 
 }

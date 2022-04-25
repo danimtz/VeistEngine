@@ -4,36 +4,53 @@
 #include "Veist/Material/Material.h"
 
 
-//TODO: Refactor this entire class. only temporary.
-//This class holds a mesh and a material. This should be later replaced when an ECS is implemented. should be called
-//mesh component or something the sort. Also for now holds a full copy for each mesh and material. This should be a pointer to the resource stored somewhere
-//so that meshes and materials can be resued without occupying more memeory
+//TODO: Rename this file to SubMesh and remove Model
 
 namespace Veist
 {
 
-class Model
-{
-public:
-
-	Model(std::string folder_filepath, std::string gltf_file);
-
-
-	std::shared_ptr<Mesh>	mesh() const { return m_mesh; };
-	std::shared_ptr<Material> material() const { return m_material; };
+	class CommandBuffer;
+	class SubMesh
+	{
+	public:
+		
+		SubMesh() = default;
+		SubMesh(std::shared_ptr<Mesh> mesh, std::shared_ptr<Material> material) : m_mesh(mesh), m_material(material) {};
 
 
-	//temp
-	glm::mat4& modelMatrix() const { return m_model_mat; };
+		void renderSubMesh(CommandBuffer& cmd, const std::vector<DescriptorSet>& descriptor_sets);
 
-private:
+	//private://TEMP privatize later
+		
+		std::shared_ptr<Mesh>	m_mesh;
+		std::shared_ptr<Material> m_material;
 
-	std::shared_ptr<Mesh>	m_mesh;
-	std::shared_ptr<Material> m_material;
+	};
 
-	//temp until ECS
-	mutable glm::mat4 m_model_mat{1.0f};
 
-};
+
+	class Model
+	{
+	public:
+
+		Model(std::string folder_filepath, std::string gltf_file);
+
+
+		std::shared_ptr<Mesh>	mesh() const { return m_mesh; };
+		std::shared_ptr<Material> material() const { return m_material; };
+
+
+		//temp
+		glm::mat4& modelMatrix() const { return m_model_mat; };
+
+	private:
+
+		std::shared_ptr<Mesh>	m_mesh;
+		std::shared_ptr<Material> m_material;
+
+		//temp until ECS
+		mutable glm::mat4 m_model_mat{1.0f};
+
+	};
 
 }

@@ -34,6 +34,13 @@ namespace Veist
 			float radius;
 		};
 
+		struct ObjectMatrices
+		{
+			glm::mat4 model = {};
+			glm::mat4 normal = {};
+		};
+
+
 		struct SceneInfo
 		{
 			float dir_lights_count;

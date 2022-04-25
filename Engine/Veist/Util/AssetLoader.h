@@ -13,6 +13,7 @@ namespace Veist
 
 class Material;
 class SkyboxMaterial;
+class MeshComponent;
 //TODO: be reworked alongisde resource/asset system that stores loaded assets in a map etc
 namespace AssetLoader {
 
@@ -38,6 +39,9 @@ namespace AssetLoader {
 	std::shared_ptr<Material> loadSkyboxMaterialFromCubemap(const std::string& filepath);
 	std::shared_ptr<Material> loadSkyboxMaterialFromEquirectMap(const std::string& filepath);
 	
+
+
+	MeshComponent loadMeshComponent(const char* gltf_filepath);
 
 }
 

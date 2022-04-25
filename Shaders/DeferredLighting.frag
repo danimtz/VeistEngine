@@ -1,4 +1,4 @@
-#version 450
+#version 460
 
 #include "utils/brdf.glsl"
 #include "utils/utils.glsl"
@@ -38,8 +38,8 @@ layout(set = 0, binding = 6) uniform sampler2D inBRDF_LUT;
 layout (set = 0, binding = 7) uniform sampler2D inAlbedo;
 layout (set = 0, binding = 8) uniform sampler2D inNormal;
 layout (set = 0, binding = 9) uniform sampler2D inOccRoughMetal;
-layout (set = 0, binding = 10) uniform sampler2D inEmmissive;
-layout (set = 0, binding = 11) uniform sampler2D inDepth;
+//layout (set = 0, binding = 10) uniform sampler2D inEmmissive;
+layout (set = 0, binding = 10) uniform sampler2D inDepth;
 
 
 
@@ -109,7 +109,7 @@ void main()
 	float roughness = texture(inOccRoughMetal, inUV).y;
 	float metallic = texture(inOccRoughMetal, inUV).z;
 	float occlusion = texture(inOccRoughMetal, inUV).x;
-	vec3 emmissive = texture(inEmmissive, inUV).xyz;
+	//vec3 emmissive = texture(inEmmissive, inUV).xyz;
 
 
 	//Directional lights
@@ -154,10 +154,10 @@ void main()
 	if(depth == 1.0) //Small patch not really needed, this should really be handled with light volumes etc, 
 	{//If theres no fragment on depth buffer, the entire shader shouldnt be running anyway.
 		ambient = vec3(0.0,0.0,0.0);
-		emmissive = vec3(0.0,0.0,0.0);
+		//emmissive = vec3(0.0,0.0,0.0);
 	}
 
-	vec3 color = Lo + ambient + emmissive;
+	vec3 color = Lo + ambient ;//+ emmissive;
 	//color = color / (color + vec3(1.0)); //reindhardt tone map
 	color = pow(color, vec3(0.4545)); //GAMMA CORRECTION
 	vec3 final_color = clamp(color, 0.0, 1.0);

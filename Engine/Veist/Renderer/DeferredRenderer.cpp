@@ -29,8 +29,13 @@ namespace Veist
 
 	static void addGBufferPass(RenderGraph::RenderGraph& render_graph, ecs::EntityRegistry* scene_registry, DeferredRenderer& renderer)
 	{
-		RenderGraph::BufferInfo camera_buffer_info;
+		static constexpr uint32_t max_objects = 10000;
+
+		RenderGraph::BufferInfo camera_buffer_info, object_matrices_buffer_info;
 		camera_buffer_info.size = sizeof(RendererUniforms::CameraData);
+		object_matrices_buffer_info.size = sizeof(RendererUniforms::ObjectMatrices) * max_objects;
+
+
 
 
 		RenderGraph::ImageInfo gbuff_albedo_info, gbuff_normal_info, gbuffer_occ_rough_metal_info, gbuff_emmissive_info, depth_attachment_info;
@@ -43,11 +48,12 @@ namespace Veist
 		auto builder = render_graph.addPass("GbufferPass");
 
 		auto camera_buffer = builder.addUniformInput("camera_buffer", camera_buffer_info);
+		auto object_matrices_buffer = builder.addStorageInput("object_matrices_buffer", object_matrices_buffer_info, PipelineStage::VertexShader, 1);
 
 		builder.addColorOutput("gbuffer_albedo", gbuff_albedo_info);
 		auto output_test = builder.addColorOutput("gbuffer_normal", gbuff_normal_info);
 		builder.addColorOutput("gbuffer_occ_rough_metal", gbuffer_occ_rough_metal_info);
-		builder.addColorOutput("gbuffer_emmissive", gbuff_emmissive_info);
+		//builder.addColorOutput("gbuffer_emmissive", gbuff_emmissive_info);
 		builder.addDepthOutput("gbuffer_depth_attachment", depth_attachment_info);
 		
 
@@ -76,7 +82,22 @@ namespace Veist
 				pass->getPhysicalBuffer(camera_buffer)->setData(&camera_data, sizeof(RendererUniforms::CameraData));
 			}
 
+			//Object matrices
+			{
+				std::vector<RendererUniforms::ObjectMatrices> object_matrices(max_objects);
+				auto& scene_view = scene_registry->view<MeshComponent, TransformComponent>();
+				uint32_t object_count = 0;
+				for (ecs::EntityId entity : scene_view)
+				{
+					auto& transform_comp = scene_view.get<TransformComponent>(entity);
 
+					object_matrices[object_count].model = transform_comp.getTransform();
+					object_matrices[object_count].normal = glm::inverseTranspose(glm::mat3(main_cam->viewMatrix() * transform_comp.getTransform()));
+
+					object_count++;
+				}
+				pass->getPhysicalBuffer(object_matrices_buffer)->setData(object_matrices.data(), sizeof(RendererUniforms::ObjectMatrices) * max_objects);
+			}
 
 
 			auto& scene_view = scene_registry->view<MeshComponent, TransformComponent>();
@@ -84,31 +105,11 @@ namespace Veist
 			{
 				MatrixPushConstant push_constant;
 				auto& mesh_comp = scene_view.get<MeshComponent>(entity);
-				auto& transform_comp = scene_view.get<TransformComponent>(entity);
 
-				Mesh* curr_mesh = mesh_comp.mesh();
-				Material* curr_material = mesh_comp.material();
-
-
-				//Model matrices
-				push_constant.mat1 = transform_comp.getTransform();
-				push_constant.mat2 = glm::inverseTranspose(glm::mat3(main_cam->viewMatrix() * push_constant.mat1));
-
-
+				mesh_comp.renderMesh(cmd, pass->getDescriptorSets());
 				
-
-				//TODO rework this to something like mesh->render(material, cmd);???
-				cmd.bindMaterial(*curr_material);
-				cmd.setPushConstants(push_constant);
-
-				cmd.bindDescriptorSet(pass->getDescriptorSets()[0]);
-
-				cmd.bindVertexBuffer(*curr_mesh->getVertexBuffer());
-				cmd.bindIndexBuffer(*curr_mesh->getIndexBuffer());
-
-				cmd.drawIndexed(curr_mesh->getIndexBuffer()->getIndexCount());
 			}
-
+			
 		});
 
 	}
@@ -149,7 +150,7 @@ namespace Veist
 		builder.addTextureInput("gbuffer_albedo");
 		builder.addTextureInput("gbuffer_normal");
 		builder.addTextureInput("gbuffer_occ_rough_metal");
-		builder.addTextureInput("gbuffer_emmissive");
+		//builder.addTextureInput("gbuffer_emmissive");
 
 		builder.addTextureInput("gbuffer_depth_attachment");//TODO adding these two lines should create layout DEPTH_STENCIL_READ_ONLY_OPTIMAL
 		builder.addDepthInput("gbuffer_depth_attachment");

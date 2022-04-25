@@ -79,8 +79,8 @@ namespace Veist
 
 		MaterialSettings GBuffer = {};
 		GBuffer.vertex_description = getVertexDescription(EngineResources::MaterialTypes::DeferredGBufferMaterial); //This is for vertex description generation
-		GBuffer.descriptor_set_number = 1;
-		GBuffer.attachment_count = 4;
+		GBuffer.descriptor_set_number = 2;
+		GBuffer.attachment_count = 3;
 		GBuffer.vertex_shader_name = "GBuffer.vert";
 		GBuffer.fragment_shader_name = "GBuffer.frag";
 		GBuffer.depth_setting = DepthTest::ReadWrite;

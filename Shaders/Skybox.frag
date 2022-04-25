@@ -1,6 +1,6 @@
 
 
-#version 450
+#version 460
 
 layout(early_fragment_tests) in;
 layout (location = 0) in  vec3 inFragPos;

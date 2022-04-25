@@ -173,8 +173,8 @@ namespace Veist
 				auto& mesh_comp = scene_view.get<MeshComponent>(entity);
 				auto& transform_comp = scene_view.get<TransformComponent>(entity);
 
-				Mesh* curr_mesh = mesh_comp.mesh();
-				Material* curr_material = mesh_comp.material();
+//				Mesh* curr_mesh = mesh_comp.mesh();
+			//	Material* curr_material = mesh_comp.material();
 
 
 				//Model matrices
@@ -183,15 +183,15 @@ namespace Veist
 
 
 
-				cmd.bindMaterial(*curr_material);
-				cmd.setPushConstants(push_constant);
+				//cmd.bindMaterial(*curr_material);
+			//	cmd.setPushConstants(push_constant);
 
-				cmd.bindDescriptorSet(pass->getDescriptorSets()[0]);
+			//	cmd.bindDescriptorSet(pass->getDescriptorSets()[0]);
 
-				cmd.bindVertexBuffer(*curr_mesh->getVertexBuffer());
-				cmd.bindIndexBuffer(*curr_mesh->getIndexBuffer());
-
-				cmd.drawIndexed(curr_mesh->getIndexBuffer()->getIndexCount());
+			//	cmd.bindVertexBuffer(*curr_mesh->getVertexBuffer());
+			//	cmd.bindIndexBuffer(*curr_mesh->getIndexBuffer());
+//
+			//	cmd.drawIndexed(curr_mesh->getIndexBuffer()->getIndexCount());
 			}
 
 

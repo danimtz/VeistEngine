@@ -18,6 +18,13 @@ struct PointLights{
 };
 
 
+struct ObjectMatrices
+{
+	mat4 mModel;
+	mat4 mNormal;
+};
+
+
 struct Camera
 {
 	mat4 mV;

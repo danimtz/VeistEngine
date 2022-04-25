@@ -183,41 +183,70 @@ namespace VeistEditor
 		
 
 		drawComponent<TransformComponent>("Transform", m_active_registry, m_selected_entity, [](auto& component)
+		{
+			auto table_flags = ImGuiTableFlags_NoHostExtendX | ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_BordersOuterV;
+			if (ImGui::BeginTable("transform_table", 2, table_flags))
 			{
-				auto table_flags = ImGuiTableFlags_NoHostExtendX | ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_BordersOuterV;
-				if (ImGui::BeginTable("transform_table", 2, table_flags))
+					
+				for (int rows = 0; rows < 3; rows++)
 				{
-					
-					for (int rows = 0; rows < 3; rows++)
+					ImGui::TableNextRow();
+					//ImGui::TableSetupColumn("Transform titles", ImGuiTableColumnFlags);
+					//ImGui::TableSetupColumn("Vec3 controls");
+					ImGui::TableNextColumn();
+					switch (rows)
 					{
-						ImGui::TableNextRow();
-						//ImGui::TableSetupColumn("Transform titles", ImGuiTableColumnFlags);
-						//ImGui::TableSetupColumn("Vec3 controls");
-						ImGui::TableNextColumn();
-						switch (rows)
-						{
-							case 0:
-								ImGui::Text("Translation:");
-								ImGui::TableNextColumn();
-								drawVec3Sliders(component.translation(), "##trans");
-								break;
-							case 1:
-								ImGui::Text("Rotation:");
-								ImGui::TableNextColumn();
-								drawVec3Sliders(component.rotation(), "##rot", 0.5f);
-								break;
-							case 2:
-								ImGui::Text("Scale:");
-								ImGui::TableNextColumn();
-								drawVec3Sliders(component.scale(), "##scale", 0.1f, 1.0f);
-								break;
-						}
+						case 0:
+							ImGui::Text("Translation:");
+							ImGui::TableNextColumn();
+							drawVec3Sliders(component.translation(), "##trans");
+							break;
+						case 1:
+							ImGui::Text("Rotation:");
+							ImGui::TableNextColumn();
+							drawVec3Sliders(component.rotation(), "##rot", 0.5f);
+							break;
+						case 2:
+							ImGui::Text("Scale:");
+							ImGui::TableNextColumn();
+							drawVec3Sliders(component.scale(), "##scale", 0.1f, 1.0f);
+							break;
 					}
-					ImGui::EndTable();
-					
 				}
+				ImGui::EndTable();
+					
+			}
 
+		});
+
+
+
+
+		drawComponent<CameraComponent>("CameraSettings", m_active_registry, m_selected_entity, [](auto& component)
+			{
+			//TODO rewrite all this one it doenst do anything its just a test
+				ImVec2 button_size = { 20, 0 };
+
+				ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
+				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.57f, 0.00f, 0.00f, 1.00f));
+				ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.80f, 0.00f, 0.00f, 1.00f));
+				ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.9f, 0.25f, 0.25f, 1.00f));
+				if (ImGui::Button("CameraSpeed", button_size))
+				{
+					//component. = reset_val;
+				}
+				float x = 10;
+				ImGui::PopStyleColor(3);
+				ImGui::SameLine();
+				ImGui::PopStyleVar();
+				ImGui::DragFloat("##TESTval", &x , 0.1f, 0.0f, 0.0f, "%.2f");
+				ImGui::PopItemWidth();
+				ImGui::SameLine();
 			});
+
+
+
+
 
 	}
 
