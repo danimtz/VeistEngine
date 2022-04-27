@@ -50,7 +50,7 @@ namespace VeistEditor
         auto& render_backend = RenderModule::getBackend();
 
         
-        loadScene();
+       // loadScene();
         while (m_running)
         {
             float time = (float)glfwGetTime();

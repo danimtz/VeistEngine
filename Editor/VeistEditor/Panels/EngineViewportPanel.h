@@ -25,19 +25,18 @@ namespace VeistEditor
 	private:
 	
 		void update();
-
 		void renderPanel();
-	
+		void drawMenuBar();
+
 		void renderScene();
 
 		void changeScene(EditorSceneChangedEvent& event);
 
 
+		std::unique_ptr<ColorTextureAttachment> m_no_scene_img;
+		Framebuffer m_no_scene_framebuffer;
+
 		std::shared_ptr<RenderGraph::ResourcePool> m_resource_pool;
-		//framebuffer image resources TODO: when i create a framegraph system have these be part of framegraph resources
-		std::unique_ptr<ColorTextureAttachment> m_framebuffer_image;
-		std::unique_ptr<DepthTextureAttachment> m_depth_image;
-		Framebuffer m_target_framebuffer;
 		ImTextureID m_texture_id;
 
 		glm::vec2 m_viewport_size = {1920,1080};

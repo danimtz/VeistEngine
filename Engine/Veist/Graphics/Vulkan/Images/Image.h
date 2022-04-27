@@ -122,6 +122,8 @@ public:
 	Image(VkImage vk_image, ImageProperties properties) : ImageBase(vk_image, properties, usage, type) {};
 
 	Image(ImageProperties properties) : ImageBase(properties, usage, type) {};
+
+	//Currently does not support built in mipmaps. it only generates them
 	Image(void* data, ImageProperties properties) : ImageBase(data, properties, usage, type){};
 	
 

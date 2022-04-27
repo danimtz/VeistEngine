@@ -53,6 +53,16 @@ namespace Veist
 		return layer_size;
 	}
 
+	uint32_t ImageProperties::layerSizeBytesNoMips()
+	{
+		uint32_t layer_size = 0;
+		
+		layer_size += mipLevelBytes(0);
+		
+		return layer_size;
+	}
+
+
 	uint32_t ImageProperties::sizeInPixels()
 	{
 

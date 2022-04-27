@@ -62,18 +62,19 @@ namespace Veist
 
 	ImageBase::ImageBase(void* data, ImageProperties properties, ImageUsage usage, ImageViewType view_type) : ImageBase(properties, usage, view_type)
 	{
-
+		uint32_t mip_levels = 1; //m_properties.mipLevels(); //TODO add support for build in mipmaps
+		
 		//Create staging buffer and map image data to it
-		uint32_t buffer_size = m_properties.layerSizeBytes() * m_properties.layerCount(); //* pixel size?
+		uint32_t buffer_size = m_properties.layerSizeBytesNoMips() * m_properties.layerCount(); //* pixel size?
 		StagingBuffer stage_buff = { data, buffer_size };
 
 
 		//Calculate regions
 		std::vector<VkBufferImageCopy> regions;
-		regions.reserve(m_properties.layerCount() * m_properties.mipLevels());
+		regions.reserve(m_properties.layerCount() * mip_levels);
 		for (uint32_t layer = 0; layer < m_properties.layerCount(); layer++)
 		{
-			for (uint32_t mip = 0; mip < m_properties.mipLevels(); mip++) {
+			for (uint32_t mip = 0; mip < mip_levels; mip++) {
 				VkBufferImageCopy copy = {};
 				{
 					copy.bufferOffset = m_properties.bufferOffset(layer, mip);//data_offset(layer, mip); TODO: fix offset for when mipmaps and layers are implemented
@@ -92,7 +93,16 @@ namespace Veist
 		auto cmd_buffer = RenderModule::getBackend()->createDisposableCmdBuffer();
 		cmd_buffer.copyBufferToImage(stage_buff, this, regions, m_properties);
 		cmd_buffer.immediateSubmit(RenderModule::getBackend()->getGraphicsQueue());
-	
+
+		if (m_properties.mipLevels() > 1)
+		{
+			transitionImageLayout(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+			generateMipmaps();
+		}
+			
+		
+
+		
 
 	
 	}

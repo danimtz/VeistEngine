@@ -39,11 +39,11 @@ namespace Veist
 
 
 		RenderGraph::ImageInfo gbuff_albedo_info, gbuff_normal_info, gbuffer_occ_rough_metal_info, gbuff_emmissive_info, depth_attachment_info;
-		gbuff_albedo_info.properties = ImageProperties({ 1920,1080 }, { VK_FORMAT_R8G8B8A8_SRGB });
-		gbuff_normal_info.properties = ImageProperties({ 1920,1080 }, { VK_FORMAT_R8G8B8A8_UNORM });
-		gbuffer_occ_rough_metal_info.properties = ImageProperties({ 1920,1080 }, { VK_FORMAT_R8G8B8A8_UNORM });
-		gbuff_emmissive_info.properties = ImageProperties({ 1920,1080 }, { VK_FORMAT_R8G8B8A8_SRGB });
-		depth_attachment_info.properties = ImageProperties({ 1920,1080 }, { VK_FORMAT_D32_SFLOAT });
+		gbuff_albedo_info.properties = ImageProperties(renderer.m_size, { VK_FORMAT_R8G8B8A8_SRGB });
+		gbuff_normal_info.properties = ImageProperties(renderer.m_size, { VK_FORMAT_R8G8B8A8_UNORM });
+		gbuffer_occ_rough_metal_info.properties = ImageProperties(renderer.m_size, { VK_FORMAT_R8G8B8A8_UNORM });
+		gbuff_emmissive_info.properties = ImageProperties(renderer.m_size, { VK_FORMAT_R8G8B8A8_SRGB });
+		depth_attachment_info.properties = ImageProperties(renderer.m_size, { VK_FORMAT_D32_SFLOAT });
 
 		auto builder = render_graph.addPass("GbufferPass");
 
@@ -129,7 +129,7 @@ namespace Veist
 
 
 		RenderGraph::ImageInfo output_image_info;
-		output_image_info.properties = ImageProperties({ 1920,1080 }, { VK_FORMAT_R8G8B8A8_SRGB });
+		output_image_info.properties = ImageProperties(renderer.m_size, { VK_FORMAT_R8G8B8A8_SRGB });
 
 		auto builder = render_graph.addPass("LightingPass");
 
@@ -161,8 +161,8 @@ namespace Veist
 
 		
 		//builder.setRenderGraphBackbuffer("lighting_output");
-		//builder.setRenderGraphImGuiBackbuffer("lighting_output");
-		//renderer.m_editor_target = lighting_output;
+		builder.setRenderGraphImGuiBackbuffer("lighting_output");
+		renderer.m_editor_target = lighting_output;
 
 
 
@@ -256,7 +256,7 @@ namespace Veist
 	static void addSkyboxPass(RenderGraph::RenderGraph& render_graph, ecs::EntityRegistry* scene_registry, DeferredRenderer& renderer)
 	{
 		RenderGraph::ImageInfo output_image_info;
-		output_image_info.properties = ImageProperties({ 1920,1080 }, { VK_FORMAT_R8G8B8A8_SRGB });
+		output_image_info.properties = ImageProperties(renderer.m_size, { VK_FORMAT_R8G8B8A8_SRGB });
 
 		auto builder = render_graph.addPass("SkyboxPass");
 
@@ -312,10 +312,11 @@ namespace Veist
 	}
 
 
-	DeferredRenderer DeferredRenderer::createRenderer(RenderGraph::RenderGraph& render_graph, ecs::EntityRegistry* scene_registry)
+	DeferredRenderer DeferredRenderer::createRenderer(RenderGraph::RenderGraph& render_graph, ecs::EntityRegistry* scene_registry, const glm::vec2& size)
 	{
 		DeferredRenderer deferred_renderer;
 
+		deferred_renderer.m_size = size;
 
 		addGBufferPass(render_graph, scene_registry, deferred_renderer);
 		addLightingPass(render_graph, scene_registry, deferred_renderer);

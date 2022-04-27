@@ -119,9 +119,14 @@ namespace RenderGraph
 
 
 
-	bool RenderGraph::setBackbuffer(const std::string& name)
+	bool RenderGraph::setBackbuffer()
 	{
-		auto it = m_resource_to_idx_map.find(name);
+
+		//auto img_res = m_graph_pass->m_graph->getImageResource(name);
+		//img_res->addImageUsage(ImageUsage::Texture, m_graph_pass->m_pass_index);
+		//m_graph_pass->m_graph->setBackbuffer(name);
+		
+		auto it = m_resource_to_idx_map.find(m_backbuffer_name);
 		if (it != m_resource_to_idx_map.end())
 		{
 			//todo? assert if its the correct type of resource
@@ -147,6 +152,12 @@ namespace RenderGraph
 
 	void RenderGraph::execute(CommandBuffer& cmd)
 	{
+
+		//Set backbuffer
+		if (!setBackbuffer())
+		{
+			CRITICAL_ERROR_LOG("RenderGraph doenst have a backbuffer set.");
+		}
 
 		//Validate graph (Sanity check) and remove pass write count of unread resources
 		if (!validateGraph())

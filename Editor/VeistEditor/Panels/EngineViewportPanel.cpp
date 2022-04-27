@@ -26,14 +26,13 @@ namespace VeistEditor
 
 	EngineViewportPanel::EngineViewportPanel()
 	{
-		//TODO: image props should be the size of the imgui window
-		ImageProperties img_props = ImageProperties({ m_viewport_size }, {VK_FORMAT_R8G8B8A8_SRGB});
-		ImageProperties depth_img_props = ImageProperties({ m_viewport_size }, { VK_FORMAT_D32_SFLOAT });
+		
+	
 
 		m_resource_pool = std::make_shared<RenderGraph::ResourcePool>();
 
-		m_framebuffer_image = std::make_unique<ColorTextureAttachment>(img_props);
-		m_depth_image = std::make_unique<DepthTextureAttachment>(depth_img_props);
+		
+	
 
 
 		//Create descriptor layout for ImGUI::Image descriptor TODO: move this someplace different
@@ -46,13 +45,14 @@ namespace VeistEditor
 		binding_array.emplace_back(set_binding);
 		RenderModule::getBackend()->getDescriptorAllocator()->addDescriptorPool(binding_array);
 		
+
+
+		//TODO: image props should be the size of the imgui window
+		m_no_scene_img = std::make_unique<ColorTextureAttachment>(ImageProperties({ m_viewport_size }, { VK_FORMAT_R8G8B8A8_SRGB }));
+		std::vector<Framebuffer::Attachment> colors = {{m_no_scene_img.get()}};
+		m_no_scene_framebuffer = Framebuffer(colors);
 		
-		//auto colors = std::vector<Framebuffer::Attachment>{{m_framebuffer_image.get(), RenderPass::LoadOp::Clear}};
-		//auto depth = Framebuffer::Attachment(m_depth_image.get(), RenderPass::LoadOp::Clear);
-		//m_target_framebuffer = Framebuffer(colors, depth);
-		
-		m_texture_id = ImGui_ImplVulkan_AddTexture(Sampler(SamplerType::RepeatLinear).sampler(), m_framebuffer_image.get()->imageView(), getImageLayout(m_framebuffer_image.get()->imageUsage()));
-		
+		m_texture_id = ImGui_ImplVulkan_AddTexture(Sampler(SamplerType::RepeatLinear).sampler(), m_no_scene_img.get()->imageView(), getImageLayout(m_no_scene_img.get()->imageUsage()));
 		
 		m_active_scene = EditorApp::get().getActiveScene();
 
@@ -118,6 +118,10 @@ namespace VeistEditor
 		ImGui::Begin("Viewport", nullptr);
 
 
+		drawMenuBar();
+
+
+
 		renderScene();
 
 
@@ -136,6 +140,8 @@ namespace VeistEditor
 		ImGui::Image(m_texture_id, viewport_panel_size);
 		ImGui::End();
 		ImGui::PopStyleVar();
+
+
 	
 	}
 
@@ -149,7 +155,10 @@ namespace VeistEditor
 		RenderGraph::RenderGraph render_graph(m_resource_pool);
 
 		//BasicRenderer renderer = BasicRenderer::createRenderer(render_graph, m_active_scene->ecsRegistry());
-		DeferredRenderer renderer = DeferredRenderer::createRenderer(render_graph, m_active_scene->ecsRegistry());
+		DeferredRenderer renderer = DeferredRenderer::createRenderer(render_graph, m_active_scene->ecsRegistry(), m_viewport_size);
+		
+		//EditorRenderer renderer = EditorRenderer::createRenderer(render_graph, m_active_scene->ecsRegistry(), m_viewport_size);
+		
 		render_graph.execute(RenderModule::getBackend()->getCurrentCmdBuffer());
 	
 
@@ -164,6 +173,27 @@ namespace VeistEditor
 
 	}
 
+
+	void EngineViewportPanel::drawMenuBar()
+	{
+
+		/*ImGui::BeginMenuBar();
+		
+		
+			ImGui::BeginMenu("Camera");
+			
+				if (ImGui::MenuItem("Reset camera"))
+				{
+					//_scene_view.camera().set_view(Camera().view_matrix());
+				}
+			ImGui::EndMenu();
+			
+
+		ImGui::EndMenuBar();
+		
+		*/
+
+	}
 
 
 

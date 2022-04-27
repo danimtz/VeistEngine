@@ -231,7 +231,7 @@ namespace VeistEditor
 				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.57f, 0.00f, 0.00f, 1.00f));
 				ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.80f, 0.00f, 0.00f, 1.00f));
 				ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.9f, 0.25f, 0.25f, 1.00f));
-				if (ImGui::Button("CameraSpeed", button_size))
+				if (ImGui::Button("Camera whatever", button_size))
 				{
 					//component. = reset_val;
 				}

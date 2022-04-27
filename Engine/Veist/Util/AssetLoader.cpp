@@ -163,6 +163,23 @@ namespace Veist
 	}
 
 
+
+
+	static uint32_t getMaxMipLevels(uint32_t width, uint32_t height, bool mipmaps)
+	{
+		if (!mipmaps)
+		{
+			return 1;
+		}
+		else
+		{
+			return static_cast<uint32_t>(std::floor(std::log2(std::max(width, height)))) + 1;
+		}
+	}
+
+
+
+
 	std::shared_ptr<Mesh> AssetLoader::loadMeshFromGLTF(const char* gltf_filepath)
 	{
 	
@@ -342,7 +359,7 @@ namespace Veist
 
 
 
-	std::shared_ptr<Texture> AssetLoader::loadTextureFromFile(const char* filepath, ImageFormat format)//TODO add argument to edit amount if mip levels
+	std::shared_ptr<Texture> AssetLoader::loadTextureFromFile(const char* filepath, ImageFormat format, bool mipmaps)//TODO add argument to edit amount if mip levels
 	{
 
 
@@ -364,8 +381,11 @@ namespace Veist
 
 			//Create texture
 			void* data = pixels;
-			ImageProperties properties = { img_size, format, 1, 1 };
+			
+			ImageProperties properties = { img_size, format, getMaxMipLevels(width, height, mipmaps), 1 };
 			std::shared_ptr<Texture> resource = std::make_shared<Texture>(data, properties);
+			
+			//if(mipmaps) resource->generateMipmaps();
 
 			stbi_image_free(pixels);
 
@@ -388,8 +408,10 @@ namespace Veist
 			}
 
 			void* data = pixels;
-			ImageProperties properties = { img_size, format, 1, 1 };
+			ImageProperties properties = { img_size, format, getMaxMipLevels(width, height, mipmaps), 1 };
 			std::shared_ptr<Texture> resource = std::make_shared<Texture>(data, properties);
+
+			//if (mipmaps) resource->generateMipmaps();
 
 			stbi_image_free(pixels);
 
@@ -450,18 +472,6 @@ namespace Veist
 	}
 
 
-
-	static uint32_t getMaxMipLevels(uint32_t width, uint32_t height, bool mipmaps)
-	{
-		if (!mipmaps)
-		{
-			return 1;
-		}
-		else
-		{
-			return static_cast<uint32_t>(std::floor(std::log2(std::max(width, height)))) + 1;
-		}
-	}
 
 
 

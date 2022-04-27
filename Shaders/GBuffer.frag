@@ -25,6 +25,12 @@ layout(set = 2, binding = 2) uniform sampler2D inOccRoughMetal;
 void main()
 {
 
+	//Alpha test
+	vec4 color = texture(inAlbedo, inUV);
+	if(color.a < 0.5) {
+		discard;
+	}
+
     //Normal mapping
 	mat3 mTBN = mat3(normalize(inTangent), normalize(inBitangent), normalize(inNormal));
 	vec3 tex_normal = texture(inNormalTex, inUV).xyz; //shift to -1 to 1 range from 0 to 1
@@ -33,7 +39,8 @@ void main()
 	vec3 normal = normalize(mTBN * normal_ts);
 	vec3 packed_normal = (normal * 0.5) + vec3(0.5);
 
-	outAlbedo = vec4(texture(inAlbedo, inUV).xyz, 1.0);
+
+	outAlbedo = color;
 	outNormal = vec4(packed_normal, 1.0);
 	outOccRoughMetal = vec4(texture(inOccRoughMetal, inUV).xyz, 1.0);
 	//outEmmissive = vec4(texture(inEmmissive, inUV).xyz, 1.0);

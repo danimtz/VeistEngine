@@ -38,7 +38,7 @@ namespace RenderGraph
 
 	private:
 
-		bool setBackbuffer(const std::string& name);
+		bool setBackbuffer();
 
 		bool validateGraph();
 		void setupGraphPassOrder(std::stack<uint32_t>& next_passes, std::stack<uint32_t>& next_resources);
@@ -55,6 +55,7 @@ namespace RenderGraph
 		friend class PassBuilder;
 
 		int32_t m_backbuffer_idx{-1};
+		std::string m_backbuffer_name = "";
 
 		std::vector<std::unique_ptr<RenderGraphPass>> m_passes;
 		std::vector<std::unique_ptr<Resource>> m_resources;

@@ -69,7 +69,11 @@ static VkSamplerCreateInfo createSamplerInfo(SamplerType type)
 	info.minFilter = filter;
 	info.mipmapMode = mipmap_mode;
 	info.maxLod = 1000.0f;
-	info.maxAnisotropy = 1.0f;
+
+	auto gpuinfo = RenderModule::getBackend()->getGPUinfo();
+
+	info.maxAnisotropy = gpuinfo.properties.limits.maxSamplerAnisotropy;
+	info.anisotropyEnable = VK_TRUE;
 	//info.compareEnable = type == SamplerType::Shadow;
 	//info.compareOp = VK_COMPARE_OP_GREATER;
 

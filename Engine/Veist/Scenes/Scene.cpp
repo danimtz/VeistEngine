@@ -22,12 +22,12 @@ namespace Veist
 		if (!registry->isSceneLoaded())
 		{
 			ecs::EntityId camera = registry->createEntity("camera");
-			ecs::EntityId waterbottle = registry->createEntity("waterbottle");
-			ecs::EntityId helmet = registry->createEntity("helmet");
-			ecs::EntityId flight_helmet = registry->createEntity("flight_helmet");
+			//ecs::EntityId waterbottle = registry->createEntity("waterbottle");
+			//ecs::EntityId helmet = registry->createEntity("helmet");
+			//ecs::EntityId flight_helmet = registry->createEntity("flight_helmet");
 			ecs::EntityId sponza = registry->createEntity("sponza");
 
-			ecs::EntityId point_light_1 = registry->createEntity("pointlight1");
+			//ecs::EntityId point_light_1 = registry->createEntity("pointlight1");
 			ecs::EntityId sun_light = registry->createEntity("sun directional light");
 			ecs::EntityId skybox = registry->createEntity("skybox");
 

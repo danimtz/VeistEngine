@@ -20,14 +20,16 @@ namespace RenderGraph
 
 	void PassBuilder::setRenderGraphBackbuffer(const std::string& name)
 	{
-		m_graph_pass->m_graph->setBackbuffer(name);
+
+		m_graph_pass->m_graph->m_backbuffer_name = name;
+		//m_graph_pass->m_graph->setBackbuffer(name);
 	}
 
 	void PassBuilder::setRenderGraphImGuiBackbuffer(const std::string& name)
 	{
 		auto img_res = m_graph_pass->m_graph->getImageResource(name);
 		img_res->addImageUsage(ImageUsage::Texture, m_graph_pass->m_pass_index);
-		m_graph_pass->m_graph->setBackbuffer(name);
+		m_graph_pass->m_graph->m_backbuffer_name = name;
 	}
 
 
