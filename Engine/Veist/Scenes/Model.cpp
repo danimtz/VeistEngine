@@ -12,7 +12,7 @@ namespace Veist
 {
 
 
-	void SubMesh::renderSubMesh(CommandBuffer& cmd, const std::vector<DescriptorSet>& descriptor_sets)
+	void SubMesh::renderSubMesh(CommandBuffer& cmd, const std::vector<DescriptorSet>& descriptor_sets, const uint32_t mesh_id)
 	{
 
 		cmd.bindMaterial(*m_material);
@@ -25,7 +25,7 @@ namespace Veist
 		cmd.bindVertexBuffer(*m_mesh->getVertexBuffer());
 		cmd.bindIndexBuffer(*m_mesh->getIndexBuffer());
 
-		cmd.drawIndexed(m_mesh->getIndexBuffer()->getIndexCount());
+		cmd.drawIndexed(m_mesh->getIndexBuffer()->getIndexCount(), mesh_id);
 
 	}
 

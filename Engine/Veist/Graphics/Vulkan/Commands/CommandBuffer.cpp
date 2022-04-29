@@ -360,9 +360,13 @@ namespace Veist
 
 	void CommandBuffer::drawIndexed(uint32_t size)
 	{
-		vkCmdDrawIndexed(m_cmd_buffer, size, 1, 0, 0, 0);
+		drawIndexed(size, 0);
 	}
 
+	void CommandBuffer::drawIndexed(uint32_t size, uint32_t first_instance)
+	{
+		vkCmdDrawIndexed(m_cmd_buffer, size, 1, 0, 0, first_instance);
+	}
 
 	void CommandBuffer::bindMaterialType(uint32_t type)
 	{

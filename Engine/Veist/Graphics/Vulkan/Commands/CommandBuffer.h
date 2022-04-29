@@ -69,6 +69,8 @@ public:
 	void bindVertexBuffer(const VertexBuffer& vertex_buffer);
 	void bindIndexBuffer(const IndexBuffer& index_buffer);
 	void drawVertices(uint32_t size);
+
+	void drawIndexed(uint32_t size, uint32_t first_instance);
 	void drawIndexed(uint32_t size);
 	void bindMaterialType(uint32_t type);
 	void bindMaterial(Material& material);

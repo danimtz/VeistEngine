@@ -5,10 +5,9 @@
 
 
 
-#include "Veist/Renderer/BasicRenderer.h"
-
-#include "Veist/Renderer/DeferredRenderer.h"
-
+//#include "Veist/Renderer/BasicRenderer.h"
+//#include "Veist/Renderer/DeferredRenderer.h"
+#include "VeistEditor/EditorGraphics/EditorRenderer.h"
 
 //TEMPORARY, replace with renderer alter that uses the rendergraph
 
@@ -48,7 +47,9 @@ namespace VeistEditor
 
 
 		//TODO: image props should be the size of the imgui window
+		//TODO change how the no scene image image is setup
 		m_no_scene_img = std::make_unique<ColorTextureAttachment>(ImageProperties({ m_viewport_size }, { VK_FORMAT_R8G8B8A8_SRGB }));
+		m_no_scene_img->transitionImageLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 		std::vector<Framebuffer::Attachment> colors = {{m_no_scene_img.get()}};
 		m_no_scene_framebuffer = Framebuffer(colors);
 		
@@ -155,20 +156,21 @@ namespace VeistEditor
 		RenderGraph::RenderGraph render_graph(m_resource_pool);
 
 		//BasicRenderer renderer = BasicRenderer::createRenderer(render_graph, m_active_scene->ecsRegistry());
-		DeferredRenderer renderer = DeferredRenderer::createRenderer(render_graph, m_active_scene->ecsRegistry(), m_viewport_size);
+		//DeferredRenderer renderer = DeferredRenderer::createRenderer(render_graph, m_active_scene->ecsRegistry(), m_viewport_size);
 		
-		//EditorRenderer renderer = EditorRenderer::createRenderer(render_graph, m_active_scene->ecsRegistry(), m_viewport_size);
+		EditorRenderer renderer = EditorRenderer::createRenderer(render_graph, m_active_scene->ecsRegistry(), m_viewport_size);
 		
 		render_graph.execute(RenderModule::getBackend()->getCurrentCmdBuffer());
 	
 
 		//TODO this should be part of an editor pass (and its pretty bad especially the static cast to get the image base)
-		std::vector<Descriptor> descriptor;
+		/*std::vector<Descriptor> descriptor;
 		ImageBase* target = render_graph.resourcePool()->getImage(static_cast<RenderGraph::PhysicalImage*>(renderer.m_editor_target->physicalResource()))->image.get();
 		descriptor.emplace_back(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, target, SamplerType::RepeatLinear, VK_SHADER_STAGE_FRAGMENT_BIT);
 
-		DescriptorSet desc_set{0, descriptor};
-		m_texture_id = desc_set.descriptorSet();//ImGui_ImplVulkan_AddTexture(sampler->sampler(), final_image->imageView(), getImageLayout(final_image->imageUsage()));
+		DescriptorSet desc_set{ 0, descriptor };*/
+
+		m_texture_id = renderer.getImGuiTextureId();//ImGui_ImplVulkan_AddTexture(sampler->sampler(), final_image->imageView(), getImageLayout(final_image->imageUsage()));
 
 
 	}

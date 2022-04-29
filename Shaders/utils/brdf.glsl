@@ -7,14 +7,14 @@
 
 //BRDF functions
 
-vec3 F_Schlick(float HdotV, vec3 F0){
-	float neg_HdotV = max(1.0-HdotV, 0.0);
-	return F0 + (1.0 - F0) * (neg_HdotV*neg_HdotV*neg_HdotV*neg_HdotV*neg_HdotV);//(1-cos_theta)^5 but more efficient
+vec3 F_Schlick(float NdotV, vec3 F0){
+	float neg_NdotV = max(1.0-NdotV, 0.0);
+	return F0 + (1.0 - F0) * pow(clamp(1.0 - NdotV, 0.0, 1.0), 5.0);//(neg_HdotV*neg_HdotV*neg_HdotV*neg_HdotV*neg_HdotV);//(1-cos_theta)^5 but more efficient
 }
 
-vec3 F_SchlickRoughness(float HdotV, vec3 F0, float roughness){
-	float neg_HdotV = max(1.0-HdotV, 0.0);
-	return F0 + ( max(vec3(1.0 - roughness), F0) - F0) * (neg_HdotV*neg_HdotV*neg_HdotV*neg_HdotV*neg_HdotV);//(1-cos_theta)^5 but more efficient
+vec3 F_SchlickRoughness(float NdotV, vec3 F0, float roughness){
+	float neg_NdotV = max(1.0-NdotV, 0.0);
+	return F0 + ( max(vec3(1.0 - roughness), F0) - F0) * pow(clamp(1.0 - NdotV, 0.0, 1.0), 5.0);// (neg_HdotV*neg_HdotV*neg_HdotV*neg_HdotV*neg_HdotV);//(1-cos_theta)^5 but more efficient
 }
 
 

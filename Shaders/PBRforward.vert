@@ -1,5 +1,6 @@
-#version 450
+#version 460
 
+#include "utils/utils.glsl"
 
 layout (location = 0) in vec3 inPosition;
 layout (location = 1) in vec3 inNormal;
@@ -15,11 +16,7 @@ layout (location = 3) out vec3 outBitangent;
 
 layout (location = 4) out vec2 outUV;
 
-layout( push_constant ) uniform constants
-{
-	mat4 mM;
-	mat4 mN;
-} push_constant;
+
 
 layout(set = 0, binding = 1) uniform  cameraBuffer
 {
@@ -29,7 +26,17 @@ layout(set = 0, binding = 1) uniform  cameraBuffer
 	mat4 mInvV;
 } camera;
 
+layout(std140, set = 0, binding = 4) readonly buffer objectMatrices
+{
+	ObjectMatrices object_matrices[];
+};
 
+/*
+layout( push_constant ) uniform constants
+{
+	int object_id
+} push_constant;
+*/
 
 
 
@@ -37,10 +44,10 @@ void main()
 {
 	
 	//output the position of each vertex
-	gl_Position = (camera.mVP*push_constant.mM)*vec4(inPosition, 1.0f);
-	outPosition = vec3((camera.mV*push_constant.mM)*vec4(inPosition, 1.0f));
+	gl_Position = (camera.mVP*object_matrices[gl_BaseInstance].mModel)*vec4(inPosition, 1.0f);
+	outPosition = vec3((camera.mV*object_matrices[gl_BaseInstance].mModel)*vec4(inPosition, 1.0f));
 	
-	mat3 Nmat = mat3(push_constant.mN); //mN is already a 3x3 extended to a 4x4 matrix but this is cleaner
+	mat3 Nmat = mat3(object_matrices[gl_BaseInstance].mNormal); //mN is already a 3x3 extended to a 4x4 matrix but this is cleaner
 
 	outNormal = normalize(Nmat * inNormal);
 	outTangent = normalize(Nmat * inTangent.xyz);

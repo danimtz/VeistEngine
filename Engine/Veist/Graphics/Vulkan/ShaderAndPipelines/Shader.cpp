@@ -39,13 +39,13 @@ static void addStageFlagToBinding(VkDescriptorSetLayoutBinding& layout_binding, 
 
 static std::string getShaderDirectory()
 {
-	return "..\\Shaders\\";
+	return "..\\..\\Shaders\\";
 }
 
 
 static std::string getShaderCacheDirectory()
 {
-	return "..\\Shaders\\CachedSpirV\\";
+	return "..\\..\\Shaders\\CachedSpirV\\";
 }
 
 

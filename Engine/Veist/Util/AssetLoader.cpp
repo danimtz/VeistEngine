@@ -23,8 +23,9 @@ namespace Veist
 {
 
 	//TODO MOVE THIS ELSEWHERE
-	EngineResources::MaterialTypes CURRENT_MATERIAL_TYPE = EngineResources::MaterialTypes::DeferredGBufferMaterial;
-	
+	//EngineResources::MaterialTypes CURRENT_MATERIAL_TYPE = EngineResources::MaterialTypes::DeferredGBufferMaterial;
+	EngineResources::MaterialTypes CURRENT_MATERIAL_TYPE = EngineResources::MaterialTypes::PBRMaterial;
+
 
 
 	static VertexAttributeType convertTinyGLTFtype(int type) {
@@ -751,6 +752,12 @@ namespace Veist
 
 			material_textures.emplace_back(albedo);
 		}
+		else
+		{
+			//Temporary
+			std::shared_ptr<Texture> albedo = AssetLoader::loadTextureFromFile("..\\..\\assets\\EmptyTexture.png", { VK_FORMAT_R8G8B8A8_SRGB });
+			material_textures.emplace_back(albedo);
+		}
 		
 
 		//Normal
@@ -764,6 +771,11 @@ namespace Veist
 			CONSOLE_LOG(" ===================== NORMAL TEXTURE");
 
 			material_textures.emplace_back(normal);
+		} 
+		else
+		{//Temporary
+			std::shared_ptr<Texture> normal = AssetLoader::loadTextureFromFile("..\\..\\assets\\EmptyTexture.png", { VK_FORMAT_R8G8B8A8_UNORM });
+			material_textures.emplace_back(normal);
 		}
 		
 		//Occlusion/Metallic/roughness (ASSUMES OCCLUSION IN IN METALLIC ROUGHNESS TEXTURE. as in gltf2.0 spec)
@@ -776,6 +788,11 @@ namespace Veist
 			std::shared_ptr<Texture> occlusionRoughnessMetallic = AssetLoader::loadTextureFromFile(folder.append(uri).c_str(), { VK_FORMAT_R8G8B8A8_UNORM });
 			CONSOLE_LOG(" ===================== OCC TEXTURE");
 
+			material_textures.emplace_back(occlusionRoughnessMetallic);
+		}
+		else
+		{//Temporary
+			std::shared_ptr<Texture> occlusionRoughnessMetallic = AssetLoader::loadTextureFromFile("..\\..\\assets\\EmptyTexture.png", { VK_FORMAT_R8G8B8A8_UNORM });
 			material_textures.emplace_back(occlusionRoughnessMetallic);
 		}
 

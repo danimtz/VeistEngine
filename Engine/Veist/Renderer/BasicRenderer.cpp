@@ -26,24 +26,29 @@ namespace Veist
 		return light_probe;
 	}
 
-	BasicRenderer BasicRenderer::createRenderer(RenderGraph::RenderGraph& render_graph, ecs::EntityRegistry* scene_registry)
+	BasicRenderer BasicRenderer::createRenderer(RenderGraph::RenderGraph& render_graph, ecs::EntityRegistry* scene_registry, const glm::vec2& size)
 	{
 		BasicRenderer basic_renderer;
 
+		basic_renderer.m_size = size;
+
 		static constexpr uint32_t max_dir_lights = 4;
 		static constexpr uint32_t max_point_lights = 100;
+		static constexpr uint32_t max_objects = 10000;
 
-		RenderGraph::BufferInfo camera_buffer_info, scene_info_buffer_info, dir_lights_buffer_info, point_lights_buffer_info;
-
+		RenderGraph::BufferInfo camera_buffer_info, scene_info_buffer_info, dir_lights_buffer_info, point_lights_buffer_info, object_matrices_buffer_info;
+		
+		
 		camera_buffer_info.size = sizeof(RendererUniforms::CameraData);
 		scene_info_buffer_info.size = sizeof(RendererUniforms::SceneInfo);
 		dir_lights_buffer_info.size = sizeof(RendererUniforms::GPUDirLight) * max_dir_lights;
 		point_lights_buffer_info.size = sizeof(RendererUniforms::GPUPointLight) * max_point_lights;
+		object_matrices_buffer_info.size = sizeof(RendererUniforms::ObjectMatrices) * max_objects;
 
 		RenderGraph::ImageInfo output_image_info, depth_attachment_info;
 
-		output_image_info.properties = ImageProperties({ 1920,1080 }, { VK_FORMAT_R8G8B8A8_SRGB });
-		depth_attachment_info.properties = ImageProperties({ 1920,1080 }, { VK_FORMAT_D32_SFLOAT });
+		output_image_info.properties = ImageProperties(basic_renderer.m_size, { VK_FORMAT_R8G8B8A8_SRGB });
+		depth_attachment_info.properties = ImageProperties(basic_renderer.m_size, { VK_FORMAT_D32_SFLOAT });
 
 
 		//Get light probe
@@ -56,19 +61,20 @@ namespace Veist
 		auto camera_buffer = builder.addUniformInput("CameraBuffer", camera_buffer_info);
 		auto dir_lights_buffer = builder.addUniformInput("DirLights", dir_lights_buffer_info);
 		auto point_lights_buffer = builder.addStorageInput("PointLights", point_lights_buffer_info);
+		auto object_matrices_buffer = builder.addStorageInput("ObjectMatrices", object_matrices_buffer_info);
 
 		builder.addExternalInput("IBLProbe_irrmap", Descriptor(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, light_probe->irradianceMap(), { SamplerType::RepeatLinear }));
 		builder.addExternalInput("IBLProbe_prefilt_map", Descriptor(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, light_probe->prefilterMap(), { SamplerType::RepeatLinear }));
-		builder.addExternalInput("IBLProbe_brdfLUT", Descriptor(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, light_probe->brdfLUT(), { SamplerType::RepeatLinear }));
+		builder.addExternalInput("IBLProbe_brdfLUT", Descriptor(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, light_probe->brdfLUT(), { SamplerType::ClampLinear }));
 
-		auto output_image = builder.addColorOutput("Color", output_image_info);
+		auto output_image = builder.addColorOutput("renderer_output", output_image_info);
 		auto depth_output = builder.addDepthOutput("Depth", depth_attachment_info);
 
 
-		basic_renderer.m_editor_target = output_image;
 
 
-		builder.setRenderGraphImGuiBackbuffer("Color");
+		builder.setRenderGraphImGuiBackbuffer("renderer_output");
+		basic_renderer.m_renderer_target = output_image;
 
 		//End rendergraph tests
 
@@ -166,36 +172,36 @@ namespace Veist
 			}
 
 
-			//Render each entity
-			auto& scene_view = scene_registry->view<MeshComponent, TransformComponent>();
-			for (ecs::EntityId entity : scene_view)
+			//Object matrices
 			{
-				auto& mesh_comp = scene_view.get<MeshComponent>(entity);
-				auto& transform_comp = scene_view.get<TransformComponent>(entity);
+				std::vector<RendererUniforms::ObjectMatrices> object_matrices(max_objects);
+				auto& scene_view = scene_registry->view<MeshComponent, TransformComponent>();
+				//uint32_t object_count = 0;
+				for (ecs::EntityId entity : scene_view)
+				{
+					auto& transform_comp = scene_view.get<TransformComponent>(entity);
 
-//				Mesh* curr_mesh = mesh_comp.mesh();
-			//	Material* curr_material = mesh_comp.material();
+					uint32_t id = entity;
+					object_matrices[entity].model = transform_comp.getTransform();
+					object_matrices[entity].normal = glm::inverseTranspose(glm::mat3(main_cam->viewMatrix() * transform_comp.getTransform()));
 
-
-				//Model matrices
-				push_constant.mat1 = transform_comp.getTransform();
-				push_constant.mat2 = glm::inverseTranspose(glm::mat3(main_cam->viewMatrix() * push_constant.mat1));
-
-
-
-				//cmd.bindMaterial(*curr_material);
-			//	cmd.setPushConstants(push_constant);
-
-			//	cmd.bindDescriptorSet(pass->getDescriptorSets()[0]);
-
-			//	cmd.bindVertexBuffer(*curr_mesh->getVertexBuffer());
-			//	cmd.bindIndexBuffer(*curr_mesh->getIndexBuffer());
-//
-			//	cmd.drawIndexed(curr_mesh->getIndexBuffer()->getIndexCount());
+					//object_count++;
+				}
+				pass->getPhysicalBuffer(object_matrices_buffer)->setData(object_matrices.data(), sizeof(RendererUniforms::ObjectMatrices) * max_objects);
 			}
 
 
-			/*
+			auto& scene_view = scene_registry->view<MeshComponent, TransformComponent>();
+			for (ecs::EntityId entity : scene_view)
+			{
+				MatrixPushConstant push_constant;
+				auto& mesh_comp = scene_view.get<MeshComponent>(entity);
+
+				uint32_t id = entity;
+				mesh_comp.renderMesh(cmd, pass->getDescriptorSets(), entity);
+
+			}
+			
 			//Render skybox
 			{
 				auto& scene_view = scene_registry->view<SkyboxComponent>();
@@ -219,7 +225,7 @@ namespace Veist
 
 					break;//Only loop once
 				}
-			}*/
+			}
 			});
 
 

@@ -16,6 +16,8 @@ namespace Veist
 			DeferredGBufferMaterial,
 			DeferredLightingMaterial,
 
+			EditorBillboard,
+
 			MaxMaterialTypes
 		};
 

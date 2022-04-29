@@ -1,4 +1,4 @@
-#version 450 
+#version 460 
 
 #include "utils/brdf.glsl"
 #include "utils/utils.glsl"
@@ -36,14 +36,16 @@ layout(std140, set = 0, binding = 3) readonly buffer pointLights{
 };
 
 
-layout(set = 0, binding = 4) uniform samplerCube inIrradianceMap;
-layout(set = 0, binding = 5) uniform samplerCube inPrefilterMap;
-layout(set = 0, binding = 6) uniform sampler2D inBRDF_LUT;
+
+
+layout(set = 0, binding = 5) uniform samplerCube inIrradianceMap;
+layout(set = 0, binding = 6) uniform samplerCube inPrefilterMap;
+layout(set = 0, binding = 7) uniform sampler2D inBRDF_LUT;
 
 layout(set = 1, binding = 0) uniform sampler2D inAlbedo;
 layout(set = 1, binding = 1) uniform sampler2D inNormalTex;
 layout(set = 1, binding = 2) uniform sampler2D inOccRoughMetal;
-layout(set = 1, binding = 3) uniform sampler2D inEmmissive;
+//layout(set = 1, binding = 3) uniform sampler2D inEmmissive;
 
 
 
@@ -100,11 +102,13 @@ void main()
 	vec3 V = -normalize(inFragPos);
 	vec3 worldR = vec3(camera_data.mInvV * vec4(reflect(-V, N), 1.0));   
 
+	vec3 worldN = vec3(camera_data.mInvV * vec4(N, 1.0));   
+
 	vec3 albedo = texture(inAlbedo, inUV).xyz; 
 	float roughness = texture(inOccRoughMetal, inUV).y;
 	float metallic = texture(inOccRoughMetal, inUV).z;
 	float occlusion = texture(inOccRoughMetal, inUV).x;
-	vec3 emmissive = texture(inEmmissive, inUV).xyz;
+	//vec3 emmissive = texture(inEmmissive, inUV).xyz;
 
 
 	//Directional lights
@@ -128,25 +132,26 @@ void main()
 
 	}
 
-	//IBL
+	//IBL diffuse
 	vec3 F0 = approximateFO(albedo, metallic);
 	vec3 F = F_SchlickRoughness(max(dot(N, V), 0.0), F0, roughness);
     vec3 kS =  F;
-	vec3 kD = 1.0 - kS;
-	kD *= 1.0 - metallic;	
-	vec3 irradiance = texture(inIrradianceMap, N).rgb;
-	vec3 ambient_diffuse = irradiance * albedo; //Diffuse
+	vec3 kD = (1.0 - kS) * (1.0 - metallic);	
+	vec3 irradiance = texture(inIrradianceMap, worldN).rgb;
+	vec3 ambient_diffuse = kD *irradiance * albedo; //Diffuse
 
-    const float MAX_REFLECTION_LOD = 4.0;
-    vec3 prefilteredColor = textureLod(inPrefilterMap, worldR,  roughness * MAX_REFLECTION_LOD).rgb;
+	//IBL specular
+    
+	const uint MAX_REFLECTION_LOD = textureQueryLevels(inPrefilterMap);
+    vec3 prefilteredColor = textureLod(inPrefilterMap, worldR,  roughness * (MAX_REFLECTION_LOD - 1.0)).rgb;
 	vec2 envBRDF  = texture(inBRDF_LUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
 	vec3 ambient_specular = prefilteredColor * (F * envBRDF.x + envBRDF.y); //Specular
+															//ADDIND THE + envBRDF.y CAUSES THE BRIGHT SPOT
 
-
-	vec3 ambient = (kD * ambient_diffuse + ambient_specular ) * occlusion;
+	vec3 ambient = ( ambient_diffuse + ambient_specular );// * occlusion;
 	
 
-	vec3 color = Lo + ambient + emmissive;
+	vec3 color = Lo + ambient;// + emmissive;
 	//color = color / (color + vec3(1.0)); //reindhardt tone map
 	color = pow(color, vec3(0.4545)); //GAMMA CORRECTION
 	vec3 final_color = clamp(color, 0.0, 1.0);

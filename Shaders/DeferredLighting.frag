@@ -101,7 +101,8 @@ void main()
 
 	vec3 texture_normal = texture(inNormal, inUV).xyz;
 	vec3 N = normalize( texture_normal* 2.0 - vec3(1.0)); 
-	
+	vec3 worldN = vec3(camera_data.mInvV * vec4(N, 1.0)); 
+
 	vec3 V = -normalize(frag_pos);
 	vec3 worldR = vec3(camera_data.mInvV * vec4(reflect(-V, N), 1.0)); 
 
@@ -139,7 +140,7 @@ void main()
     vec3 kS =  F;
 	vec3 kD = 1.0 - kS;
 	kD *= 1.0 - metallic;	
-	vec3 irradiance = texture(inIrradianceMap, N).rgb;
+	vec3 irradiance = texture(inIrradianceMap, worldN).rgb;
 	vec3 ambient_diffuse = irradiance * albedo; //Diffuse
 
     const float MAX_REFLECTION_LOD = 4.0;
@@ -148,7 +149,7 @@ void main()
 	vec3 ambient_specular = prefilteredColor * (F * envBRDF.x + envBRDF.y); //Specular
 
 
-	vec3 ambient = (kD * ambient_diffuse + ambient_specular ) * occlusion;
+	vec3 ambient = (kD * ambient_diffuse + ambient_specular );// * occlusion; //Sponza model textures dont have occlusion texture set to 1.0 
 	
 	
 	if(depth == 1.0) //Small patch not really needed, this should really be handled with light volumes etc, 

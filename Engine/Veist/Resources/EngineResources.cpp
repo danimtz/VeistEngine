@@ -93,6 +93,16 @@ namespace Veist
 		DeferredLighting.fragment_shader_name = "DeferredLighting.frag";
 		DeferredLighting.depth_setting = DepthTest::Read;
 
+
+		MaterialSettings EditorBillboard = {};
+		EditorBillboard.vertex_description = getVertexDescription(EngineResources::MaterialTypes::EditorBillboard); //This is for vertex description generation
+		EditorBillboard.descriptor_set_number = 1;
+		EditorBillboard.attachment_count = 1;
+		EditorBillboard.vertex_shader_name = "CameraViewBillboard.vert";
+		EditorBillboard.fragment_shader_name = "CameraViewBillboard.frag";
+		EditorBillboard.depth_setting = DepthTest::None;
+
+
 		material_settings.emplace_back(PBRForward);
 		material_settings.emplace_back(Skybox);
 		material_settings.emplace_back(GBuffer);

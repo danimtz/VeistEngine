@@ -86,15 +86,14 @@ namespace Veist
 			{
 				std::vector<RendererUniforms::ObjectMatrices> object_matrices(max_objects);
 				auto& scene_view = scene_registry->view<MeshComponent, TransformComponent>();
-				uint32_t object_count = 0;
 				for (ecs::EntityId entity : scene_view)
 				{
 					auto& transform_comp = scene_view.get<TransformComponent>(entity);
 
-					object_matrices[object_count].model = transform_comp.getTransform();
-					object_matrices[object_count].normal = glm::inverseTranspose(glm::mat3(main_cam->viewMatrix() * transform_comp.getTransform()));
+					object_matrices[entity].model = transform_comp.getTransform();
+					object_matrices[entity].normal = glm::inverseTranspose(glm::mat3(main_cam->viewMatrix() * transform_comp.getTransform()));
 
-					object_count++;
+					
 				}
 				pass->getPhysicalBuffer(object_matrices_buffer)->setData(object_matrices.data(), sizeof(RendererUniforms::ObjectMatrices) * max_objects);
 			}
@@ -106,7 +105,7 @@ namespace Veist
 				MatrixPushConstant push_constant;
 				auto& mesh_comp = scene_view.get<MeshComponent>(entity);
 
-				mesh_comp.renderMesh(cmd, pass->getDescriptorSets());
+				mesh_comp.renderMesh(cmd, pass->getDescriptorSets(), entity);
 				
 			}
 			
@@ -145,7 +144,7 @@ namespace Veist
 
 		builder.addExternalInput("IBLProbe_irrmap", Descriptor(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, light_probe->irradianceMap(), { SamplerType::RepeatLinear }));
 		builder.addExternalInput("IBLProbe_prefilt_map", Descriptor(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, light_probe->prefilterMap(), { SamplerType::RepeatLinear }));
-		builder.addExternalInput("IBLProbe_brdfLUT", Descriptor(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, light_probe->brdfLUT(), { SamplerType::RepeatLinear }));
+		builder.addExternalInput("IBLProbe_brdfLUT", Descriptor(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, light_probe->brdfLUT(), { SamplerType::ClampLinear }));
 
 		builder.addTextureInput("gbuffer_albedo");
 		builder.addTextureInput("gbuffer_normal");
@@ -161,8 +160,8 @@ namespace Veist
 
 		
 		//builder.setRenderGraphBackbuffer("lighting_output");
-		builder.setRenderGraphImGuiBackbuffer("lighting_output");
-		renderer.m_editor_target = lighting_output;
+		//builder.setRenderGraphImGuiBackbuffer("lighting_output");
+		//renderer.m_editor_target = lighting_output;
 
 
 
@@ -261,12 +260,12 @@ namespace Veist
 		auto builder = render_graph.addPass("SkyboxPass");
 
 		builder.addDepthInput("gbuffer_depth_attachment");
-		auto output_image = builder.addColorOutput("skybox_output", output_image_info, "lighting_output");
+		auto output_image = builder.addColorOutput("renderer_output", output_image_info, "lighting_output");
 		
 		//outputs of rendergraph
-		builder.setRenderGraphImGuiBackbuffer("skybox_output");
+		builder.setRenderGraphImGuiBackbuffer("renderer_output");
 
-		renderer.m_editor_target = output_image;
+		renderer.m_renderer_target = output_image;
 
 		builder.setRenderFunction([=](CommandBuffer& cmd, const RenderGraph::RenderGraphPass* pass)
 		{
