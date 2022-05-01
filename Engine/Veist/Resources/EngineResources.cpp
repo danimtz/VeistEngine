@@ -5,38 +5,7 @@
 namespace Veist
 {
 
-	
 
-	//TODO all these arrays should just be a "Material settings" struct
-	/*static constexpr uint32_t material_descriptor_set_number[] = {
-		1,//PBRMaterial
-		0,//SKyboxMaterial
-		1,//GBuffer
-		0,//DeferredLighting
-	};
-
-	//TODO: myabe attachment count should be reflected from shaders
-	static constexpr uint32_t material_attachment_count[] = {
-		1,//PBRMaterial
-		1,//SKyboxMaterial
-		4,//GBuffer
-		1,//DeferredLighting
-	};
-
-	static constexpr const char* material_type_names[] = {
-		"PBRforward",
-		"Skybox",
-		"GBuffer",
-		"DeferredLighting"
-	};
-
-	static constexpr DepthTest material_depth_settings[] = {
-		DepthTest::ReadWrite,
-		DepthTest::ReadWrite,
-		DepthTest::ReadWrite,
-		DepthTest::Read
-	};
-	*/
 
 	static VertexDescription getVertexDescription(EngineResources::MaterialTypes type)
 	{
@@ -44,6 +13,13 @@ namespace Veist
 		{
 		case EngineResources::MaterialTypes::DeferredLightingMaterial: //Quad
 			return VertexDescription();
+
+
+		case EngineResources::MaterialTypes::BillboardMaterial:
+			return VertexDescription(0, { {VertexAttributeType::Float3, "position"},
+									{VertexAttributeType::Float3, "NaN"},
+									{VertexAttributeType::Float4, "NaN"},
+									{VertexAttributeType::Float2, "NaN"} });
 
 		default:
 			return VertexDescription(0, { {VertexAttributeType::Float3, "position"},
@@ -55,6 +31,24 @@ namespace Veist
 
 
 	};
+
+
+
+
+	static void fillBillboardMeshData(MeshData& mesh_data)
+	{
+
+		mesh_data.description = getVertexDescription(EngineResources::MaterialTypes::BillboardMaterial);
+		
+		//TODO
+		mesh_data.vbuffer_data = ;
+		mesh_data.index_data = 
+		
+		mesh_data.vbuffer_size = mesh_data.vbuffer_data.size() * mesh_data.description.getStride();
+		mesh_data.index_count = 6;
+	}
+
+
 
 
 
@@ -95,7 +89,7 @@ namespace Veist
 
 
 		MaterialSettings EditorBillboard = {};
-		EditorBillboard.vertex_description = getVertexDescription(EngineResources::MaterialTypes::EditorBillboard); //This is for vertex description generation
+		EditorBillboard.vertex_description = getVertexDescription(EngineResources::MaterialTypes::BillboardMaterial); //This is for vertex description generation
 		EditorBillboard.descriptor_set_number = 1;
 		EditorBillboard.attachment_count = 1;
 		EditorBillboard.vertex_shader_name = "CameraViewBillboard.vert";
@@ -113,17 +107,35 @@ namespace Veist
 
 	EngineResources::EngineResources()
 	{
+		//Material settings
 
 		declare_material_settings(m_material_settings);
 
 		m_material_types = std::make_unique< std::vector<MaterialType> >();
 
+		m_material_types->reserve(m_material_settings.size());
 		for (auto& settings : m_material_settings)
 		{
 			m_material_types.get()->emplace_back(settings);
 		}
 
 
+
+		//Materials
+		m_materials.reserve(Materials::MaxCompleteMaterials);
+		
+		m_materials.emplace_back(std::make_unique<Material>(getMaterialType(MaterialTypes::BillboardMaterial), 
+					MaterialData({AssetLoader::loadTextureFromFile("..\\..\\assets\\EditorAssets\\UITextures\\BillboardTextureAtlas.png")})) );
+
+
+
+		//TODO meshes
+
+		m_meshes->reserve(Meshes::MaxPreBuiltMeshes);
+
+		MeshData billboard_data;
+		fillBillboardMeshData(billboard_data);
+		m_meshes->emplace_back(billboard_data);
 	}
 
 
@@ -131,5 +143,16 @@ namespace Veist
 	{
 		return &m_material_types->at(type);
 	}
+
+	Material* EngineResources::getMaterial(Materials type)
+	{
+		return m_materials.at(type).get();
+	}
+
+	Mesh* EngineResources::getMesh(Meshes type)
+	{
+		return &m_meshes->at(type);
+	}
+
 
 }

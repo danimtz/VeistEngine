@@ -433,4 +433,11 @@ namespace Veist
 	}
 
 
+	void CommandBuffer::setPushConstants(const void* data, uint32_t size_in_bytes)
+	{
+		VkPipelineLayout vulkan_pipeline_layout = m_bound_pipeline->pipelineLayout();
+		vkCmdPushConstants(m_cmd_buffer, vulkan_pipeline_layout, VK_SHADER_STAGE_ALL/*VK_SHADER_STAGE_VERTEX_BIT*/, 0, size_in_bytes, data);
+	}
+
+
 }

@@ -73,7 +73,7 @@ static VkSamplerCreateInfo createSamplerInfo(SamplerType type)
 	auto gpuinfo = RenderModule::getBackend()->getGPUinfo();
 
 	info.maxAnisotropy = gpuinfo.properties.limits.maxSamplerAnisotropy;
-	info.anisotropyEnable = VK_TRUE;
+	info.anisotropyEnable = VK_FALSE;
 	//info.compareEnable = type == SamplerType::Shadow;
 	//info.compareOp = VK_COMPARE_OP_GREATER;
 

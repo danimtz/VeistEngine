@@ -82,6 +82,7 @@ public:
 
 	//TODO: rework this one
 	void setPushConstants(const MatrixPushConstant& push_constant);
+	void setPushConstants(const void* data, uint32_t size_in_bytes);
 
 
 private:

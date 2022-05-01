@@ -12,6 +12,44 @@
 namespace Veist
 {
 	
+
+	struct BillboardUVRanges
+	{
+		glm::vec4 uv1uv2 = {};
+	};
+
+	enum class BillboardType
+	{
+		PointLight,
+		DirectionalLight,
+		Camera
+	};
+
+	BillboardUVRanges getBillboardUV(BillboardType type)
+	{
+		BillboardUVRanges uv_ranges;
+		switch (type)
+		{
+			case BillboardType::PointLight:
+				uv_ranges.uv1uv2.x = 0.0f;
+				uv_ranges.uv1uv2.y = 0.0f;
+
+				uv_ranges.uv1uv2.z = 0.5f;
+				uv_ranges.uv1uv2.a = 1.0f;
+				break;
+
+
+			default:
+				uv_ranges.uv1uv2.x = 0.0f;
+				uv_ranges.uv1uv2.y = 0.0f;
+
+				uv_ranges.uv1uv2.z = 1.0f;
+				uv_ranges.uv1uv2.a = 1.0f;
+				break; 
+		}
+
+		return uv_ranges;
+	}
 	static LightProbeComponent* getLightProbe(ecs::EntityRegistry* registry)
 	{
 		LightProbeComponent* light_probe{ nullptr };
@@ -59,6 +97,22 @@ namespace Veist
 				auto& transform_comp = scene_view.get<TransformComponent>(entity);
 
 				//TODO render billboard
+				
+
+				auto material = RenderModule::resources()->getMaterial(EngineResources::Materials::EditorBillboardIcons);
+				cmd.bindMaterial(*material);
+
+				auto mesh = RenderModule::resources()->getMesh(EngineResources::Meshes::BillboardMesh);
+				cmd.bindVertexBuffer(*mesh->getVertexBuffer());
+				cmd.bindIndexBuffer(*mesh->getIndexBuffer());
+
+
+				BillboardUVRanges uv_ranges = getBillboardUV(BillboardType::PointLight);
+
+				cmd.setPushConstants(&uv_ranges, sizeof(BillboardUVRanges));
+
+				cmd.drawIndexed(mesh->getIndexBuffer()->getIndexCount());
+				//cmd.drawVertices(*m_mesh->getIndexBuffer());
 			}
 			
 			
