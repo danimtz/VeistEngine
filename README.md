@@ -1,5 +1,5 @@
 # VeistEngine
-Vulkan rendering engine written with the objective of learning how the basics of the graphics API.  
+Veist is a vulkan rendering engine written with the objective of learning how the basics of the graphics API.  
 Currently a work in progress, it has several features already such as a working proof of concept editor, a rendergraph system to easily setup the rendering
 architecture and automatically handle and manage device resources. Simple deferred and forward rendering have been implemented, with clustered/forward+ to be implemented soon on the renderer side. The engine and editor themselves are also a work in progress.
 
