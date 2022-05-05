@@ -20,7 +20,8 @@ namespace VeistEditor
 
 	private:
 
-
+		//DEBUGGING
+		float m_last_spike;
 
 	};
 

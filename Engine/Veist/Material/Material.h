@@ -1,38 +1,36 @@
 #pragma once
 
-#include "Veist/Renderer/Vulkan/ShaderAndPipelines/GraphicsPipeline.h"
-#include "Veist/Renderer/Vulkan/Images/Image.h"
-#include "Veist/Renderer/Vulkan/Descriptors/DescriptorSet.h"
+//#include "Veist/Graphics/Vulkan/ShaderAndPipelines/GraphicsPipeline.h"
+//#include "Veist/Graphics/Vulkan/Images/Image.h"
+#include "Veist/Graphics/Vulkan/Descriptors/DescriptorSet.h"
 
 #include "Veist/Util/AssetLoader.h"
+
+#include "Veist/Material/MaterialType.h"
+#include "Veist/Material/MaterialData.h"
 
 namespace Veist
 {
 
+	class Material
+	{
+	public:
+		
+		Material(MaterialType* type, MaterialData data);
+		~Material() = default;
 
-class Material
-{
-public:
+		const DescriptorSet& descriptorSet() const { return *m_descriptor_set.get(); };
 
-	Material() = default;
-	virtual ~Material() = default;
+		MaterialType* materialType() const { return m_material_type; };
 
-	const DescriptorSet& descriptorSet() const { return m_descriptor_set; };
-	const std::shared_ptr<GraphicsPipeline> pipeline() const { return m_pipeline; };
+	private:
 
-	
+		MaterialType* m_material_type;
 
-protected:
-	
-	//Configures the descriptor set for the material should be called from constructor of subclass
-	virtual void setUpDescriptorSet() = 0;
-	virtual void createPipeline(const char* material_name, const VertexDescription& vertex_desc) = 0;
+		MaterialData m_material_data;
 
-	std::shared_ptr<GraphicsPipeline> m_pipeline;
-	DescriptorSet m_descriptor_set;
+		std::unique_ptr<DescriptorSet> m_descriptor_set;
+	};
 
-	static const uint32_t MATERIAL_DESCRIPTOR_SET_NUMBER = 1;
-
-};
 
 }

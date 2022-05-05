@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "GUIModule.h"
 
-#include "Veist/Renderer/Vulkan/RenderBackend.h"
+#include "Veist/Graphics/Vulkan/RenderBackend.h"
 
 
 namespace Veist
@@ -23,11 +23,11 @@ namespace Veist
 		//io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoTaskBarIcons;
 		//io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoMerge;
 
-		io.Fonts->AddFontFromFileTTF("..\\assets\\fonts\\SourceSansPro\\SourceSansPro-Light.ttf", 18.0f);
-		io.Fonts->AddFontFromFileTTF("..\\assets\\fonts\\SourceSansPro\\SourceSansPro-Bold.ttf", 18.0f);
-		io.Fonts->AddFontFromFileTTF("..\\assets\\fonts\\SourceSansPro\\SourceSansPro-Regular.ttf", 18.0f);
+		io.Fonts->AddFontFromFileTTF("..\\..\\assets\\fonts\\SourceSansPro\\SourceSansPro-Light.ttf", 18.0f);
+		io.Fonts->AddFontFromFileTTF("..\\..\\assets\\fonts\\SourceSansPro\\SourceSansPro-Bold.ttf", 18.0f);
+		io.Fonts->AddFontFromFileTTF("..\\..\\assets\\fonts\\SourceSansPro\\SourceSansPro-Regular.ttf", 18.0f);
 
-		io.FontDefault = io.Fonts->AddFontFromFileTTF("..\\assets\\fonts\\SourceSansPro\\SourceSansPro-Regular.ttf", 18.0f);
+		io.FontDefault = io.Fonts->AddFontFromFileTTF("..\\..\\assets\\fonts\\SourceSansPro\\SourceSansPro-Regular.ttf", 18.0f);
 	
 
 		//Initialize imgui with vulkan/api

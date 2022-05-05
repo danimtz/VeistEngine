@@ -2,7 +2,7 @@
 
 #include "LightProbe.h"
 
-#include "Veist/Renderer/RenderModule.h"
+#include "Veist/Graphics/RenderModule.h"
 
 
 namespace Veist
@@ -34,17 +34,21 @@ static VkImageView getMipmapImageView(uint32_t mip_level, const ImageBase& image
 
 static std::shared_ptr<Cubemap> calculateIrradianceMap(const Cubemap& HDRcubemap, uint32_t map_size)
 {
-	ComputePipeline compute_irradiance = {"IBLIrradianceMap"};
+	ComputePipeline compute_irradiance = {"IBLIrradianceMap.comp"};
 
 	ImageProperties cubemap_properties = { {map_size, map_size}, HDRcubemap.properties().imageFormat(), 1, 6 }; //32x32 cubemap
 	StorageCubemap cubemap{cubemap_properties}; 
 	
-	DescriptorSet compute_descriptor;
-	compute_descriptor.setDescriptorSetLayout(0, &compute_irradiance);
-	compute_descriptor.bindCombinedSamplerCubemap(0, &HDRcubemap);
-	compute_descriptor.bindStorageImage(1, &cubemap);
-	compute_descriptor.buildDescriptorSet();
 
+	std::vector<Descriptor> bindings;
+	bindings.emplace_back(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, &HDRcubemap, SamplerType::RepeatLinear);
+	bindings.emplace_back(VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, &cubemap);
+	//compute_descriptor.setDescriptorSetLayout(0, &compute_irradiance);
+	//compute_descriptor.bindCombinedSamplerImage(0, &HDRcubemap, { SamplerType::RepeatLinear });
+	//compute_descriptor.bindStorageImage(1, &cubemap);
+	//compute_descriptor.buildDescriptorSet();
+	DescriptorSet compute_descriptor{0, bindings};
+	
 	CommandBuffer cmd_buff = RenderModule::getBackend()->createDisposableCmdBuffer();
 	
 	cmd_buff.calcSizeAndDispatch(compute_irradiance, compute_descriptor, cubemap_properties.imageSize());
@@ -65,7 +69,7 @@ static std::shared_ptr<Cubemap> calculateEnvironmentMap(const Cubemap& HDRcubema
 	uint32_t mip_levels = 5; //calculate mip levels for env map
 	assert(max_mips > mip_levels);
 
-	ComputePipeline compute_IBLenvironment = { "IBLEnvironmentMap" };
+	ComputePipeline compute_IBLenvironment = { "IBLEnvironmentMap.comp" };
 	
 	ImageProperties cubemap_properties = { {map_size, map_size}, HDRcubemap.properties().imageFormat(), mip_levels, 6 }; //32x32 cubemap
 	StorageCubemap cubemap{cubemap_properties};
@@ -78,23 +82,35 @@ static std::shared_ptr<Cubemap> calculateEnvironmentMap(const Cubemap& HDRcubema
 	size.z = 1;
 
 	std::vector<VkImageView> mipmap_views;
-
+	std::vector<DescriptorSet> compute_descriptors;
+	compute_descriptors.reserve(mip_levels);
 	for (uint32_t i = 0; i < mip_levels; i++)
 	{
 		
 		mipmap_views.push_back(getMipmapImageView(i, cubemap));
 		
-		DescriptorSet compute_descriptor;
-		compute_descriptor.setDescriptorSetLayout(0, &compute_IBLenvironment);
-		compute_descriptor.bindCombinedSamplerCubemap(0, &HDRcubemap);
-		compute_descriptor.bindStorageImage(1, mipmap_views.back());
-		compute_descriptor.buildDescriptorSet();
+		std::vector<Descriptor> bindings;
+		bindings.emplace_back(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, &HDRcubemap, SamplerType::RepeatLinear);
+		
+		VkDescriptorImageInfo desc_info;
+		desc_info.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+		desc_info.imageView = mipmap_views.back();
+		bindings.emplace_back(VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, Descriptor::DescriptorInfo(desc_info));
+
+
+		
+
+		//compute_descriptor.setDescriptorSetLayout(0, &compute_IBLenvironment);
+		//compute_descriptor.bindCombinedSamplerImage(0, &HDRcubemap, { SamplerType::RepeatLinear });
+		//compute_descriptor.bindStorageImage(1, mipmap_views.back());
+		//compute_descriptor.buildDescriptorSet();
+		compute_descriptors.emplace_back(0, bindings );
 
 		//ROUGHNESS PUSH CONSTNAT
 		float roughness = (float)i / (float)(mip_levels - 1);
 
 		cmd_buff.setComputePushConstant(compute_IBLenvironment, roughness);
-		cmd_buff.calcSizeAndDispatch(compute_IBLenvironment, compute_descriptor, size);
+		cmd_buff.calcSizeAndDispatch(compute_IBLenvironment, compute_descriptors[i], size);
 		
 		size.x /= 2;
 		size.y /= 2;
@@ -118,15 +134,20 @@ static std::shared_ptr<Cubemap> calculateEnvironmentMap(const Cubemap& HDRcubema
 static std::shared_ptr<Texture> calculateBRDF_LUT(const Cubemap& HDRcubemap, uint32_t map_size)
 {
 
-	ComputePipeline compute_BRDF = { "IntegrateBRDF" };
+	ComputePipeline compute_BRDF = { "IntegrateBRDF.comp" };
 
 	ImageProperties texture_properties = { {map_size, map_size}, HDRcubemap.properties().imageFormat(), 1, 1 }; 
 	StorageTexture brdf_lut{ texture_properties };
 
-	DescriptorSet compute_descriptor;
-	compute_descriptor.setDescriptorSetLayout(0, &compute_BRDF);
-	compute_descriptor.bindStorageImage(0, &brdf_lut);
-	compute_descriptor.buildDescriptorSet();
+	
+	std::vector<Descriptor> bindings;
+	bindings.emplace_back(VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, &brdf_lut);
+	//compute_descriptor.setDescriptorSetLayout(0, &compute_BRDF);
+	//compute_descriptor.bindStorageImage(0, &brdf_lut);
+	//compute_descriptor.buildDescriptorSet();
+	DescriptorSet compute_descriptor{ 0, bindings };
+
+
 
 	CommandBuffer cmd_buff = RenderModule::getBackend()->createDisposableCmdBuffer();
 
