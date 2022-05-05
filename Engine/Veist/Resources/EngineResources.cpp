@@ -41,11 +41,27 @@ namespace Veist
 		mesh_data.description = getVertexDescription(EngineResources::MaterialTypes::BillboardMaterial);
 		
 		//TODO
-		mesh_data.vbuffer_data = ;
-		mesh_data.index_data = 
+
 		
+		std::vector<Vertex>& vertices = mesh_data.vbuffer_data;
+		vertices.resize(4);
+
+		vertices[0].position = glm::vec3{ -0.5, -0.5, 0.0 };
+		vertices[1].position = glm::vec3{ 0.5, -0.5, 0.0 };
+		vertices[2].position = glm::vec3{ -0.5, 0.5, 0.0 };
+		vertices[3].position = glm::vec3{ 0.5, 0.5, 0.0 };
+
+
 		mesh_data.vbuffer_size = mesh_data.vbuffer_data.size() * mesh_data.description.getStride();
+
 		mesh_data.index_count = 6;
+		uint16_t indices[36] = { 0, 1, 2, 2, 1, 3};
+
+		mesh_data.index_data.resize(mesh_data.index_count);
+		memcpy(mesh_data.index_data.data(), indices, mesh_data.index_count * mesh_data.index_size);
+
+
+		
 	}
 
 
@@ -94,13 +110,14 @@ namespace Veist
 		EditorBillboard.attachment_count = 1;
 		EditorBillboard.vertex_shader_name = "CameraViewBillboard.vert";
 		EditorBillboard.fragment_shader_name = "CameraViewBillboard.frag";
-		EditorBillboard.depth_setting = DepthTest::None;
+		EditorBillboard.depth_setting = DepthTest::Read;
 
 
 		material_settings.emplace_back(PBRForward);
 		material_settings.emplace_back(Skybox);
 		material_settings.emplace_back(GBuffer);
 		material_settings.emplace_back(DeferredLighting);
+		material_settings.emplace_back(EditorBillboard);
 
 	}
 
@@ -124,18 +141,18 @@ namespace Veist
 		//Materials
 		m_materials.reserve(Materials::MaxCompleteMaterials);
 		
+
 		m_materials.emplace_back(std::make_unique<Material>(getMaterialType(MaterialTypes::BillboardMaterial), 
 					MaterialData({AssetLoader::loadTextureFromFile("..\\..\\assets\\EditorAssets\\UITextures\\BillboardTextureAtlas.png")})) );
 
 
 
-		//TODO meshes
-
-		m_meshes->reserve(Meshes::MaxPreBuiltMeshes);
+		m_meshes.reserve(Meshes::MaxPreBuiltMeshes);
 
 		MeshData billboard_data;
 		fillBillboardMeshData(billboard_data);
-		m_meshes->emplace_back(billboard_data);
+
+		m_meshes.emplace_back(std::make_unique<Mesh>(billboard_data));
 	}
 
 
@@ -148,10 +165,10 @@ namespace Veist
 	{
 		return m_materials.at(type).get();
 	}
-
+	
 	Mesh* EngineResources::getMesh(Meshes type)
 	{
-		return &m_meshes->at(type);
+		return m_meshes.at(type).get();
 	}
 
 

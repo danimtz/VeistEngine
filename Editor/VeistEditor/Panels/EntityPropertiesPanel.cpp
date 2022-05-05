@@ -56,7 +56,7 @@ namespace VeistEditor
 
 
 
-	static void drawVec3Sliders(glm::vec3& values, std::string label, float speed = 0.1f, float reset_val = 0.0f)
+	static void drawVec3Sliders(glm::vec3& values, std::string label, float speed = 0.05f, float reset_val = 0.0f)
 	{
 
 		ImVec2 button_size = {20, 0};
@@ -225,7 +225,7 @@ namespace VeistEditor
 		drawComponent<CameraComponent>("CameraSettings", m_active_registry, m_selected_entity, [](auto& component)
 			{
 			//TODO rewrite all this one it doenst do anything its just a test
-				ImVec2 button_size = { 20, 0 };
+				/*ImVec2 button_size = { 20, 0 };
 
 				ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
 				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.57f, 0.00f, 0.00f, 1.00f));
@@ -241,7 +241,7 @@ namespace VeistEditor
 				ImGui::PopStyleVar();
 				ImGui::DragFloat("##TESTval", &x , 0.1f, 0.0f, 0.0f, "%.2f");
 				ImGui::PopItemWidth();
-				ImGui::SameLine();
+				ImGui::SameLine();*/
 			});
 
 

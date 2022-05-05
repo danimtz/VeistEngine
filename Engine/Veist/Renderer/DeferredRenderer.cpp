@@ -78,14 +78,15 @@ namespace Veist
 				camera_data.view = main_cam->viewMatrix();
 				camera_data.inverse_view = glm::inverse(glm::mat3(main_cam->viewMatrix()));
 				camera_data.view_projection = main_cam->viewProjectionMatrix();
+				camera_data.inverse_projection = glm::inverse(main_cam->projectionMatrix());
 
 				pass->getPhysicalBuffer(camera_buffer)->setData(&camera_data, sizeof(RendererUniforms::CameraData));
 			}
 
-			//Object matrices
+			//Object matrices for all entities with a transform
 			{
 				std::vector<RendererUniforms::ObjectMatrices> object_matrices(max_objects);
-				auto& scene_view = scene_registry->view<MeshComponent, TransformComponent>();
+				auto& scene_view = scene_registry->view<TransformComponent>();
 				for (ecs::EntityId entity : scene_view)
 				{
 					auto& transform_comp = scene_view.get<TransformComponent>(entity);
@@ -167,7 +168,7 @@ namespace Veist
 
 		builder.setRenderFunction([=](CommandBuffer& cmd, const RenderGraph::RenderGraphPass* pass) {
 
-
+		
 			Camera* main_cam;
 			{
 				auto& scene_view = scene_registry->view<CameraComponent>();
@@ -178,16 +179,16 @@ namespace Veist
 					break;//Only first camera componenet being taken into consideration for now
 				}
 
-				RendererUniforms::CameraData camera_data;
+				/*RendererUniforms::CameraData camera_data;
 				camera_data.projection = main_cam->projectionMatrix();
 				camera_data.view = main_cam->viewMatrix();
 				camera_data.inverse_view = glm::inverse(glm::mat3(main_cam->viewMatrix()));
 				camera_data.view_projection = main_cam->viewProjectionMatrix();
 				camera_data.inverse_projection = glm::inverse(main_cam->projectionMatrix());
 
-				pass->getPhysicalBuffer(camera_buffer)->setData(&camera_data, sizeof(RendererUniforms::CameraData));
+				pass->getPhysicalBuffer(camera_buffer)->setData(&camera_data, sizeof(RendererUniforms::CameraData));*/
 			}
-
+		
 
 			RendererUniforms::SceneInfo scene_info_data;
 
@@ -220,7 +221,7 @@ namespace Veist
 
 				RendererUniforms::GPUDirLight directional_lights[max_dir_lights];
 				uint32_t light_count = 0;
-				auto& scene_view = scene_registry->view<DirectionalLightComponent>();
+				auto& scene_view = scene_registry->view<DirectionalLightComponent, TransformComponent>();
 				glm::mat4 world2view_mat = glm::mat4(glm::mat3(main_cam->viewMatrix()));
 				for (ecs::EntityId entity : scene_view)
 				{

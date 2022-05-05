@@ -40,7 +40,9 @@ namespace Veist
 		//TODO add compute programs here too?
 
 		EngineResources();
-		~EngineResources() {};
+		~EngineResources() 
+		{
+		};
 
 
 		MaterialType* getMaterialType(MaterialTypes type);
@@ -55,7 +57,7 @@ namespace Veist
 
 		//TODO i dont like how materials is used here. probably replace once asset system implemented. and maybe it should be a map not a vector
 		std::vector<std::unique_ptr<Material>> m_materials;
-		std::unique_ptr< std::vector<Mesh> > m_meshes; //Maybe replace unique pointer for vector of unique pointers
+		std::vector<std::unique_ptr<Mesh> > m_meshes; //Maybe replace unique pointer for vector of unique pointers
 		//std::unique_ptr<std::vector<ImageBase>> m_images; //TODO: this should be Asset<ImageBase>[] when asset system implemented
 
 		//std::unique_ptr<Mesh[]> m_meshes;

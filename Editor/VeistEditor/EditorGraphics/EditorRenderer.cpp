@@ -34,11 +34,26 @@ namespace Veist
 				uv_ranges.uv1uv2.x = 0.0f;
 				uv_ranges.uv1uv2.y = 0.0f;
 
-				uv_ranges.uv1uv2.z = 0.5f;
-				uv_ranges.uv1uv2.a = 1.0f;
+				uv_ranges.uv1uv2.z = 0.125f;
+				uv_ranges.uv1uv2.a = 0.125f;
 				break;
 
+			case BillboardType::DirectionalLight:
+				uv_ranges.uv1uv2.x = 0.125f;
+				uv_ranges.uv1uv2.y = 0.0f;
 
+				uv_ranges.uv1uv2.z = 0.25f;
+				uv_ranges.uv1uv2.a = 0.125f;
+				break;
+
+			case BillboardType::Camera:
+				uv_ranges.uv1uv2.x = 0.0f;
+				uv_ranges.uv1uv2.y = 0.125f;
+
+				uv_ranges.uv1uv2.z = 0.125f;
+				uv_ranges.uv1uv2.a = 0.25f;
+
+				break;
 			default:
 				uv_ranges.uv1uv2.x = 0.0f;
 				uv_ranges.uv1uv2.y = 0.0f;
@@ -69,14 +84,19 @@ namespace Veist
 
 	void addEditorBillboardPass(RenderGraph::RenderGraph& render_graph, ecs::EntityRegistry* scene_registry, EditorRenderer& renderer)
 	{
+		RenderGraph::BufferInfo camera_buffer_info;
 
+		camera_buffer_info.size = sizeof(RendererUniforms::CameraData);
+		
 		RenderGraph::ImageInfo output_image_info;
 		output_image_info.properties = ImageProperties(renderer.m_renderer.m_size, { VK_FORMAT_R8G8B8A8_SRGB });
 
 		auto builder = render_graph.addPass("EditorPass");
 
-		//builder.addDepthInput("gbuffer_depth_attachment");
+		auto camera_buffer = builder.addUniformInput("camera_buffer");
+		builder.addStorageInput("object_matrices_buffer");
 		auto output_image = builder.addColorOutput("editor_output", output_image_info, "renderer_output");
+		builder.addDepthInput("depth_output");
 
 		//outputs of rendergraph
 		builder.setRenderGraphImGuiBackbuffer("editor_output");
@@ -88,34 +108,58 @@ namespace Veist
 		builder.setRenderFunction([=](CommandBuffer& cmd, const RenderGraph::RenderGraphPass* pass)
 		{
 			
+			uint32_t object_matrix_id = 0;
 
-			//PointLights
-			auto& scene_view = scene_registry->view<PointLightComponent, TransformComponent>();
-			for (ecs::EntityId entity : scene_view)
+
+			auto billboard_material = RenderModule::resources()->getMaterial(EngineResources::Materials::EditorBillboardIcons);
+			cmd.bindMaterial(*billboard_material);
+
+			auto billboard_mesh = RenderModule::resources()->getMesh(EngineResources::Meshes::BillboardMesh);
+			cmd.bindVertexBuffer(*billboard_mesh->getVertexBuffer());
+			cmd.bindIndexBuffer(*billboard_mesh->getIndexBuffer());
+
+			for (auto& descriptor_set : pass->getDescriptorSets())
 			{
-				auto& light_comp = scene_view.get<PointLightComponent>(entity);
-				auto& transform_comp = scene_view.get<TransformComponent>(entity);
+				cmd.bindDescriptorSet(descriptor_set);
+			}
 
-				//TODO render billboard
-				
-
-				auto material = RenderModule::resources()->getMaterial(EngineResources::Materials::EditorBillboardIcons);
-				cmd.bindMaterial(*material);
-
-				auto mesh = RenderModule::resources()->getMesh(EngineResources::Meshes::BillboardMesh);
-				cmd.bindVertexBuffer(*mesh->getVertexBuffer());
-				cmd.bindIndexBuffer(*mesh->getIndexBuffer());
-
-
-				BillboardUVRanges uv_ranges = getBillboardUV(BillboardType::PointLight);
-
+			// Render Directional light icons
+			{
+				BillboardUVRanges uv_ranges = getBillboardUV(BillboardType::DirectionalLight);
 				cmd.setPushConstants(&uv_ranges, sizeof(BillboardUVRanges));
 
-				cmd.drawIndexed(mesh->getIndexBuffer()->getIndexCount());
-				//cmd.drawVertices(*m_mesh->getIndexBuffer());
+				auto& scene_view = scene_registry->view<DirectionalLightComponent, TransformComponent>();
+				for (ecs::EntityId entity : scene_view)
+				{
+					cmd.drawIndexed(billboard_mesh->getIndexBuffer()->getIndexCount(), entity);
+				}
+			}
+
+
+			//Render point light icons
+			{
+				BillboardUVRanges uv_ranges = getBillboardUV(BillboardType::PointLight);
+				cmd.setPushConstants(&uv_ranges, sizeof(BillboardUVRanges));
+				
+				auto& scene_view = scene_registry->view<PointLightComponent, TransformComponent>();
+				for (ecs::EntityId entity : scene_view)
+				{
+					cmd.drawIndexed(billboard_mesh->getIndexBuffer()->getIndexCount(), entity);
+				}
 			}
 			
-			
+
+			//Render camera icons
+			{
+				BillboardUVRanges uv_ranges = getBillboardUV(BillboardType::Camera);
+				cmd.setPushConstants(&uv_ranges, sizeof(BillboardUVRanges));
+
+				auto& scene_view = scene_registry->view<CameraComponent, TransformComponent>();
+				for (ecs::EntityId entity : scene_view)
+				{
+					cmd.drawIndexed(billboard_mesh->getIndexBuffer()->getIndexCount(), entity);
+				}
+			}
 			
 		});
 

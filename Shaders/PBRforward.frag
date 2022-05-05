@@ -93,24 +93,31 @@ float calcAttenuation(float radius, vec3 light_pos, vec3 fragPos){
 
 void main()
 {
+
+	vec4 albedo_full = texture(inAlbedo, inUV);
+	vec3 albedo = albedo_full.xyz;
+	float roughness = texture(inOccRoughMetal, inUV).y;
+	float metallic = texture(inOccRoughMetal, inUV).z;
+	float occlusion = texture(inOccRoughMetal, inUV).x;
+	//vec3 emmissive = texture(inEmmissive, inUV).xyz;
+
+	//Alpha test
+	if(albedo_full.a < 0.5) {
+		discard;
+	}
+
+
 	//Normal mapping
 	mat3 mTBN = mat3(normalize(inTangent), normalize(inBitangent), normalize(inNormal));
 	vec3 tex_normal = normalize(texture(inNormalTex, inUV).xyz * 2.0 - 1.0);
 	
-	//
 	vec3 N = normalize(mTBN * tex_normal);
 	vec3 V = -normalize(inFragPos);
 	vec3 worldR = vec3(camera_data.mInvV * vec4(reflect(-V, N), 1.0));   
 
 	vec3 worldN = vec3(camera_data.mInvV * vec4(N, 1.0));   
 
-	vec3 albedo = texture(inAlbedo, inUV).xyz; 
-	float roughness = texture(inOccRoughMetal, inUV).y;
-	float metallic = texture(inOccRoughMetal, inUV).z;
-	float occlusion = texture(inOccRoughMetal, inUV).x;
-	//vec3 emmissive = texture(inEmmissive, inUV).xyz;
-
-
+	
 	//Directional lights
 	vec3 Lo = vec3(0.0);
 	for (int i = 0; i < scene_info.dir_light_count; i++)

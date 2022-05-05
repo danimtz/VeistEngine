@@ -26,6 +26,7 @@ namespace Veist
     void RenderModule::shutdown()
     {
 
+        s_resources.reset(); 
         s_render_backend->shutdown();
     
     }

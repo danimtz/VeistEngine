@@ -238,6 +238,10 @@ void ShaderProgram::compileOrGetSpirV(const std::unordered_map<ShaderStageFlag, 
 				}
 
 			}
+			else
+			{
+				CRITICAL_ERROR_LOG("Shader file: " + it.second + " not found  \n" );
+			}
 			
 		}
 

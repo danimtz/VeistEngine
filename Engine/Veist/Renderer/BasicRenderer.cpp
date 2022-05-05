@@ -57,18 +57,18 @@ namespace Veist
 		auto builder = render_graph.addPass("ForwardPass");
 
 		//Input and outputs (descriptors)
-		auto scene_info_buffer = builder.addUniformInput("SceneInfo", scene_info_buffer_info);
-		auto camera_buffer = builder.addUniformInput("CameraBuffer", camera_buffer_info);
-		auto dir_lights_buffer = builder.addUniformInput("DirLights", dir_lights_buffer_info);
-		auto point_lights_buffer = builder.addStorageInput("PointLights", point_lights_buffer_info);
-		auto object_matrices_buffer = builder.addStorageInput("ObjectMatrices", object_matrices_buffer_info);
+		auto scene_info_buffer = builder.addUniformInput("scene_info", scene_info_buffer_info);
+		auto camera_buffer = builder.addUniformInput("camera_buffer", camera_buffer_info);
+		auto dir_lights_buffer = builder.addUniformInput("dir_lights", dir_lights_buffer_info);
+		auto point_lights_buffer = builder.addStorageInput("point_lights", point_lights_buffer_info);
+		auto object_matrices_buffer = builder.addStorageInput("object_matrices_buffer", object_matrices_buffer_info);
 
 		builder.addExternalInput("IBLProbe_irrmap", Descriptor(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, light_probe->irradianceMap(), { SamplerType::RepeatLinear }));
 		builder.addExternalInput("IBLProbe_prefilt_map", Descriptor(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, light_probe->prefilterMap(), { SamplerType::RepeatLinear }));
 		builder.addExternalInput("IBLProbe_brdfLUT", Descriptor(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, light_probe->brdfLUT(), { SamplerType::ClampLinear }));
 
 		auto output_image = builder.addColorOutput("renderer_output", output_image_info);
-		auto depth_output = builder.addDepthOutput("Depth", depth_attachment_info);
+		auto depth_output = builder.addDepthOutput("depth_output", depth_attachment_info);
 
 
 
@@ -150,7 +150,7 @@ namespace Veist
 
 				RendererUniforms::GPUDirLight directional_lights[max_dir_lights];
 				uint32_t light_count = 0;
-				auto& scene_view = scene_registry->view<DirectionalLightComponent>();
+				auto& scene_view = scene_registry->view<DirectionalLightComponent, TransformComponent>();
 				glm::mat4 world2view_mat = glm::mat4(glm::mat3(main_cam->viewMatrix()));
 				for (ecs::EntityId entity : scene_view)
 				{
@@ -175,7 +175,7 @@ namespace Veist
 			//Object matrices
 			{
 				std::vector<RendererUniforms::ObjectMatrices> object_matrices(max_objects);
-				auto& scene_view = scene_registry->view<MeshComponent, TransformComponent>();
+				auto& scene_view = scene_registry->view<TransformComponent>();
 				//uint32_t object_count = 0;
 				for (ecs::EntityId entity : scene_view)
 				{
