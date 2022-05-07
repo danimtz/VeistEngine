@@ -16,6 +16,12 @@ public:
 
 	void onEvent(Event& event);
 
+	void updateAspectRatio(float width, float height);
+
+	Camera* camera() {return m_camera;};
+
+	float& cameraSpeed() {return m_cam_speed;};
+
 private:
 	
 	void updateFoV(MouseScrolledEvent& event);
@@ -27,6 +33,7 @@ private:
 
 	float m_sensitivity{0.003f};
 	float m_cam_speed{3.0f};
+	float m_fovy{60.0f};
 };
 
 }

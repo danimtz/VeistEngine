@@ -154,11 +154,15 @@ namespace Veist
 				glm::mat4 world2view_mat = glm::mat4(glm::mat3(main_cam->viewMatrix()));
 				for (ecs::EntityId entity : scene_view)
 				{
+					
 					auto& light_comp = scene_view.get<DirectionalLightComponent>(entity);
+					auto& transform_comp = scene_view.get<TransformComponent>(entity);
+
+					glm::mat4 rotation_mat = glm::mat4(glm::mat3(transform_comp.getTransform()));
 
 					directional_lights[light_count].colour = light_comp.colour();
 					directional_lights[light_count].intensity = light_comp.intensity();
-					directional_lights[light_count].direction = world2view_mat * glm::vec4(light_comp.direction(), 1.0);
+					directional_lights[light_count].direction = glm::normalize(world2view_mat * rotation_mat * glm::vec4(light_comp.direction(), 1.0)); //glm::vec4(light_comp.direction(), 1.0);
 					light_count++;
 				}
 				pass->getPhysicalBuffer(dir_lights_buffer)->setData(&directional_lights, sizeof(RendererUniforms::GPUDirLight) * max_dir_lights);

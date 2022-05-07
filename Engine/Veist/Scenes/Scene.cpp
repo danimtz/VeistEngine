@@ -23,12 +23,11 @@ namespace Veist
 		{
 			ecs::EntityId camera = registry->createEntity("camera");
 			ecs::EntityId waterbottle = registry->createEntity("waterbottle");
-			ecs::EntityId helmet = registry->createEntity("helmet");
+			ecs::EntityId helmet = registry->createEntity("damaged_helmet");
 			ecs::EntityId flight_helmet = registry->createEntity("flight_helmet");
 			ecs::EntityId sponza = registry->createEntity("sponza");
 
 			ecs::EntityId point_light_1 = registry->createEntity("pointlight1");
-			ecs::EntityId point_light_2 = registry->createEntity("pointlight1");
 			ecs::EntityId sun_light = registry->createEntity("sun directional light");
 			ecs::EntityId skybox = registry->createEntity("skybox");
 
@@ -38,23 +37,19 @@ namespace Veist
 
 
 			glm::vec3 pos = glm::vec3(3.0, 0.0, 0.0);
-			glm::vec3 col = glm::vec3(0.1, 0.13, 0.81);
+			glm::vec3 col = col = glm::vec3(0.5, 0.32, 0.15);
 			registry->emplaceComponent<PointLightComponent>(point_light_1, col);
 			registry->emplaceComponent<TransformComponent>(point_light_1, pos);
 
-			pos = glm::vec3(2.0, 0.0, -1.0);
-			col = glm::vec3(0.5, 0.32, 0.15);
-			registry->emplaceComponent<PointLightComponent>(point_light_2, col);
-			registry->emplaceComponent<TransformComponent>(point_light_2, pos);
-
+	
 
 
 			pos = glm::vec3(0.0, 3.0, 0.0);
-			registry->emplaceComponent<DirectionalLightComponent>(sun_light, glm::normalize(glm::vec3(0.0, 1.0, 0.0)), glm::vec3(1.0), 1.0);
+			registry->emplaceComponent<DirectionalLightComponent>(sun_light);
 			registry->emplaceComponent<TransformComponent>(sun_light, pos);
 
 			registry->emplaceComponent<MeshComponent>(waterbottle, AssetLoader::loadMeshComponent("..\\..\\assets\\GLTF_models\\Bottle\\WaterBottle.gltf"));
-			registry->emplaceComponent<TransformComponent>(waterbottle, glm::vec3{ 2.0, 0.0, 0.0 }, glm::vec3{ 0.0, 0.0, 0.0 }, glm::vec3{ 8.0, 8.0, 8.0 });
+			registry->emplaceComponent<TransformComponent>(waterbottle, glm::vec3{ 2.0, 0.0, 0.0 }, glm::vec3{ 0.0, 0.0, 0.0 }, glm::vec3{ 3.0, 3.0, 3.0 });
 
 			
 			registry->emplaceComponent<MeshComponent>(helmet, AssetLoader::loadMeshComponent("..\\..\\assets\\GLTF_models\\DamagedHelmet\\DamagedHelmet.gltf"));

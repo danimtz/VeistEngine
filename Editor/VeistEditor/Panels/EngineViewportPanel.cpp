@@ -21,9 +21,9 @@
 namespace VeistEditor
 {
 	
-	float EngineViewportPanel::m_aspect_ratio = 16.0f/9.0f;
+	
 
-	EngineViewportPanel::EngineViewportPanel()
+	EngineViewportPanel::EngineViewportPanel() : m_view_target(DeferredTarget::Shaded)
 	{
 		
 	
@@ -59,7 +59,7 @@ namespace VeistEditor
 
 		m_editor_camera = std::make_unique<CameraController>(m_active_scene->getMainCamera());
 	
-
+		m_aspect_ratio = 16.0f/9.0f;
 		
 	}
 
@@ -106,17 +106,19 @@ namespace VeistEditor
 	void EngineViewportPanel::renderPanel()
 	{
 	
-		struct PanelConstraint
+		/*struct PanelConstraint
 		{
 			static void Square(ImGuiSizeCallbackData* data)
 			{
-				data->DesiredSize.x = data->DesiredSize.y * m_aspect_ratio;
+				if(data->DesiredSize.x < data->DesiredSize.y)
+				data->DesiredSize.x = data->DesiredSize.y;
 				//data->DesiredSize.y = data->DesiredSize.x * (1.0f/m_aspect_ratio);
 			}
-		};
-		ImGui::SetNextWindowSizeConstraints(ImVec2(0, 0), ImVec2(FLT_MAX, FLT_MAX), PanelConstraint::Square);
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
-		ImGui::Begin("Viewport", nullptr);
+		};*/
+		//ImGui::SetNextWindowSizeConstraints(ImVec2(0, 0), ImVec2(FLT_MAX, FLT_MAX)/*, PanelConstraint::Square*/);
+		
+		ImGuiWindowFlags flags = ImGuiWindowFlags_MenuBar;
+		ImGui::Begin("Viewport", nullptr, flags);
 
 
 		drawMenuBar();
@@ -136,11 +138,25 @@ namespace VeistEditor
 		
 
 		ImVec2 viewport_panel_size = ImGui::GetContentRegionAvail();
-		viewport_panel_size.x = viewport_panel_size.y * m_aspect_ratio;
 		m_viewport_size = { viewport_panel_size.x, viewport_panel_size.y };
+		
+
+		//update camera aspect ratio if needed
+		
+		float old_aspect_ratio = m_aspect_ratio;
+
+		m_aspect_ratio = viewport_panel_size.x/viewport_panel_size.y;
+	
+		
+		if (old_aspect_ratio != m_aspect_ratio)
+		{
+			m_editor_camera->updateAspectRatio(m_viewport_size.x, m_viewport_size.y);
+		}
+		
+
 		ImGui::Image(m_texture_id, viewport_panel_size);
+
 		ImGui::End();
-		ImGui::PopStyleVar();
 
 
 	
@@ -155,21 +171,10 @@ namespace VeistEditor
 
 		RenderGraph::RenderGraph render_graph(m_resource_pool);
 
-		//BasicRenderer renderer = BasicRenderer::createRenderer(render_graph, m_active_scene->ecsRegistry());
-		//DeferredRenderer renderer = DeferredRenderer::createRenderer(render_graph, m_active_scene->ecsRegistry(), m_viewport_size);
-		
-		EditorRenderer renderer = EditorRenderer::createRenderer(render_graph, m_active_scene->ecsRegistry(), m_viewport_size);
+		EditorRenderer renderer = EditorRenderer::createRenderer(render_graph, m_active_scene->ecsRegistry(), m_viewport_size, uint32_t(m_view_target));
 		
 		render_graph.execute(RenderModule::getBackend()->getCurrentCmdBuffer());
 	
-
-		//TODO this should be part of an editor pass (and its pretty bad especially the static cast to get the image base)
-		/*std::vector<Descriptor> descriptor;
-		ImageBase* target = render_graph.resourcePool()->getImage(static_cast<RenderGraph::PhysicalImage*>(renderer.m_editor_target->physicalResource()))->image.get();
-		descriptor.emplace_back(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, target, SamplerType::RepeatLinear, VK_SHADER_STAGE_FRAGMENT_BIT);
-
-		DescriptorSet desc_set{ 0, descriptor };*/
-
 		m_texture_id = renderer.getImGuiTextureId();//ImGui_ImplVulkan_AddTexture(sampler->sampler(), final_image->imageView(), getImageLayout(final_image->imageUsage()));
 
 
@@ -179,21 +184,91 @@ namespace VeistEditor
 	void EngineViewportPanel::drawMenuBar()
 	{
 
-		/*ImGui::BeginMenuBar();
-		
-		
-			ImGui::BeginMenu("Camera");
+		if(ImGui::BeginMenuBar())
+		{ 
 			
+			if (ImGui::BeginMenu("Render"))
+			{
+				ImGui::MenuItem("Deferred targets", nullptr, false, false);
+				ImGui::Separator();
+				{
+					const char* target_names[] = {
+							"Shaded", "Albedo", "Normals", "Metallic", "Roughness", "Depth", "AO"
+					};
+					for ( uint32_t i = 0; i < 7; i++)
+					{
+						bool selected = uint32_t(m_view_target) == i;
+						ImGui::MenuItem(target_names[i], nullptr, &selected, m_deferred_renderer_enabled);
+						if (selected)
+						{
+							m_view_target = DeferredTarget(i);
+						}
+					}
+				}
+
+				ImGui::Separator();
+
+				//ImGui::PushFont(ImGui::GetFont());
+				ImGui::MenuItem("Shading type", nullptr, false, false);
+				//ImGui::PopFont();
+				ImGui::Separator();
+				{
+					const char* shading_type[] = {
+							"Shaded", "Wireframe"
+					};
+					for (int i = 0; i < 2; i++)
+					{
+						bool selected = 1 == i;
+						ImGui::MenuItem(shading_type[i], nullptr, &selected);
+						if (selected)
+						{
+
+						}
+					}
+				}
+				ImGui::EndMenu();
+			}
+
+
+
+			//ImGui::SetNextWindowSize(ImVec2(200, 0));
+			if (ImGui::BeginMenu("Editor camera"))
+			{
 				if (ImGui::MenuItem("Reset camera"))
 				{
-					//_scene_view.camera().set_view(Camera().view_matrix());
-				}
-			ImGui::EndMenu();
-			
+					auto camera = m_editor_camera->camera();
 
-		ImGui::EndMenuBar();
+					glm::vec3 pos = glm::vec3{ 0.0f, 0.0f, 3.5f };
+					camera->setViewMatrix(glm::lookAt(glm::vec3{ 0.0f, 0.0f, 3.5f }, glm::vec3{ 0.0f, 0.0f, 0.0f }, glm::vec3{ 0.0f, 1.0f, 0.0f }));
+					camera->setPosition(pos);
+					camera->setFoVy(55);
+				}
+
+				//ImGui::MenuItem("Camera speed");
+
+				//static bool enabled = true;
+				//ImGui::MenuItem("Enabled", "", &enabled);
+				//ImGui::BeginChild("child", ImVec2(0, 60), true);
+				//for (int i = 0; i < 10; i++)
+				//	ImGui::Text("Scrolling Text %d", i);
+				//ImGui::EndChild();
+
+				//static int n = 0;
+				float& cam_speed = m_editor_camera->cameraSpeed();
+				static float max_speed = 25.0f;
+				ImGui::SliderFloat("Camera speed", &cam_speed, 0.0f, max_speed);
+				ImGui::InputFloat("Max speed", &max_speed, 0.1f);
+
+				//ImGui::Combo("Combo", &n, "Yes\0No\0Maybe\0\0");
+				ImGui::EndMenu();
+			}
+
+
+			ImGui::EndMenuBar();
+		}
+
 		
-		*/
+		
 
 	}
 

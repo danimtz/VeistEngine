@@ -19,9 +19,9 @@ namespace Veist
 		if (InputModule::isKeyPressed(GLFW_KEY_R)) //reset camera
 		{
 			m_position = glm::vec3{ 0.0f, 0.0f, 3.5f };
+			m_camera->setViewMatrix(glm::lookAt(glm::vec3{ 0.0f, 0.0f, 3.5f }, glm::vec3{ 0.0f, 0.0f, 0.0f }, glm::vec3{ 0.0f, 1.0f, 0.0f }));
 			m_camera->setPosition(m_position);
-			m_camera->setViewMatrix(glm::lookAt(glm::vec3{ 0.0f, 0.0f, -3.5f }, glm::vec3{ 0.0f, 0.0f, 0.0f }, glm::vec3{ 0.0f, 1.0f, 0.0f }));
-			m_camera->setFoV(55);
+			m_camera->setFoVy(55);
 		}
 
 
@@ -99,19 +99,37 @@ namespace Veist
 	void CameraController::updateFoV(MouseScrolledEvent& event)
 	{
 
-		m_camera->setFoV(m_camera->fov() - event.getOffsetY());
+		m_camera->setFoVy(m_camera->fovy() - event.getOffsetY());
 
-		if (m_camera->fov() > 105.0f)
+		if (m_camera->fovy() > 105.0f)
 		{
-			m_camera->setFoV(105.5);
+			m_camera->setFoVy(105.0);
 		}
-		if (m_camera->fov() < 30.0f)
+		if (m_camera->fovy() < 30.0f)
 		{
-			m_camera->setFoV(30.0f);
+			m_camera->setFoVy(30.0f);
 		}
 		
 	
 	}
 
+
+	void CameraController::updateAspectRatio(float width, float height)
+	{
+		
+		float fovy = m_camera->fovy();
+		float aspect = width/height;
+		
+		
+		if (width < height)
+		{
+			fovy = glm::degrees( 2.0f * atan( tan(glm::radians(fovy)/2.0f) / aspect ) );
+		}
+
+
+		
+		m_camera->setProjectionMatrix(glm::perspective(glm::radians(fovy), width/height, m_camera->clipPlanes().x, m_camera->clipPlanes().y));
+
+	}
 
 }

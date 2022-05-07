@@ -12,6 +12,7 @@ namespace Veist
 		switch (type)
 		{
 		case EngineResources::MaterialTypes::DeferredLightingMaterial: //Quad
+		case EngineResources::MaterialTypes::EditorTargetSelectMaterial: //Quad
 			return VertexDescription();
 
 
@@ -99,7 +100,7 @@ namespace Veist
 		DeferredLighting.vertex_description = getVertexDescription(EngineResources::MaterialTypes::DeferredLightingMaterial); //This is for vertex description generation
 		DeferredLighting.descriptor_set_number = 0;
 		DeferredLighting.attachment_count = 1;
-		DeferredLighting.vertex_shader_name = "DeferredLighting.vert";
+		DeferredLighting.vertex_shader_name = "FullScreenQuad.vert";
 		DeferredLighting.fragment_shader_name = "DeferredLighting.frag";
 		DeferredLighting.depth_setting = DepthTest::Read;
 
@@ -113,12 +114,20 @@ namespace Veist
 		EditorBillboard.depth_setting = DepthTest::Read;
 
 
+		MaterialSettings EditorTargetSelect = {};
+		EditorTargetSelect.vertex_description = getVertexDescription(EngineResources::MaterialTypes::EditorTargetSelectMaterial); //This is for vertex description generation
+		EditorTargetSelect.descriptor_set_number = 1;
+		EditorTargetSelect.attachment_count = 1;
+		EditorTargetSelect.vertex_shader_name = "FullScreenQuad.vert";
+		EditorTargetSelect.fragment_shader_name = "EditorTargetSelect.frag";
+		EditorTargetSelect.depth_setting = DepthTest::Read;
+
 		material_settings.emplace_back(PBRForward);
 		material_settings.emplace_back(Skybox);
 		material_settings.emplace_back(GBuffer);
 		material_settings.emplace_back(DeferredLighting);
 		material_settings.emplace_back(EditorBillboard);
-
+		material_settings.emplace_back(EditorTargetSelect);
 	}
 
 

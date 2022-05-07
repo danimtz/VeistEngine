@@ -46,7 +46,7 @@ vec2 getUVcoordinates(vec4 uv1uv2, uint vertex)//branching in shader probably no
 void main()
 {
 
-	const float billboard_size = 0.5;
+	const float billboard_size = 0.25;
 
 	vec3 center_position_ws = vec3(object_matrices[gl_BaseInstance].mModel[3][0], object_matrices[gl_BaseInstance].mModel[3][1], object_matrices[gl_BaseInstance].mModel[3][2]);
 	vec3 camera_right_ws = vec3(camera.mInvV[0][0], camera.mInvV[0][1], camera.mInvV[0][2]);

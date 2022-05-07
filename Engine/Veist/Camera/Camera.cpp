@@ -10,7 +10,7 @@ namespace Veist
 
 
 
-Camera::Camera(float aspect_ratio, float fov, float far_plane, float near_plane, glm::vec3 pos) : m_fov(fov)
+Camera::Camera(float aspect_ratio, float fov, float far_plane, float near_plane, glm::vec3 pos) : m_fovy(fov), m_clip_planes({near_plane, far_plane})
 {
 
 	setViewMatrix(glm::lookAt(pos, glm::vec3{ 0.0f, -0.2f, 0.0f }, glm::vec3{ 0.0f, 1.0f, 0.0f })); //up vector negative 1 for now vulkan coordinate system
@@ -26,7 +26,7 @@ Camera::Camera(float aspect_ratio, float fov, float far_plane, float near_plane,
 }
 
 
-void Camera::setFoV(float new_fov)
+void Camera::setFoVy(float new_fov)
 {
 	float oneOverAR = m_projection[0][0]/m_projection[1][1];
 	float half_fov = glm::radians(new_fov)/2.0f;
@@ -37,7 +37,7 @@ void Camera::setFoV(float new_fov)
 	m_projection[1][1] = -new_F;
 
 	m_dirty_flag = true;
-	m_fov = new_fov;
+	m_fovy = new_fov;
 }
 
 void Camera::setViewMatrix(const glm::mat4 view_mat) 

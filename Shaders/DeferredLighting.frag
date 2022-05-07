@@ -104,7 +104,7 @@ void main()
 	vec3 worldN = vec3(camera_data.mInvV * vec4(N, 1.0)); 
 
 	vec3 V = -normalize(frag_pos);
-	vec3 worldR = vec3(camera_data.mInvV * vec4(reflect(-V, N), 1.0)); 
+	vec3 worldR = normalize(vec3(camera_data.mInvV * vec4(reflect(-V, N), 1.0))); 
 
 	vec3 albedo = texture(inAlbedo, inUV).xyz; 
 	float roughness = texture(inOccRoughMetal, inUV).y;
@@ -143,8 +143,8 @@ void main()
 	vec3 irradiance = texture(inIrradianceMap, worldN).rgb;
 	vec3 ambient_diffuse = irradiance * albedo; //Diffuse
 
-    const float MAX_REFLECTION_LOD = 4.0;
-    vec3 prefilteredColor = textureLod(inPrefilterMap, worldR,  roughness * MAX_REFLECTION_LOD).rgb;
+	const uint MAX_REFLECTION_LOD = textureQueryLevels(inPrefilterMap);
+    vec3 prefilteredColor = textureLod(inPrefilterMap, worldR,  roughness * (MAX_REFLECTION_LOD - 1.0)).rgb;
 	vec2 envBRDF  = texture(inBRDF_LUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
 	vec3 ambient_specular = prefilteredColor * (F * envBRDF.x + envBRDF.y); //Specular
 

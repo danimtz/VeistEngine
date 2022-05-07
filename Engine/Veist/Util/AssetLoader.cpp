@@ -23,8 +23,8 @@ namespace Veist
 {
 
 	//TODO MOVE THIS ELSEWHERE
-	//EngineResources::MaterialTypes CURRENT_MATERIAL_TYPE = EngineResources::MaterialTypes::DeferredGBufferMaterial;
-	EngineResources::MaterialTypes CURRENT_MATERIAL_TYPE = EngineResources::MaterialTypes::PBRMaterial;
+	EngineResources::MaterialTypes CURRENT_MATERIAL_TYPE = EngineResources::MaterialTypes::DeferredGBufferMaterial;
+	//EngineResources::MaterialTypes CURRENT_MATERIAL_TYPE = EngineResources::MaterialTypes::PBRMaterial;
 
 
 

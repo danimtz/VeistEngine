@@ -12,6 +12,7 @@
 namespace Veist
 {
 	
+	
 
 	struct BillboardUVRanges
 	{
@@ -82,6 +83,7 @@ namespace Veist
 
 
 
+
 	void addEditorBillboardPass(RenderGraph::RenderGraph& render_graph, ecs::EntityRegistry* scene_registry, EditorRenderer& renderer)
 	{
 		RenderGraph::BufferInfo camera_buffer_info;
@@ -95,12 +97,11 @@ namespace Veist
 
 		auto camera_buffer = builder.addUniformInput("camera_buffer");
 		builder.addStorageInput("object_matrices_buffer");
-		auto output_image = builder.addColorOutput("editor_output", output_image_info, "renderer_output");
-		builder.addDepthInput("depth_output");
+		auto output_image = builder.addColorOutput("editor_billboard_output", output_image_info, "renderer_output");
+		builder.addDepthInput("gbuffer_depth_attachment");//builder.addDepthInput("depth_output");
 
 		//outputs of rendergraph
-		builder.setRenderGraphImGuiBackbuffer("editor_output");
-
+		builder.setRenderGraphImGuiBackbuffer("editor_billboard_output");
 		renderer.m_editor_target = output_image;
 
 
@@ -173,16 +174,64 @@ namespace Veist
 	}
 
 
-	EditorRenderer EditorRenderer::createRenderer(RenderGraph::RenderGraph& render_graph, ecs::EntityRegistry* scene_registry, const glm::vec2& size)
+
+	void addTargetSelectionPass(RenderGraph::RenderGraph& render_graph, ecs::EntityRegistry* scene_registry, EditorRenderer& renderer, uint32_t target_view)
+	{
+		RenderGraph::ImageInfo output_image_info;
+		output_image_info.properties = ImageProperties(renderer.m_renderer.m_size, { VK_FORMAT_R8G8B8A8_SRGB });
+
+		auto builder = render_graph.addPass("TargetSelectionPass");
+
+		builder.addTextureInput("gbuffer_albedo");
+		builder.addTextureInput("gbuffer_normal");
+		builder.addTextureInput("gbuffer_occ_rough_metal");
+		builder.addTextureInput("gbuffer_depth_attachment");
+
+		auto output_image = builder.addColorOutput("editor_output", output_image_info, "editor_billboard_output");
+
+		builder.setRenderGraphImGuiBackbuffer("editor_output");
+		renderer.m_editor_target = output_image;
+
+
+		builder.setRenderFunction([=](CommandBuffer& cmd, const RenderGraph::RenderGraphPass* pass)
+		{
+
+			cmd.bindMaterialType(EngineResources::MaterialTypes::EditorTargetSelectMaterial);
+			
+			for (auto& descriptor_set : pass->getDescriptorSets())
+			{
+				cmd.bindDescriptorSet(descriptor_set);
+			}
+
+			cmd.setPushConstants(&target_view, sizeof(uint32_t));
+			cmd.drawVertices(3);
+			
+		});
+
+	}
+
+
+
+
+
+
+	EditorRenderer EditorRenderer::createRenderer(RenderGraph::RenderGraph& render_graph, ecs::EntityRegistry* scene_registry, const glm::vec2& size, uint32_t view_target)
 	{
 		EditorRenderer editor_renderer;
 
 		editor_renderer.m_render_graph = &render_graph;
 		
-		//editor_renderer.m_renderer = DeferredRenderer::createRenderer(render_graph, scene_registry, size);
-		editor_renderer.m_renderer = BasicRenderer::createRenderer(render_graph, scene_registry, size);
 		
+		editor_renderer.m_renderer = DeferredRenderer::createRenderer(render_graph, scene_registry, size);
+		//editor_renderer.m_renderer = BasicRenderer::createRenderer(render_graph, scene_registry, size);
+		
+
+
 		addEditorBillboardPass(render_graph, scene_registry, editor_renderer);
+
+		addTargetSelectionPass(render_graph, scene_registry, editor_renderer, view_target);
+
+		
 
 		editor_renderer.m_editor_target = editor_renderer.m_renderer.m_renderer_target;
 

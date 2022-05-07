@@ -24,6 +24,19 @@ namespace VeistEditor
 
 	private:
 	
+		enum class DeferredTarget : uint32_t
+		{
+			Shaded = 0, 
+			Albedo = 1, 
+			Normals = 2, 
+			Metallic = 3, 
+			Roughness = 4, 
+			Depth = 5, 
+			AO = 6
+
+		};
+
+
 		void update();
 		void renderPanel();
 		void drawMenuBar();
@@ -48,9 +61,10 @@ namespace VeistEditor
 		Scene* m_active_scene = nullptr;
 
 
-		static float m_aspect_ratio;
+		float m_aspect_ratio;
 
-
+		DeferredTarget m_view_target;
+		bool m_deferred_renderer_enabled{true};
 	};
 
 

@@ -47,6 +47,10 @@ namespace VeistEditor
 			ImGui::Separator();
 
 			drawComponents();
+
+			ImGui::Separator();
+
+			drawComponentFooter();
 		}
 
 		ImGui::End();
@@ -270,7 +274,7 @@ namespace VeistEditor
 		}
 		ImGui::PopItemWidth();
 
-		ImGui::SameLine();
+		/*ImGui::SameLine();
 		ImGui::PushItemWidth(-FLT_MIN);
 		if (ImGui::Button(" + Add Component"))
 		{
@@ -300,12 +304,47 @@ namespace VeistEditor
 			ImGui::EndPopup();
 		}
 
-		ImGui::PopItemWidth();
+		ImGui::PopItemWidth();*/
 
 
 	}
 
+	void EntityPropertiesPanel::drawComponentFooter()
+	{
+		//auto& nametag = m_active_registry->getComponent<NametagComponent>(m_selected_entity);
 
+		if (ImGui::Button(" + Add Component", ImVec2(-FLT_MIN, 0)))
+		{
+			ImGui::OpenPopup("AddComponentsMenu");
+		}
+
+		if (ImGui::BeginPopup("AddComponentsMenu"))
+		{
+			if (!m_active_registry->hasComponent<CameraComponent>(m_selected_entity))
+			{
+				if (ImGui::MenuItem("Camera"))
+				{
+					m_active_registry->emplaceComponent<CameraComponent>(m_selected_entity);
+					ImGui::CloseCurrentPopup();
+				}
+			}
+
+			if (!m_active_registry->hasComponent<TransformComponent>(m_selected_entity))
+			{
+				if (ImGui::MenuItem("Transform"))
+				{
+					m_active_registry->emplaceComponent<TransformComponent>(m_selected_entity);
+					ImGui::CloseCurrentPopup();
+				}
+			}
+
+			ImGui::EndPopup();
+		}
+
+		
+
+
+	}
 
 
 

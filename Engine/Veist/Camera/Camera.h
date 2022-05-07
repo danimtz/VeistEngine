@@ -20,8 +20,8 @@ public:
 	const glm::mat4& projectionMatrix() const { return m_projection; };
 	const glm::mat4& viewProjectionMatrix() const { return m_view_projection; };
 	const Fustrum& fustrum() const { return m_fustrum; };
-	const float& fov() const { return m_fov; };
-
+	const float& fovy() const { return m_fovy; };
+	const glm::vec2& clipPlanes() const { return m_clip_planes; };
 
 	
 	glm::vec3 up() const;
@@ -30,7 +30,7 @@ public:
 
 
 	void setPosition(const glm::vec3 new_pos);
-	void setFoV(float new_fov);
+	void setFoVy(float new_fov);
 	void setViewMatrix(const glm::mat4 view_mat);
 	void setProjectionMatrix(const glm::mat4 proj_mat);
 	
@@ -50,7 +50,8 @@ private:
 	glm::mat4 m_view_projection;
 
 
-	float m_fov;
+	float m_fovy;
+	glm::vec2 m_clip_planes;
 
 	Fustrum m_fustrum;
 

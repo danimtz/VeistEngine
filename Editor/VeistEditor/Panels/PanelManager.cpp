@@ -72,7 +72,7 @@ namespace VeistEditor
 		ImGuiStyle& style = ImGui::GetStyle();
 		float minWinSizeX = style.WindowMinSize.x;
 		style.WindowMinSize.x = 200.0f;
-		style.WindowMinSize.x = 200.0f;
+		style.WindowMinSize.y = 200.0f;
 		if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
 		{
 			ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
