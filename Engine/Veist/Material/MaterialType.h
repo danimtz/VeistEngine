@@ -9,13 +9,17 @@ namespace Veist
 	{
 
 		VertexDescription vertex_description;
-		uint32_t descriptor_set_number;
+		uint32_t descriptor_set_number{0};
 		uint32_t attachment_count;
 		std::string vertex_shader_name;
 		std::string fragment_shader_name;
 		DepthTest depth_setting;
+		PolygonMode polygon_mode{PolygonMode::Fill};
+		CullMode cull_mode{CullMode::Back};
 
 	};
+
+	static const uint32_t MATERIAL_DESCRIPTOR_NUMBER = 1; //TODO: This feels hacky. maybe rework it
 
 	class MaterialType
 	{
@@ -39,7 +43,7 @@ namespace Veist
 
 		std::shared_ptr<GraphicsPipelineBuilder> m_pipeline_builder;
 		std::map<RenderPass::FormatLayout, GraphicsPipeline> m_compiled_pipelines;
-		const uint32_t m_descriptor_set_number{ 1 };
+		const uint32_t m_descriptor_set_number;
 
 		static const uint32_t MAX_PIPELINES_PER_MATERIAL = 4;
 	};

@@ -36,6 +36,19 @@ namespace VeistEditor
 
 		};
 
+		enum class ObjectFill : uint32_t
+		{
+			Shaded = 0,
+			Wireframe = 1,
+			
+		};
+
+		enum class RendererType : uint32_t
+		{
+			Forward = 0,
+			Deferred = 1,
+
+		};
 
 		void update();
 		void renderPanel();
@@ -64,6 +77,8 @@ namespace VeistEditor
 		float m_aspect_ratio;
 
 		DeferredTarget m_view_target;
+		ObjectFill m_fill_type;
+		RendererType m_renderer_type;
 		bool m_deferred_renderer_enabled{true};
 	};
 

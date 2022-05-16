@@ -33,7 +33,7 @@ layout(set = 0, binding = 0) uniform cameraBuffer
 } camera;
 
 
-layout(std140, set = 1, binding = 0) readonly buffer objectMatrices
+layout(std140, set = 0, binding = 1) readonly buffer objectMatrices
 {
 	ObjectMatrices object_matrices[];
 };

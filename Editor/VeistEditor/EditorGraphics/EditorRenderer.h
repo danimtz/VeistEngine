@@ -1,6 +1,5 @@
 
-#include "Veist/Renderer/DeferredRenderer.h"
-#include "Veist/Renderer/BasicRenderer.h"
+#include "Veist/Renderer/Renderer.h"
 namespace Veist
 {
 
@@ -21,12 +20,12 @@ namespace Veist
 	{
 	public:
 		
-		static EditorRenderer createRenderer(RenderGraph::RenderGraph& render_graph, ecs::EntityRegistry* scene_registry, const glm::vec2& size, uint32_t view_target);
+		static EditorRenderer createRenderer(RenderGraph::RenderGraph& render_graph, ecs::EntityRegistry* scene_registry, const glm::vec2& size, uint32_t view_target, uint32_t fill_type, uint32_t renderer_type);
 
 		void* getImGuiTextureId();
 
 		RenderGraph::ImageResource* m_editor_target{ nullptr };
-		DeferredRenderer m_renderer;
+		Renderer m_renderer;
 		//BasicRenderer m_renderer;
 
 	private:

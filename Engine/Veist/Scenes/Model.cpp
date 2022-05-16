@@ -12,10 +12,13 @@ namespace Veist
 {
 
 
-	void SubMesh::renderSubMesh(CommandBuffer& cmd, const std::vector<DescriptorSet>& descriptor_sets, const uint32_t mesh_id)
+	void SubMesh::renderSubMesh(CommandBuffer& cmd, const std::vector<DescriptorSet>& descriptor_sets, const uint32_t mesh_id, const bool bind_material)
 	{
-
-		cmd.bindMaterial(*m_material);
+		if (bind_material)
+		{
+			cmd.bindMaterial(*m_material);
+		}
+		
 
 		for (auto& descriptor_set : descriptor_sets)
 		{

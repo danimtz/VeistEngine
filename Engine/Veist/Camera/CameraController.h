@@ -22,6 +22,9 @@ public:
 
 	float& cameraSpeed() {return m_cam_speed;};
 
+	const glm::vec3& position() const {return m_position;};
+	void setPosition(glm::vec3 pos) {m_position = pos;};
+
 private:
 	
 	void updateFoV(MouseScrolledEvent& event);

@@ -25,6 +25,13 @@ struct ObjectMatrices
 };
 
 
+struct ShadowMapData
+{
+	mat4 mLightSpaceMatrix;
+
+};
+
+
 struct Camera
 {
 	mat4 mV;

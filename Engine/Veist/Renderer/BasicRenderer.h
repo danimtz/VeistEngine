@@ -1,15 +1,14 @@
-#include "Veist/RenderGraph/RenderGraph.h"
-#include "Veist/Graphics/Vulkan/Images/Image.h"
+
+#include "Veist/Renderer/Renderer.h"
 
 namespace Veist
 {
 
 
-	struct BasicRenderer
+	struct BasicRenderer : public Renderer
 	{
 
-		glm::vec2 m_size = {};
-		RenderGraph::ImageResource* m_renderer_target{ nullptr };
+		
 
 		static BasicRenderer createRenderer(RenderGraph::RenderGraph& render_graph, ecs::EntityRegistry* scene_registry, const glm::vec2& size);
 

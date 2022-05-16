@@ -10,11 +10,11 @@ namespace Veist
 {
 
 	GraphicsPipelineBuilder::GraphicsPipelineBuilder(const MaterialSettings& settings, VkPrimitiveTopology topology,
-		VkPolygonMode polygon_mode, VkCullModeFlags cull_mode, VkFrontFace front_face) :
+		  VkFrontFace front_face) :
 		m_depth_test(settings.depth_setting),
 		m_topology(topology), 
-		m_polygon_mode(polygon_mode), 
-		m_cull_mode(cull_mode), 
+		m_polygon_mode(static_cast<VkPolygonMode>(settings.polygon_mode)),
+		m_cull_mode(static_cast<VkCullModeFlags>(settings.cull_mode)),
 		m_front_face(front_face)
 	{
 	
@@ -199,7 +199,7 @@ namespace Veist
 		//m_depth_stencil_state_info.minDepthBounds = 0.0f; //Optional
 		//m_depth_stencil_state_info.maxDepthBounds = 1.0f; //Optional
 		m_depth_stencil_state_info.stencilTestEnable = VK_FALSE;
-
+		
 
 		switch (m_depth_test) {
 			case DepthTest::None:
@@ -211,9 +211,6 @@ namespace Veist
 				m_depth_stencil_state_info.depthWriteEnable = VK_FALSE;
 				break;
 			case DepthTest::Write:
-				m_depth_stencil_state_info.depthTestEnable = VK_FALSE;
-				m_depth_stencil_state_info.depthWriteEnable = VK_TRUE;
-				break;
 			case DepthTest::ReadWrite:
 				m_depth_stencil_state_info.depthTestEnable = VK_TRUE;
 				m_depth_stencil_state_info.depthWriteEnable = VK_TRUE;

@@ -17,10 +17,10 @@ namespace Veist
 
 
         //Initialize main engine modules
-        m_window = new Window(1920, 1080, name);
+        m_window = new Window(1600, 900, name);
         m_window->setEventCallback(VEIST_EVENT_BIND_FUNCTION(Application::processEvent));
         RenderModule::init(m_window->windowHandle());
-        GUIModule::init(RenderModule::getBackend().get());
+        GUIModule::init(RenderModule::getBackend());
         InputModule::init(m_window->windowHandle());
 
 

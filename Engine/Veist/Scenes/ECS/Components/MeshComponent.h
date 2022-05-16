@@ -43,11 +43,11 @@ namespace Veist
 		MeshComponent(const MeshComponent&) = default;
 		
 
-		void renderMesh(CommandBuffer& cmd, const std::vector<DescriptorSet>& descriptor_sets, uint32_t mesh_id = 0) //TODO maybe dont reference descriptor sets directly here call it PassInfo or whatever
+		void renderMesh(CommandBuffer& cmd, const std::vector<DescriptorSet>& descriptor_sets, uint32_t mesh_id = 0, bool bind_material = true) //TODO maybe dont reference descriptor sets directly here call it PassInfo or whatever
 		{
 			for (auto& sub_mesh : m_sub_meshes)
 			{
-				sub_mesh.renderSubMesh(cmd, descriptor_sets, mesh_id);
+				sub_mesh.renderSubMesh(cmd, descriptor_sets, mesh_id, bind_material);
 			}
 		};
 		

@@ -370,27 +370,38 @@ namespace Veist
 
 	void CommandBuffer::bindMaterialType(uint32_t type)
 	{
-		MaterialType* material = RenderModule::resources()->getMaterialType(EngineResources::MaterialTypes(type));
-		m_bound_pipeline = material->getPipeline(m_current_renderpass);
+		m_current_mat_type = RenderModule::resources()->getMaterialType(EngineResources::MaterialTypes(type));
 
-		vkCmdBindPipeline(m_cmd_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_bound_pipeline->pipeline());
-
-	}
-
-	void CommandBuffer::bindMaterial(Material& material)
-	{
-
-		GraphicsPipeline* pipeline = material.materialType()->getPipeline(m_current_renderpass);
-	
+		GraphicsPipeline* pipeline = m_current_mat_type->getPipeline(m_current_renderpass);
 		if (pipeline != m_bound_pipeline)
 		{
 			bindPipeline(*pipeline);
 			m_bound_pipeline = pipeline;
 		}
-
-		bindDescriptorSet(material.descriptorSet(), 0, nullptr);
 	}
 
+
+	void CommandBuffer::bindMaterialData(Material& material)
+	{
+		bindDescriptorSet(material.descriptorSet(), true, 0, nullptr);
+
+	}
+
+
+	void CommandBuffer::bindMaterial(Material& material)
+	{
+
+		/*GraphicsPipeline* pipeline = material.materialType()->getPipeline(m_current_renderpass);
+	
+		if (pipeline != m_bound_pipeline)
+		{
+			bindPipeline(*pipeline);
+			m_bound_pipeline = pipeline;
+		}*/
+		bindMaterialData(material);
+	}
+
+	
 
 	void CommandBuffer::bindPipeline(GraphicsPipeline& pipeline)
 	{
@@ -409,16 +420,29 @@ namespace Veist
 	}
 
 
-	void CommandBuffer::bindDescriptorSet(const DescriptorSet& descriptor_set, uint32_t offset_count, uint32_t* p_dynamic_offset)
+	void CommandBuffer::bindDescriptorSet(const DescriptorSet& descriptor_set, bool material_data, uint32_t offset_count, uint32_t* p_dynamic_offset)
 	{
-
 		VkPipelineLayout vulkan_pipeline_layout = m_bound_pipeline->pipelineLayout();
 		VkDescriptorSet set = descriptor_set.descriptorSet();
+		
+		uint32_t set_number = descriptor_set.setNumber();
+		
+		if (material_data)
+		{
+			if (m_current_mat_type == nullptr)
+			{
+				CRITICAL_ERROR_LOG("Material type has not been bound");
+			}
+
+			set_number = m_current_mat_type->descSetNumber();
+
+		}
+
 		vkCmdBindDescriptorSets(
 			m_cmd_buffer,
 			VK_PIPELINE_BIND_POINT_GRAPHICS,
 			vulkan_pipeline_layout,
-			descriptor_set.setNumber(),
+			set_number,
 			1,
 			&set,
 			offset_count,

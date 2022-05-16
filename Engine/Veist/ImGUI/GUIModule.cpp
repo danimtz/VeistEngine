@@ -69,8 +69,7 @@ namespace Veist
 
 		ImGuiIO& io = ImGui::GetIO();
 
-		RenderBackend* backend = RenderModule::getBackend().get();
-	
+		RenderBackend* backend = RenderModule::getBackend();
 		//GUI renderpass
 		CommandBuffer& cmd_buffer = backend->getCurrentCmdBuffer();
 		cmd_buffer.beginRenderPass(backend->getCurrentFramebuffer());

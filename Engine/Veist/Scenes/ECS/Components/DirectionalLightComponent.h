@@ -8,7 +8,7 @@ namespace Veist
 struct DirectionalLightComponent
 {
 
-	DirectionalLightComponent( glm::vec3 colour = glm::vec3{ 1.0f }, float intensity = 1.0, glm::vec3 direction = glm::vec3{ 0.0f, 1.0f, 0.0f } ) :
+	DirectionalLightComponent( glm::vec3 colour = glm::vec3{ 1.0f }, float intensity = 1.0, glm::vec3 direction = glm::normalize(glm::vec3{ 0.5f, 1.0f, 0.0f }) ) :
 		m_direction(direction), m_colour(colour), m_intensity(intensity)
 	{};
 
@@ -33,3 +33,4 @@ private:
 };
 
 }
+

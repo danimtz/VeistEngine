@@ -17,10 +17,10 @@ layout (location = 2) out vec4 outOccRoughMetal;
 //layout (location = 3) out vec4 outEmmissive;
 
 //Material
-layout(set = 2, binding = 0) uniform sampler2D inAlbedo;
-layout(set = 2, binding = 1) uniform sampler2D inNormalTex;
-layout(set = 2, binding = 2) uniform sampler2D inOccRoughMetal;
-//layout(set = 2, binding = 3) uniform sampler2D inEmmissive;
+layout(set = 1, binding = 0) uniform sampler2D inAlbedo;
+layout(set = 1, binding = 1) uniform sampler2D inNormalTex;
+layout(set = 1, binding = 2) uniform sampler2D inOccRoughMetal;
+//layout(set = 1, binding = 3) uniform sampler2D inEmmissive;
 
 void main()
 {

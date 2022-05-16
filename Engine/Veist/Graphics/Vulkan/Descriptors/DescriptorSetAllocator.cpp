@@ -216,7 +216,7 @@ namespace Veist
 	void DescriptorSetPool::recycleDescriptor(uint32_t index)
 	{
 		
-		uint32_t frames_in_flight = RenderModule::getBackend()->getSwapchainImageCount()-1;
+		uint32_t frames_in_flight = RenderModule::getBackend()->getSwapchainImageCount();
 		
 		m_descriptor_recycle_list.emplace_back(0, index);
 
@@ -241,16 +241,6 @@ namespace Veist
 		}
 
 
-
-
-
-		
-		
-
-		
-		//TODO: for global descriptors(eg materials) what comand buffer fence is used or does it not matter since they will be deleted at program end
-		
-		
 		
 	}
 

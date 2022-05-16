@@ -55,7 +55,7 @@ namespace Veist
 
 	//===================== DescriptorSet ====================
 
-	DescriptorSet::DescriptorSet(uint32_t set_number, std::vector<Descriptor>& descriptor_bindings) : m_set_number(set_number)
+	DescriptorSet::DescriptorSet( std::vector<Descriptor>& descriptor_bindings, uint32_t set_number) : m_set_number(set_number)
 	{
 		m_pool_data = RenderModule::getBackend()->getDescriptorAllocator()->createDescriptorSet(descriptor_bindings);
 	}

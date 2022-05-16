@@ -23,7 +23,7 @@ namespace VeistEditor
 	
 	
 
-	EngineViewportPanel::EngineViewportPanel() : m_view_target(DeferredTarget::Shaded)
+	EngineViewportPanel::EngineViewportPanel() : m_view_target(DeferredTarget::Shaded), m_fill_type(ObjectFill::Shaded), m_renderer_type(RendererType::Deferred)
 	{
 		
 	
@@ -106,16 +106,6 @@ namespace VeistEditor
 	void EngineViewportPanel::renderPanel()
 	{
 	
-		/*struct PanelConstraint
-		{
-			static void Square(ImGuiSizeCallbackData* data)
-			{
-				if(data->DesiredSize.x < data->DesiredSize.y)
-				data->DesiredSize.x = data->DesiredSize.y;
-				//data->DesiredSize.y = data->DesiredSize.x * (1.0f/m_aspect_ratio);
-			}
-		};*/
-		//ImGui::SetNextWindowSizeConstraints(ImVec2(0, 0), ImVec2(FLT_MAX, FLT_MAX)/*, PanelConstraint::Square*/);
 		
 		ImGuiWindowFlags flags = ImGuiWindowFlags_MenuBar;
 		ImGui::Begin("Viewport", nullptr, flags);
@@ -171,7 +161,7 @@ namespace VeistEditor
 
 		RenderGraph::RenderGraph render_graph(m_resource_pool);
 
-		EditorRenderer renderer = EditorRenderer::createRenderer(render_graph, m_active_scene->ecsRegistry(), m_viewport_size, uint32_t(m_view_target));
+		EditorRenderer renderer = EditorRenderer::createRenderer(render_graph, m_active_scene->ecsRegistry(), m_viewport_size, uint32_t(m_view_target), uint32_t(m_fill_type), uint32_t(m_renderer_type));
 		
 		render_graph.execute(RenderModule::getBackend()->getCurrentCmdBuffer());
 	
@@ -218,11 +208,32 @@ namespace VeistEditor
 					};
 					for (int i = 0; i < 2; i++)
 					{
-						bool selected = 1 == i;
+						bool selected = uint32_t(m_fill_type) == i;
 						ImGui::MenuItem(shading_type[i], nullptr, &selected);
 						if (selected)
 						{
+							m_fill_type = ObjectFill(i);
+						}
+					}
+				}
 
+
+				ImGui::Separator();
+
+				ImGui::MenuItem("Renderer type", nullptr, false, false);
+				//ImGui::PopFont();
+				ImGui::Separator();
+				{
+					const char* render_type[] = {
+							"Forward", "Deferred"
+					};
+					for (int i = 0; i < 2; i++)
+					{
+						bool selected = uint32_t(m_renderer_type) == i;
+						ImGui::MenuItem(render_type[i], nullptr, &selected);
+						if (selected)
+						{
+							m_renderer_type = RendererType(i);
 						}
 					}
 				}
@@ -239,6 +250,7 @@ namespace VeistEditor
 					auto camera = m_editor_camera->camera();
 
 					glm::vec3 pos = glm::vec3{ 0.0f, 0.0f, 3.5f };
+					m_editor_camera->setPosition(pos);
 					camera->setViewMatrix(glm::lookAt(glm::vec3{ 0.0f, 0.0f, 3.5f }, glm::vec3{ 0.0f, 0.0f, 0.0f }, glm::vec3{ 0.0f, 1.0f, 0.0f }));
 					camera->setPosition(pos);
 					camera->setFoVy(55);
@@ -262,6 +274,8 @@ namespace VeistEditor
 				//ImGui::Combo("Combo", &n, "Yes\0No\0Maybe\0\0");
 				ImGui::EndMenu();
 			}
+
+
 
 
 			ImGui::EndMenuBar();

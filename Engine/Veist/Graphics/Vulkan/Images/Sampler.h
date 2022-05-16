@@ -11,7 +11,9 @@ enum class SamplerType
 	RepeatPoint,
 
 	ClampLinear,
-	ClampPoint
+	ClampPoint,
+
+	Shadow
 };
 
 

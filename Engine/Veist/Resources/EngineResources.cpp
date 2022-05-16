@@ -90,15 +90,16 @@ namespace Veist
 
 		MaterialSettings GBuffer = {};
 		GBuffer.vertex_description = getVertexDescription(EngineResources::MaterialTypes::DeferredGBufferMaterial); //This is for vertex description generation
-		GBuffer.descriptor_set_number = 2;
+		GBuffer.descriptor_set_number = 1;
 		GBuffer.attachment_count = 3;
 		GBuffer.vertex_shader_name = "GBuffer.vert";
 		GBuffer.fragment_shader_name = "GBuffer.frag";
 		GBuffer.depth_setting = DepthTest::ReadWrite;
+		//GBuffer.polygon_mode = PolygonMode::Line;
 
 		MaterialSettings DeferredLighting = {};
 		DeferredLighting.vertex_description = getVertexDescription(EngineResources::MaterialTypes::DeferredLightingMaterial); //This is for vertex description generation
-		DeferredLighting.descriptor_set_number = 0;
+		DeferredLighting.descriptor_set_number = 1;
 		DeferredLighting.attachment_count = 1;
 		DeferredLighting.vertex_shader_name = "FullScreenQuad.vert";
 		DeferredLighting.fragment_shader_name = "DeferredLighting.frag";
@@ -122,12 +123,35 @@ namespace Veist
 		EditorTargetSelect.fragment_shader_name = "EditorTargetSelect.frag";
 		EditorTargetSelect.depth_setting = DepthTest::Read;
 
+
+		MaterialSettings Wireframe = {};
+		Wireframe.vertex_description = getVertexDescription(EngineResources::MaterialTypes::WireframeMaterial); //This is for vertex description generation
+		Wireframe.descriptor_set_number = 1;
+		Wireframe.attachment_count = 1;
+		Wireframe.vertex_shader_name = "BasicVertexNoTBN.vert";
+		Wireframe.fragment_shader_name = "Wireframe.frag";
+		Wireframe.polygon_mode = PolygonMode::Line;
+		Wireframe.cull_mode = CullMode::None;
+		Wireframe.depth_setting = DepthTest::ReadWrite;
+
+
+		MaterialSettings Shadowmap = {};
+		Shadowmap.vertex_description = getVertexDescription(EngineResources::MaterialTypes::ShadowMapMaterial); //This is for vertex description generation
+		Shadowmap.attachment_count = 0;
+		Shadowmap.vertex_shader_name = "BasicVertexNoTBN.vert";
+		Shadowmap.fragment_shader_name = "Shadowmap.frag";
+		Shadowmap.cull_mode = CullMode::Front;
+		Shadowmap.depth_setting = DepthTest::Write;
+
+
 		material_settings.emplace_back(PBRForward);
 		material_settings.emplace_back(Skybox);
 		material_settings.emplace_back(GBuffer);
 		material_settings.emplace_back(DeferredLighting);
 		material_settings.emplace_back(EditorBillboard);
 		material_settings.emplace_back(EditorTargetSelect);
+		material_settings.emplace_back(Wireframe);
+		material_settings.emplace_back(Shadowmap);
 	}
 
 
@@ -151,8 +175,7 @@ namespace Veist
 		m_materials.reserve(Materials::MaxCompleteMaterials);
 		
 
-		m_materials.emplace_back(std::make_unique<Material>(getMaterialType(MaterialTypes::BillboardMaterial), 
-					MaterialData({AssetLoader::loadTextureFromFile("..\\..\\assets\\EditorAssets\\UITextures\\BillboardTextureAtlas.png")})) );
+		m_materials.emplace_back(std::make_unique<Material>( MaterialData({AssetLoader::loadTextureFromFile("..\\..\\assets\\EditorAssets\\UITextures\\BillboardTextureAtlas.png")})) );
 
 
 

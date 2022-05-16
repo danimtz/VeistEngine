@@ -18,7 +18,7 @@ namespace Veist
 		SubMesh(std::shared_ptr<Mesh> mesh, std::shared_ptr<Material> material) : m_mesh(mesh), m_material(material) {};
 
 
-		void renderSubMesh(CommandBuffer& cmd, const std::vector<DescriptorSet>& descriptor_sets, const uint32_t mesh_id);
+		void renderSubMesh(CommandBuffer& cmd, const std::vector<DescriptorSet>& descriptor_sets, const uint32_t mesh_id, const bool bind_material);
 
 	//private://TEMP privatize later
 		

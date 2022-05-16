@@ -8,6 +8,9 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/matrix_inverse.hpp>
 
+#include "Veist/Renderer/DeferredRenderer.h"
+#include "Veist/Renderer/BasicRenderer.h"
+#include "Veist/Renderer/WireframeRenderer.h"
 
 namespace Veist
 {
@@ -112,6 +115,8 @@ namespace Veist
 			uint32_t object_matrix_id = 0;
 
 
+			cmd.bindMaterialType(EngineResources::MaterialTypes::BillboardMaterial);
+
 			auto billboard_material = RenderModule::resources()->getMaterial(EngineResources::Materials::EditorBillboardIcons);
 			cmd.bindMaterial(*billboard_material);
 
@@ -215,21 +220,49 @@ namespace Veist
 
 
 
-	EditorRenderer EditorRenderer::createRenderer(RenderGraph::RenderGraph& render_graph, ecs::EntityRegistry* scene_registry, const glm::vec2& size, uint32_t view_target)
+	EditorRenderer EditorRenderer::createRenderer(RenderGraph::RenderGraph& render_graph, ecs::EntityRegistry* scene_registry, const glm::vec2& size, uint32_t view_target, uint32_t fill_type, uint32_t renderer_type)
 	{
 		EditorRenderer editor_renderer;
 
 		editor_renderer.m_render_graph = &render_graph;
 		
 		
-		editor_renderer.m_renderer = DeferredRenderer::createRenderer(render_graph, scene_registry, size);
+		if (fill_type == VK_POLYGON_MODE_FILL)
+		{
+
+			if (renderer_type == 1)
+			{
+				editor_renderer.m_renderer = DeferredRenderer::createRenderer(render_graph, scene_registry, size);
+				addEditorBillboardPass(render_graph, scene_registry, editor_renderer);
+				addTargetSelectionPass(render_graph, scene_registry, editor_renderer, view_target);
+
+			}
+			else if (renderer_type == 0)
+			{
+				editor_renderer.m_renderer = BasicRenderer::createRenderer(render_graph, scene_registry, size);
+				addEditorBillboardPass(render_graph, scene_registry, editor_renderer);
+			}
+			else
+			{
+				CRITICAL_ERROR_LOG("Unknown renderer type");
+			}
+		
+		}
+		else
+		{
+			editor_renderer.m_renderer = WireframeRenderer::createRenderer(render_graph, scene_registry, size);
+		}
+		
+
+		//todo ADD SELECTION OUTLINE PASS
+
 		//editor_renderer.m_renderer = BasicRenderer::createRenderer(render_graph, scene_registry, size);
 		
 
 
-		addEditorBillboardPass(render_graph, scene_registry, editor_renderer);
+		
 
-		addTargetSelectionPass(render_graph, scene_registry, editor_renderer, view_target);
+		
 
 		
 
@@ -249,7 +282,7 @@ namespace Veist
 		ImageBase* target = m_render_graph->resourcePool()->getImage(static_cast<RenderGraph::PhysicalImage*>(m_editor_target->physicalResource()))->image.get();
 		descriptor.emplace_back(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, target, SamplerType::RepeatLinear, VK_SHADER_STAGE_FRAGMENT_BIT);
 
-		m_imgui_texture_id = std::make_unique<DescriptorSet>( 0, descriptor );
+		m_imgui_texture_id = std::make_unique<DescriptorSet>( descriptor, 0 );
 
 		return m_imgui_texture_id->descriptorSet();
 	}

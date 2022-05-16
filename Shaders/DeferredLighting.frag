@@ -2,6 +2,7 @@
 
 #include "utils/brdf.glsl"
 #include "utils/utils.glsl"
+#include "utils/shadows.glsl"
 
 #define MAX_DIR_LIGHTS 4
 
@@ -22,14 +23,20 @@ layout(set = 0, binding = 1) uniform  cameraBuffer
 };
 
 
-layout(set = 0, binding = 2) uniform  directionalLights{
+layout(set = 0, binding = 2) uniform  directionalLights
+{
 	DirLights dir_lights[MAX_DIR_LIGHTS];
 };
 
 
-layout(std140, set = 0, binding = 3) readonly buffer pointLights{
+layout(std140, set = 0, binding = 3) readonly buffer pointLights
+{
 	PointLights point_lights[];
 };
+
+
+
+
 
 layout(set = 0, binding = 4) uniform samplerCube inIrradianceMap;
 layout(set = 0, binding = 5) uniform samplerCube inPrefilterMap;
@@ -41,7 +48,11 @@ layout (set = 0, binding = 9) uniform sampler2D inOccRoughMetal;
 //layout (set = 0, binding = 10) uniform sampler2D inEmmissive;
 layout (set = 0, binding = 10) uniform sampler2D inDepth;
 
-
+layout(set = 0, binding = 11) uniform sampler2DShadow inShadows;
+layout(set = 0, binding = 12) uniform shadowsDataBuffer
+{
+	ShadowMapData shadow_data[MAX_DIR_LIGHTS];
+};
 
 
 
@@ -92,19 +103,23 @@ vec3 positionFromDepth(vec2 uv, float depth, mat4 inv_mat)
 
 
 
-
 void main()
 {
+
+	mat4 mInvV_no_trans = mat4(mat3(camera_data.mInvV));
+
 	ivec2 coord = ivec2(gl_FragCoord.xy);
 	float depth = texelFetch(inDepth, coord, 0).x;
 	vec3 frag_pos = positionFromDepth(inUV, depth, camera_data.mInvP);
 
+	vec3 world_space_pos = vec3(camera_data.mInvV * vec4(frag_pos, 1.0));
+
 	vec3 texture_normal = texture(inNormal, inUV).xyz;
 	vec3 N = normalize( texture_normal* 2.0 - vec3(1.0)); 
-	vec3 worldN = vec3(camera_data.mInvV * vec4(N, 1.0)); 
+	vec3 worldN = vec3(mInvV_no_trans * vec4(N, 1.0)); 
 
 	vec3 V = -normalize(frag_pos);
-	vec3 worldR = normalize(vec3(camera_data.mInvV * vec4(reflect(-V, N), 1.0))); 
+	vec3 worldR = normalize(vec3( mInvV_no_trans * vec4(reflect(-V, N), 1.0))); 
 
 	vec3 albedo = texture(inAlbedo, inUV).xyz; 
 	float roughness = texture(inOccRoughMetal, inUV).y;
@@ -119,7 +134,15 @@ void main()
 	{
 		vec3 L = dir_lights[i].direction;
 		vec3 radiance = dir_lights[i].colour * dir_lights[i].intensity;
+
+
+		float attenuation = calcShadows(inShadows, shadow_data[i].mLightSpaceMatrix, world_space_pos, dot(N,L));
+		
+		//float TESTSHADOW = texture(inShadows, vec3(inUV, 1.0)).x;
+
+		radiance *= attenuation;
 		Lo += radiance * calcDiffuseSpecPBR(N, L, V, albedo, roughness, metallic);
+
 
 	}
 

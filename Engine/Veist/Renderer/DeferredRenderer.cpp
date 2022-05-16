@@ -4,13 +4,17 @@
 #include "Veist/Scenes/ECS/Components/Components.h"
 #include "Veist/Scenes/ECS/EntityRegistry.h"
 
-#include <glm/glm.hpp>
+
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/matrix_inverse.hpp>
 
 namespace Veist
 {
-	
+
+//TODO put this in renderer settings or something
+
+	static glm::mat4 shadow_ortho_mat = glm::ortho<float>(-20, 20, -20, 20, -20, 20);
+
 	static LightProbeComponent* getLightProbe(ecs::EntityRegistry* registry)
 	{
 		LightProbeComponent* light_probe{ nullptr };
@@ -36,19 +40,17 @@ namespace Veist
 		object_matrices_buffer_info.size = sizeof(RendererUniforms::ObjectMatrices) * max_objects;
 
 
-
-
 		RenderGraph::ImageInfo gbuff_albedo_info, gbuff_normal_info, gbuffer_occ_rough_metal_info, gbuff_emmissive_info, depth_attachment_info;
 		gbuff_albedo_info.properties = ImageProperties(renderer.m_size, { VK_FORMAT_R8G8B8A8_SRGB });
-		gbuff_normal_info.properties = ImageProperties(renderer.m_size, { VK_FORMAT_R8G8B8A8_UNORM });
-		gbuffer_occ_rough_metal_info.properties = ImageProperties(renderer.m_size, { VK_FORMAT_R8G8B8A8_UNORM });
+		gbuff_normal_info.properties = ImageProperties(renderer.m_size, { VK_FORMAT_R16G16B16A16_UNORM });
+		gbuffer_occ_rough_metal_info.properties = ImageProperties(renderer.m_size, { VK_FORMAT_R16G16B16A16_UNORM });
 		gbuff_emmissive_info.properties = ImageProperties(renderer.m_size, { VK_FORMAT_R8G8B8A8_SRGB });
 		depth_attachment_info.properties = ImageProperties(renderer.m_size, { VK_FORMAT_D32_SFLOAT });
 
 		auto builder = render_graph.addPass("GbufferPass");
 
 		auto camera_buffer = builder.addUniformInput("camera_buffer", camera_buffer_info);
-		auto object_matrices_buffer = builder.addStorageInput("object_matrices_buffer", object_matrices_buffer_info, PipelineStage::VertexShader, 1);
+		auto object_matrices_buffer = builder.addStorageInput("object_matrices_buffer", object_matrices_buffer_info/*, PipelineStage::VertexShader*/);
 
 		builder.addColorOutput("gbuffer_albedo", gbuff_albedo_info);
 		auto output_test = builder.addColorOutput("gbuffer_normal", gbuff_normal_info);
@@ -76,7 +78,7 @@ namespace Veist
 				RendererUniforms::CameraData camera_data;
 				camera_data.projection = main_cam->projectionMatrix();
 				camera_data.view = main_cam->viewMatrix();
-				camera_data.inverse_view = glm::inverse(glm::mat3(main_cam->viewMatrix()));
+				camera_data.inverse_view = glm::inverse((main_cam->viewMatrix()));
 				camera_data.view_projection = main_cam->viewProjectionMatrix();
 				camera_data.inverse_projection = glm::inverse(main_cam->projectionMatrix());
 
@@ -100,12 +102,12 @@ namespace Veist
 			}
 
 
+
+			cmd.bindMaterialType(EngineResources::MaterialTypes::DeferredGBufferMaterial);
 			auto& scene_view = scene_registry->view<MeshComponent, TransformComponent>();
 			for (ecs::EntityId entity : scene_view)
 			{
-				MatrixPushConstant push_constant;
 				auto& mesh_comp = scene_view.get<MeshComponent>(entity);
-
 				mesh_comp.renderMesh(cmd, pass->getDescriptorSets(), entity);
 				
 			}
@@ -115,18 +117,101 @@ namespace Veist
 	}
 
 
+
+
+
+	static void addShadowMapPass(RenderGraph::RenderGraph& render_graph, ecs::EntityRegistry* scene_registry, DeferredRenderer& renderer)
+	{
+
+		
+
+		RenderGraph::ImageInfo shadow_map_info;
+		glm::vec2 map_size = {renderer.m_shadow_map_size, renderer.m_shadow_map_size};
+		shadow_map_info.properties = ImageProperties(map_size, { VK_FORMAT_D32_SFLOAT });
+
+
+		RenderGraph::BufferInfo camera_buffer_info;
+		camera_buffer_info.size = sizeof(RendererUniforms::CameraData);
+
+		auto builder = render_graph.addPass("ShadowMapPass");
+
+		auto camera_buffer = builder.addUniformInput("ortho_camera_buffer", camera_buffer_info);
+		builder.addStorageInput("object_matrices_buffer");
+		builder.addDepthOutput("shadow_map", shadow_map_info);
+		
+
+		//Only for the first direcitonal light for now, TODO Support shadows for more directional lights etc
+		builder.setRenderFunction([=](CommandBuffer& cmd, const RenderGraph::RenderGraphPass* pass){
+		
+
+			glm::mat4 light_lookat = {};
+			{
+				auto& scene_view = scene_registry->view<DirectionalLightComponent, TransformComponent>();
+				for (ecs::EntityId entity : scene_view)
+				{
+					auto& light_comp = scene_view.get<DirectionalLightComponent>(entity);
+					auto& transform_comp = scene_view.get<TransformComponent>(entity);
+					
+					glm::mat4 rotation_mat = glm::mat4(glm::mat3(transform_comp.getTransform()));
+					
+					glm::vec3 eye = glm::normalize((rotation_mat * glm::vec4(light_comp.direction(), 1.0)));
+					glm::vec3 center = {0.0, 0.0, 0.0};
+					glm::vec3 up = glm::vec3{ 0.0f, -1.0f, 0.0f };
+					light_lookat = glm::lookAt(eye, center, up);
+
+					break;
+				}
+			}
+
+			//Ortho Camera
+			{
+				Camera* main_cam;
+				auto& scene_view = scene_registry->view<CameraComponent>();
+				for (ecs::EntityId entity : scene_view)
+				{
+					auto& cam_comp = scene_view.get<CameraComponent>(entity);
+					main_cam = cam_comp.camera();
+					break;//Only first camera componenet being taken into consideration for now
+				}
+
+				RendererUniforms::CameraData camera_data;
+				
+				camera_data.view_projection = shadow_ortho_mat * light_lookat;
+
+				pass->getPhysicalBuffer(camera_buffer)->setData(&camera_data, sizeof(RendererUniforms::CameraData));
+			}
+
+
+
+			{
+				cmd.bindMaterialType(EngineResources::MaterialTypes::ShadowMapMaterial);
+				auto& scene_view = scene_registry->view<MeshComponent, TransformComponent>();
+				for (ecs::EntityId entity : scene_view)
+				{
+					auto& mesh_comp = scene_view.get<MeshComponent>(entity);
+					mesh_comp.renderMesh(cmd, pass->getDescriptorSets(), entity, false);
+
+				}
+			}
+		
+		});
+
+	}
+
+
+
 	static void addLightingPass(RenderGraph::RenderGraph& render_graph, ecs::EntityRegistry* scene_registry, DeferredRenderer& renderer)
 	{
 		static constexpr uint32_t max_dir_lights = 4;
 		static constexpr uint32_t max_point_lights = 100;
 
-		RenderGraph::BufferInfo camera_buffer_info, scene_info_buffer_info, dir_lights_buffer_info, point_lights_buffer_info;
+		RenderGraph::BufferInfo camera_buffer_info, scene_info_buffer_info, dir_lights_buffer_info, point_lights_buffer_info, shadow_map_data_buffer_info;
 
 		camera_buffer_info.size = sizeof(RendererUniforms::CameraData);
 		scene_info_buffer_info.size = sizeof(RendererUniforms::SceneInfo);
 		dir_lights_buffer_info.size = sizeof(RendererUniforms::GPUDirLight) * max_dir_lights;
 		point_lights_buffer_info.size = sizeof(RendererUniforms::GPUPointLight) * max_point_lights;
-
+		shadow_map_data_buffer_info.size = sizeof(RendererUniforms::ShadowMapData) * max_dir_lights;
 
 		RenderGraph::ImageInfo output_image_info;
 		output_image_info.properties = ImageProperties(renderer.m_size, { VK_FORMAT_R8G8B8A8_SRGB });
@@ -154,8 +239,8 @@ namespace Veist
 
 		builder.addTextureInput("gbuffer_depth_attachment");//TODO adding these two lines should create layout DEPTH_STENCIL_READ_ONLY_OPTIMAL
 		builder.addDepthInput("gbuffer_depth_attachment");
-
-		
+		builder.addTextureInput("shadow_map", SamplerType::Shadow);
+		auto shadow_map_data_buffer = builder.addUniformInput("shadow_map_data", shadow_map_data_buffer_info);
 
 		auto lighting_output = builder.addColorOutput("lighting_output", output_image_info);
 
@@ -194,8 +279,8 @@ namespace Veist
 
 			//Fill point light buffer
 			{
-
 				RendererUniforms::GPUPointLight point_lights[max_point_lights];
+
 				uint32_t light_count = 0;
 				auto& scene_view = scene_registry->view<PointLightComponent, TransformComponent>();
 				for (ecs::EntityId entity : scene_view)
@@ -216,10 +301,12 @@ namespace Veist
 			}
 
 
-			//Fill directional light buffer
+			//Fill directional light buffer and shadow map data
 			{
 
 				RendererUniforms::GPUDirLight directional_lights[max_dir_lights];
+				RendererUniforms::ShadowMapData shadow_map_data[max_dir_lights];
+
 				uint32_t light_count = 0;
 				auto& scene_view = scene_registry->view<DirectionalLightComponent, TransformComponent>();
 				glm::mat4 world2view_mat = glm::mat4(glm::mat3(main_cam->viewMatrix()));
@@ -234,9 +321,22 @@ namespace Veist
 					directional_lights[light_count].colour = light_comp.colour();
 					directional_lights[light_count].intensity = light_comp.intensity();
 					directional_lights[light_count].direction = glm::normalize(world2view_mat * rotation_mat * glm::vec4(light_comp.direction(), 1.0)); 
+					
+
+					
+					//Shadows
+					glm::vec3 eye = glm::normalize((rotation_mat * glm::vec4(light_comp.direction(), 1.0)));
+					glm::vec3 center = { 0.0, 0.0, 0.0 };
+					glm::vec3 up = glm::vec3{ 0.0f, -1.0f, 0.0f };
+					glm::mat4 light_lookat = glm::lookAt(eye, center, up);
+
+					shadow_map_data[light_count].lightspace = shadow_ortho_mat * light_lookat;
+
 					light_count++;
 				}
+
 				pass->getPhysicalBuffer(dir_lights_buffer)->setData(&directional_lights, sizeof(RendererUniforms::GPUDirLight) * max_dir_lights);
+				pass->getPhysicalBuffer(shadow_map_data_buffer)->setData(&shadow_map_data, sizeof(RendererUniforms::ShadowMapData) * max_dir_lights);
 				scene_info_data.dir_lights_count = light_count;
 			}
 			
@@ -287,6 +387,9 @@ namespace Veist
 			}
 			//Render skybox
 			{
+
+				cmd.bindMaterialType(EngineResources::MaterialTypes::SkyboxMaterial);
+
 				auto& scene_view = scene_registry->view<SkyboxComponent>();
 				for (ecs::EntityId entity : scene_view)
 				{
@@ -323,6 +426,7 @@ namespace Veist
 		deferred_renderer.m_size = size;
 
 		addGBufferPass(render_graph, scene_registry, deferred_renderer);
+		addShadowMapPass(render_graph, scene_registry, deferred_renderer);
 		addLightingPass(render_graph, scene_registry, deferred_renderer);
 		addSkyboxPass(render_graph, scene_registry, deferred_renderer);
 

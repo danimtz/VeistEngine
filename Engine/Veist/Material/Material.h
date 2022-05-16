@@ -12,20 +12,21 @@
 namespace Veist
 {
 
+	
 	class Material
 	{
 	public:
 		
-		Material(MaterialType* type, MaterialData data);
+		Material(MaterialData data);
 		~Material() = default;
 
 		const DescriptorSet& descriptorSet() const { return *m_descriptor_set.get(); };
 
-		MaterialType* materialType() const { return m_material_type; };
+		//MaterialType* materialType() const { return m_material_type; };
 
 	private:
 
-		MaterialType* m_material_type;
+		//MaterialType* m_material_type;
 
 		MaterialData m_material_data;
 

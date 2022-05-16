@@ -68,7 +68,8 @@ namespace Veist
 		builder.addExternalInput("IBLProbe_brdfLUT", Descriptor(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, light_probe->brdfLUT(), { SamplerType::ClampLinear }));
 
 		auto output_image = builder.addColorOutput("renderer_output", output_image_info);
-		auto depth_output = builder.addDepthOutput("depth_output", depth_attachment_info);
+		auto depth_output = builder.addDepthOutput("gbuffer_depth_attachment", depth_attachment_info); //NOTE called gbuffer_depth for compatibility, gbuffer isnt used here. 
+																										//TODO change how names work for rendergraph
 
 
 
@@ -195,6 +196,7 @@ namespace Veist
 			}
 
 
+			cmd.bindMaterialType(EngineResources::MaterialTypes::PBRMaterial);
 			auto& scene_view = scene_registry->view<MeshComponent, TransformComponent>();
 			for (ecs::EntityId entity : scene_view)
 			{
@@ -208,6 +210,8 @@ namespace Veist
 			
 			//Render skybox
 			{
+
+				cmd.bindMaterialType(EngineResources::MaterialTypes::SkyboxMaterial);
 				auto& scene_view = scene_registry->view<SkyboxComponent>();
 				for (ecs::EntityId entity : scene_view)
 				{

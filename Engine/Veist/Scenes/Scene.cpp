@@ -23,8 +23,8 @@ namespace Veist
 		{
 			ecs::EntityId camera = registry->createEntity("camera");
 			ecs::EntityId waterbottle = registry->createEntity("waterbottle");
-			ecs::EntityId helmet = registry->createEntity("damaged_helmet");
-			ecs::EntityId flight_helmet = registry->createEntity("flight_helmet");
+			ecs::EntityId helmet = registry->createEntity("helmet");
+			//ecs::EntityId flight_helmet = registry->createEntity("flight_helmet");
 			ecs::EntityId sponza = registry->createEntity("sponza");
 
 			ecs::EntityId point_light_1 = registry->createEntity("pointlight1");
@@ -48,15 +48,15 @@ namespace Veist
 			registry->emplaceComponent<DirectionalLightComponent>(sun_light);
 			registry->emplaceComponent<TransformComponent>(sun_light, pos);
 
-			registry->emplaceComponent<MeshComponent>(waterbottle, AssetLoader::loadMeshComponent("..\\..\\assets\\GLTF_models\\Bottle\\WaterBottle.gltf"));
-			registry->emplaceComponent<TransformComponent>(waterbottle, glm::vec3{ 2.0, 0.0, 0.0 }, glm::vec3{ 0.0, 0.0, 0.0 }, glm::vec3{ 3.0, 3.0, 3.0 });
+			//registry->emplaceComponent<MeshComponent>(waterbottle, AssetLoader::loadMeshComponent("..\\..\\assets\\GLTF_models\\Bottle\\WaterBottle.gltf"));
+			//registry->emplaceComponent<TransformComponent>(waterbottle, glm::vec3{ 2.0, 0.0, 0.0 }, glm::vec3{ 0.0, 0.0, 0.0 }, glm::vec3{ 3.0, 3.0, 3.0 });
 
 			
 			registry->emplaceComponent<MeshComponent>(helmet, AssetLoader::loadMeshComponent("..\\..\\assets\\GLTF_models\\DamagedHelmet\\DamagedHelmet.gltf"));
-			registry->emplaceComponent<TransformComponent>(helmet, glm::vec3{ -1.0, 0.0, 0.0 }, glm::vec3{ 90.0, 90.0, 0.0 }, glm::vec3{ 1.0, 1.0, 1.0 });
+			registry->emplaceComponent<TransformComponent>(helmet, glm::vec3{ -1.0, 0.0, 0.0 }, glm::vec3{ 90.0, 90.0, 0.0 }, glm::vec3{ 0.2, 0.2, 0.2 });
 
-			registry->emplaceComponent<MeshComponent>(flight_helmet, AssetLoader::loadMeshComponent("..\\..\\assets\\GLTF_models\\FlightHelmet\\FlightHelmet.gltf"));
-			registry->emplaceComponent<TransformComponent>(flight_helmet, glm::vec3{ 0.0, -2.0, 0.0 }, glm::vec3{ 0.0, 0.0, 0.0 }, glm::vec3{ 3.0, 3.0, 3.0 });
+			//registry->emplaceComponent<MeshComponent>(flight_helmet, AssetLoader::loadMeshComponent("..\\..\\assets\\GLTF_models\\FlightHelmet\\FlightHelmet.gltf"));
+			//registry->emplaceComponent<TransformComponent>(flight_helmet, glm::vec3{ 0.0, -2.0, 0.0 }, glm::vec3{ 0.0, 0.0, 0.0 }, glm::vec3{ 3.0, 3.0, 3.0 });
 
 
 			registry->emplaceComponent<MeshComponent>(sponza, AssetLoader::loadMeshComponent("..\\..\\assets\\GLTF_models\\Sponza\\Sponza.gltf"));

@@ -27,5 +27,3 @@
 #include "Veist/Util/Logger.h"
 #include "Veist/Graphics/Vulkan/VkCheck.h"
 #include "Veist/Core/Timestep.h"
-
-

@@ -1,6 +1,7 @@
 #pragma once
 
 
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
 
 namespace Veist
@@ -38,6 +39,11 @@ namespace Veist
 		{
 			glm::mat4 model = {};
 			glm::mat4 normal = {};
+		};
+
+		struct ShadowMapData
+		{
+			glm::mat4 lightspace = {};
 		};
 
 

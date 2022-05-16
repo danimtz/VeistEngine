@@ -10,6 +10,7 @@ static VkSamplerAddressMode getAddressMode(SamplerType type) {
 	switch (type) {
 		case SamplerType::ClampLinear:
 		case SamplerType::ClampPoint:
+		case SamplerType::Shadow:
 			return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
 
 		case SamplerType::RepeatLinear:
@@ -26,6 +27,7 @@ static VkFilter getFilter(SamplerType type) {
 	switch (type) {
 	case SamplerType::ClampLinear:
 	case SamplerType::RepeatLinear:
+	case SamplerType::Shadow:
 		return VK_FILTER_LINEAR;
 
 	case SamplerType::RepeatPoint:
@@ -41,6 +43,7 @@ static VkSamplerMipmapMode getMipmapMode(SamplerType type) {
 	switch (type) {
 	case SamplerType::ClampLinear:
 	case SamplerType::RepeatLinear:
+	case SamplerType::Shadow:
 		return VK_SAMPLER_MIPMAP_MODE_LINEAR;
 
 	case SamplerType::ClampPoint:
@@ -74,8 +77,9 @@ static VkSamplerCreateInfo createSamplerInfo(SamplerType type)
 
 	info.maxAnisotropy = gpuinfo.properties.limits.maxSamplerAnisotropy;
 	info.anisotropyEnable = VK_FALSE;
-	//info.compareEnable = type == SamplerType::Shadow;
-	//info.compareOp = VK_COMPARE_OP_GREATER;
+
+	info.compareEnable = (type == SamplerType::Shadow);
+	info.compareOp = VK_COMPARE_OP_LESS;
 
 	return info;
 }

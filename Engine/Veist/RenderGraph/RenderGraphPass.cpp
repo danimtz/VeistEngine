@@ -159,7 +159,7 @@ namespace RenderGraph
 				binding_num++;
 			}
 
-			m_descriptor_sets.emplace_back(desc_set_template.first, descriptor_bindings); //set number, bindings
+			m_descriptor_sets.emplace_back(descriptor_bindings, desc_set_template.first); //set number, bindings
 		}
 
 

@@ -35,7 +35,7 @@ namespace VeistEditor
             //Send event
             EditorSceneChangedEvent event(m_active_scene.get());
             EditorApp::get().processEvent(event);
-            RenderModule::setECSRegistry(m_active_scene->ecsRegistry());//TOOD Change the need to use this function when renderer reworked into framegraph
+
             m_scene_loaded = true; //Might need a lock for concurrency
         });
     }
@@ -47,7 +47,7 @@ namespace VeistEditor
         double previousTime = glfwGetTime();
         int frameCount = 0;
 
-        auto& render_backend = RenderModule::getBackend();
+        auto render_backend = RenderModule::getBackend();
 
         
         loadScene();
@@ -115,8 +115,7 @@ namespace VeistEditor
         m_active_scene = std::make_unique<Scene>();//TEMPORARY
 
         
-        RenderModule::setECSRegistry(m_active_scene->ecsRegistry());
-
+        
         m_ui_panels = std::make_unique<PanelManager>();
 
         m_ui_panels->addPanel<EngineViewportPanel>();

@@ -29,7 +29,19 @@ enum class DepthTest {
 	ReadWrite = Read | Write
 };
 
+enum class PolygonMode
+{
+	Fill = 0,
+	Line = 1,
+	Point = 2
+};
 
+enum class CullMode
+{
+	None = 0,
+	Front = 1,
+	Back = 2
+};
 class GraphicsPipeline
 {
 public:
@@ -59,7 +71,6 @@ public:
 
 	//Create graphics pipeline builder, but dont build the pipeline yet. lazy initialization of vkPipeline
 	GraphicsPipelineBuilder(const MaterialSettings& settings, VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
-		VkPolygonMode polygon_mode = VK_POLYGON_MODE_FILL, VkCullModeFlags cull_mode = VK_CULL_MODE_BACK_BIT,/*VK_CULL_MODE_BACK_BIT*//*VK_CULL_MODE_NONE*/
 		VkFrontFace front_face = VK_FRONT_FACE_COUNTER_CLOCKWISE);
 
 	

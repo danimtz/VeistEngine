@@ -23,7 +23,7 @@ namespace Veist
 {
 
 	//TODO MOVE THIS ELSEWHERE
-	EngineResources::MaterialTypes CURRENT_MATERIAL_TYPE = EngineResources::MaterialTypes::DeferredGBufferMaterial;
+	//EngineResources::MaterialTypes CURRENT_MATERIAL_TYPE = EngineResources::MaterialTypes::DeferredGBufferMaterial;
 	//EngineResources::MaterialTypes CURRENT_MATERIAL_TYPE = EngineResources::MaterialTypes::PBRMaterial;
 
 
@@ -524,7 +524,7 @@ namespace Veist
 			//compute_descriptor.bindCombinedSamplerImage(0, &equirect, { SamplerType::RepeatLinear });
 			//compute_descriptor.bindStorageImage(1, &cubemap);
 			//compute_descriptor.buildDescriptorSet();
-			DescriptorSet compute_descriptor{ 0, bindings };
+			DescriptorSet compute_descriptor{ bindings };
 
 
 
@@ -581,7 +581,7 @@ namespace Veist
 			//compute_descriptor.bindCombinedSamplerImage(0, &equirect, { SamplerType::RepeatLinear });
 			//compute_descriptor.bindStorageImage(1, &cubemap);
 			//compute_descriptor.buildDescriptorSet();
-			DescriptorSet compute_descriptor{ 0, bindings };
+			DescriptorSet compute_descriptor{ bindings };
 
 			CommandBuffer cmd_buff = RenderModule::getBackend()->createComputeQueueCmdBuffer();
 			cmd_buff.calcSizeAndDispatch(compute_program, compute_descriptor, img_size);
@@ -677,7 +677,7 @@ namespace Veist
 	
 
 		//TODO change how material type is selected here
-		return std::make_shared<Material>(RenderModule::resources()->getMaterialType(EngineResources::MaterialTypes::DeferredGBufferMaterial), MaterialData({albedo, normal, occlusionRoughnessMetallic, emmissive}));
+		return std::make_shared<Material>( MaterialData({albedo, normal, occlusionRoughnessMetallic, emmissive}));
 		//return std::make_shared<Material>(RenderModule::resources()->getMaterialType(EngineResources::MaterialTypes::PBRMaterial), MaterialData({ albedo, normal, occlusionRoughnessMetallic, emmissive }));
 
 	}
@@ -707,7 +707,9 @@ namespace Veist
 		std::shared_ptr<Cubemap> cubemap = AssetLoader::loadCubemapFromFiles(posx.c_str(), negx.c_str(), posy.c_str(), negy.c_str(), posz.c_str(), negz.c_str(), { VK_FORMAT_R8G8B8A8_SRGB });
 		CONSOLE_LOG(" ===================== CUBEMAP TEXTURE");
 	
-		return  std::make_shared<Material>(RenderModule::resources()->getMaterialType(EngineResources::MaterialTypes::SkyboxMaterial), MaterialData({cubemap}));
+		auto type = RenderModule::resources()->getMaterialType(EngineResources::MaterialTypes::SkyboxMaterial);
+		
+		return  std::make_shared<Material>( MaterialData({cubemap}));
 	}
 
 
@@ -718,8 +720,9 @@ namespace Veist
 
 		std::shared_ptr<Cubemap> cubemap = AssetLoader::loadCubemapFromEquirectMap(filepath.c_str());
 
+		auto type = RenderModule::resources()->getMaterialType(EngineResources::MaterialTypes::SkyboxMaterial);
 
-		return  std::make_shared<Material>(RenderModule::resources()->getMaterialType(EngineResources::MaterialTypes::SkyboxMaterial), MaterialData({ cubemap }));
+		return  std::make_shared<Material>( MaterialData({ cubemap }) );
 
 	}
 
@@ -968,9 +971,8 @@ namespace Veist
 		
 
 		//Create submesh
-		MaterialType* mat_type = RenderModule::resources()->getMaterialType(CURRENT_MATERIAL_TYPE);
 		std::shared_ptr<Mesh> mesh_ptr = std::make_shared<Mesh>(mesh_data);
-		std::shared_ptr<Material> material_ptr = std::make_shared<Material>(mat_type , MaterialData(material_textures));
+		std::shared_ptr<Material> material_ptr = std::make_shared<Material>( MaterialData(material_textures));
 		sub_meshes.emplace_back(mesh_ptr, material_ptr);
 
 	}

@@ -19,6 +19,8 @@ namespace Veist
 			BillboardMaterial,
 
 			EditorTargetSelectMaterial,
+			WireframeMaterial,
+			ShadowMapMaterial,
 
 			MaxMaterialTypes
 		};

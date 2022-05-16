@@ -6,7 +6,7 @@ namespace Veist
 {
 
 
-	Material::Material(MaterialType* type, MaterialData data) : m_material_type(type), m_material_data(data)
+	Material::Material(MaterialData data) : /*m_material_type(type),*/ m_material_data(data)
 	{
 	/*
 		m_descriptor_set.setDescriptorSetLayout( type->descSetNumber(), type->pipelineBuilder());
@@ -28,7 +28,7 @@ namespace Veist
 			bindings.emplace_back(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, image.get(), SamplerType::RepeatLinear);
 		}
 
-		m_descriptor_set = std::make_unique<DescriptorSet>(type->descSetNumber(), bindings);
+		m_descriptor_set = std::make_unique<DescriptorSet>(bindings);
 	}
 	
 

@@ -59,7 +59,7 @@ namespace Veist
 			DescriptorSetPool* m_pool; //Which pool corresponds to descriptor set layout
 		};
 
-		DescriptorSet(uint32_t set_number, std::vector<Descriptor>& descriptor_bindings);
+		DescriptorSet( std::vector<Descriptor>& descriptor_bindings, uint32_t set_number = 0);
 		~DescriptorSet();
 
 		uint32_t setNumber() const {return m_set_number;};

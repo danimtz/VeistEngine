@@ -16,7 +16,7 @@ namespace Veist
 		glfwInit();
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 		glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
-		m_window_handle = glfwCreateWindow(1280, 720, name.c_str(), nullptr, nullptr);
+		m_window_handle = glfwCreateWindow(width, height, name.c_str(), nullptr, nullptr);
 		glfwSetWindowSizeLimits(m_window_handle, 100, 100, GLFW_DONT_CARE, GLFW_DONT_CARE);
 
 		m_data.width = width;
