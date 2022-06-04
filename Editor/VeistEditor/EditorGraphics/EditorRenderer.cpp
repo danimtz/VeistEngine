@@ -220,7 +220,7 @@ namespace Veist
 
 
 
-	EditorRenderer EditorRenderer::createRenderer(RenderGraph::RenderGraph& render_graph, ecs::EntityRegistry* scene_registry, const glm::vec2& size, uint32_t view_target, uint32_t fill_type, uint32_t renderer_type)
+	EditorRenderer EditorRenderer::createRenderer(RenderGraph::RenderGraph& render_graph, ecs::EntityRegistry* scene_registry, const glm::vec2& size, RendererSettings* settings, uint32_t view_target, uint32_t fill_type, uint32_t renderer_type)
 	{
 		EditorRenderer editor_renderer;
 
@@ -232,7 +232,7 @@ namespace Veist
 
 			if (renderer_type == 1)
 			{
-				editor_renderer.m_renderer = DeferredRenderer::createRenderer(render_graph, scene_registry, size);
+				editor_renderer.m_renderer = DeferredRenderer::createRenderer(render_graph, scene_registry, size, settings);
 				addEditorBillboardPass(render_graph, scene_registry, editor_renderer);
 				addTargetSelectionPass(render_graph, scene_registry, editor_renderer, view_target);
 

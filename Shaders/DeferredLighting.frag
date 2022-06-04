@@ -1,7 +1,7 @@
 #version 460
 
-#include "utils/brdf.glsl"
 #include "utils/utils.glsl"
+#include "utils/brdf.glsl"
 #include "utils/shadows.glsl"
 
 #define MAX_DIR_LIGHTS 4
@@ -92,14 +92,6 @@ float calcAttenuation(float radius, vec3 light_pos, vec3 fragPos){
 }
 
 
-vec3 positionFromDepth(vec2 uv, float depth, mat4 inv_mat)
-{
-	vec4 ndc_pos = vec4(uv*2.0-1.0, depth, 1.0);
-	vec4 view_space_pos = inv_mat * ndc_pos;
-	//perpesctive divide
-	vec4 pos = view_space_pos/view_space_pos.w;
-	return pos.xyz;
-}
 
 
 

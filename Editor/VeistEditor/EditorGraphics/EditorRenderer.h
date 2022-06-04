@@ -20,7 +20,8 @@ namespace Veist
 	{
 	public:
 		
-		static EditorRenderer createRenderer(RenderGraph::RenderGraph& render_graph, ecs::EntityRegistry* scene_registry, const glm::vec2& size, uint32_t view_target, uint32_t fill_type, uint32_t renderer_type);
+		static EditorRenderer createRenderer(RenderGraph::RenderGraph& render_graph, ecs::EntityRegistry* scene_registry, const glm::vec2& size, 
+												RendererSettings* settings, uint32_t view_target, uint32_t fill_type, uint32_t renderer_type);
 
 		void* getImGuiTextureId();
 

@@ -9,9 +9,11 @@
 
 #include "Veist/RenderGraph/RenderGraph.h"
 
+#include "VeistEditor/EditorGraphics/EditorRenderer.h"
+
 namespace VeistEditor
 {
-
+	
 
 	class EngineViewportPanel : public GUIPanel
 	{
@@ -75,6 +77,9 @@ namespace VeistEditor
 
 
 		float m_aspect_ratio;
+
+
+		std::unique_ptr<Veist::RendererSettings> m_renderer_settings;
 
 		DeferredTarget m_view_target;
 		ObjectFill m_fill_type;

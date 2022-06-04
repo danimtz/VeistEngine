@@ -13,6 +13,7 @@ namespace Veist
 		{
 		case EngineResources::MaterialTypes::DeferredLightingMaterial: //Quad
 		case EngineResources::MaterialTypes::EditorTargetSelectMaterial: //Quad
+		case EngineResources::MaterialTypes::SSAOMaterial: //Quad
 			return VertexDescription();
 
 
@@ -95,7 +96,6 @@ namespace Veist
 		GBuffer.vertex_shader_name = "GBuffer.vert";
 		GBuffer.fragment_shader_name = "GBuffer.frag";
 		GBuffer.depth_setting = DepthTest::ReadWrite;
-		//GBuffer.polygon_mode = PolygonMode::Line;
 
 		MaterialSettings DeferredLighting = {};
 		DeferredLighting.vertex_description = getVertexDescription(EngineResources::MaterialTypes::DeferredLightingMaterial); //This is for vertex description generation
@@ -143,6 +143,13 @@ namespace Veist
 		Shadowmap.cull_mode = CullMode::Front;
 		Shadowmap.depth_setting = DepthTest::Write;
 
+		MaterialSettings SSAO = {};
+		SSAO.vertex_description = getVertexDescription(EngineResources::MaterialTypes::SSAOMaterial); //This is for vertex description generation
+		SSAO.attachment_count = 1;
+		SSAO.vertex_shader_name = "FullScreenQuad.vert";
+		SSAO.fragment_shader_name = "SSAObasic.frag";
+		SSAO.depth_setting = DepthTest::None;
+
 
 		material_settings.emplace_back(PBRForward);
 		material_settings.emplace_back(Skybox);
@@ -152,6 +159,8 @@ namespace Veist
 		material_settings.emplace_back(EditorTargetSelect);
 		material_settings.emplace_back(Wireframe);
 		material_settings.emplace_back(Shadowmap);
+		material_settings.emplace_back(SSAO);
+
 	}
 
 

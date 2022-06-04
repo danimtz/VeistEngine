@@ -44,6 +44,7 @@ namespace Veist
 		struct ShadowMapData
 		{
 			glm::mat4 lightspace = {};
+			uint32_t map_size = {};
 		};
 
 

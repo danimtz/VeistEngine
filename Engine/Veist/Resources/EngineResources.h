@@ -21,6 +21,7 @@ namespace Veist
 			EditorTargetSelectMaterial,
 			WireframeMaterial,
 			ShadowMapMaterial,
+			SSAOMaterial,
 
 			MaxMaterialTypes
 		};

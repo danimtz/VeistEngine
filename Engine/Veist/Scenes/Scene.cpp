@@ -53,7 +53,7 @@ namespace Veist
 
 			
 			registry->emplaceComponent<MeshComponent>(helmet, AssetLoader::loadMeshComponent("..\\..\\assets\\GLTF_models\\DamagedHelmet\\DamagedHelmet.gltf"));
-			registry->emplaceComponent<TransformComponent>(helmet, glm::vec3{ -1.0, 0.0, 0.0 }, glm::vec3{ 90.0, 90.0, 0.0 }, glm::vec3{ 0.2, 0.2, 0.2 });
+			registry->emplaceComponent<TransformComponent>(helmet, glm::vec3{ -1.0, -1.6, 0.0 }, glm::vec3{ 90.0, 90.0, 0.0 }, glm::vec3{ 0.2, 0.2, 0.2 });
 
 			//registry->emplaceComponent<MeshComponent>(flight_helmet, AssetLoader::loadMeshComponent("..\\..\\assets\\GLTF_models\\FlightHelmet\\FlightHelmet.gltf"));
 			//registry->emplaceComponent<TransformComponent>(flight_helmet, glm::vec3{ 0.0, -2.0, 0.0 }, glm::vec3{ 0.0, 0.0, 0.0 }, glm::vec3{ 3.0, 3.0, 3.0 });

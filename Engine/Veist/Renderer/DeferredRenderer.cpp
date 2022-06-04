@@ -13,7 +13,6 @@ namespace Veist
 
 //TODO put this in renderer settings or something
 
-	static glm::mat4 shadow_ortho_mat = glm::ortho<float>(-20, 20, -20, 20, -20, 20);
 
 	static LightProbeComponent* getLightProbe(ecs::EntityRegistry* registry)
 	{
@@ -123,10 +122,8 @@ namespace Veist
 	static void addShadowMapPass(RenderGraph::RenderGraph& render_graph, ecs::EntityRegistry* scene_registry, DeferredRenderer& renderer)
 	{
 
-		
-
 		RenderGraph::ImageInfo shadow_map_info;
-		glm::vec2 map_size = {renderer.m_shadow_map_size, renderer.m_shadow_map_size};
+		glm::vec2 map_size = {renderer.m_settings->m_shadow_map_size, renderer.m_settings->m_shadow_map_size};
 		shadow_map_info.properties = ImageProperties(map_size, { VK_FORMAT_D32_SFLOAT });
 
 
@@ -176,7 +173,8 @@ namespace Veist
 
 				RendererUniforms::CameraData camera_data;
 				
-				camera_data.view_projection = shadow_ortho_mat * light_lookat;
+				float bounds = renderer.m_settings->m_ortho_bounds;
+				camera_data.view_projection = glm::ortho<float>(-bounds, bounds, -bounds, bounds, -bounds, bounds) * light_lookat;
 
 				pass->getPhysicalBuffer(camera_buffer)->setData(&camera_data, sizeof(RendererUniforms::CameraData));
 			}
@@ -193,6 +191,53 @@ namespace Veist
 
 				}
 			}
+		
+		});
+
+	}
+
+
+
+	static void addSSAOPass(RenderGraph::RenderGraph& render_graph, ecs::EntityRegistry* scene_registry, DeferredRenderer& renderer)
+	{
+
+		RenderGraph::BufferInfo ssao_samples_buffer_info;
+		ssao_samples_buffer_info.size = sizeof(glm::vec3) * renderer.m_settings->m_ssao_settings.m_sample_count;
+
+		RenderGraph::ImageInfo gbuffer_ORM_image_info;
+		gbuffer_ORM_image_info.properties = ImageProperties(renderer.m_size, { VK_FORMAT_R8G8B8A8_SRGB });
+
+
+
+		auto builder = render_graph.addPass("SSAOPass");
+
+
+
+		builder.addUniformInput("camera_buffer");
+		builder.addTextureInput("gbuffer_normal");
+		builder.addTextureInput("gbuffer_depth_attachment");
+		builder.addExternalInput("SSAO_noise_texture", Descriptor(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, renderer.m_settings->m_ssao_settings.m_noise_texture.get(), {SamplerType::RepeatPoint}));
+		auto ssao_samples_buffer = builder.addUniformInput("SSAO_samples_buffer", ssao_samples_buffer_info);
+
+		builder.addColorOutput("gbuffer_SSAO_rough_metal", gbuffer_ORM_image_info, "gbuffer_occ_rough_metal");
+
+		builder.setRenderFunction([=](CommandBuffer& cmd, const RenderGraph::RenderGraphPass* pass) {
+		
+			
+			//Could do a check for PostProcessing volume component, else default
+			
+			pass->getPhysicalBuffer(ssao_samples_buffer)->setData(renderer.m_settings->m_ssao_settings.m_ssao_samples.data(), sizeof(glm::vec3) * renderer.m_settings->m_ssao_settings.m_sample_count);
+		
+			cmd.bindMaterialType(EngineResources::MaterialTypes::SSAOMaterial);
+
+			cmd.bindDescriptorSet(pass->getDescriptorSets()[0]);
+
+			glm::vec2 noise_scale = renderer.m_size / (float)renderer.m_settings->m_ssao_settings.m_noise_texture_size;
+
+			cmd.setPushConstants(&noise_scale, sizeof(noise_scale));
+
+			cmd.drawVertices(3);
+		
 		
 		});
 
@@ -234,7 +279,7 @@ namespace Veist
 
 		builder.addTextureInput("gbuffer_albedo");
 		builder.addTextureInput("gbuffer_normal");
-		builder.addTextureInput("gbuffer_occ_rough_metal");
+		builder.addTextureInput("gbuffer_SSAO_rough_metal");
 		//builder.addTextureInput("gbuffer_emmissive");
 
 		builder.addTextureInput("gbuffer_depth_attachment");//TODO adding these two lines should create layout DEPTH_STENCIL_READ_ONLY_OPTIMAL
@@ -330,7 +375,9 @@ namespace Veist
 					glm::vec3 up = glm::vec3{ 0.0f, -1.0f, 0.0f };
 					glm::mat4 light_lookat = glm::lookAt(eye, center, up);
 
-					shadow_map_data[light_count].lightspace = shadow_ortho_mat * light_lookat;
+					float bounds = renderer.m_settings->m_ortho_bounds;
+					shadow_map_data[light_count].lightspace = glm::ortho<float>(-bounds, bounds, -bounds, bounds, -bounds, bounds) * light_lookat;
+					shadow_map_data[light_count].map_size = renderer.m_settings->m_shadow_map_size;
 
 					light_count++;
 				}
@@ -419,13 +466,15 @@ namespace Veist
 	}
 
 
-	DeferredRenderer DeferredRenderer::createRenderer(RenderGraph::RenderGraph& render_graph, ecs::EntityRegistry* scene_registry, const glm::vec2& size)
+	DeferredRenderer DeferredRenderer::createRenderer(RenderGraph::RenderGraph& render_graph, ecs::EntityRegistry* scene_registry, const glm::vec2& size, RendererSettings* settings)
 	{
 		DeferredRenderer deferred_renderer;
 
 		deferred_renderer.m_size = size;
+		deferred_renderer.m_settings = settings;
 
 		addGBufferPass(render_graph, scene_registry, deferred_renderer);
+		addSSAOPass(render_graph, scene_registry, deferred_renderer);
 		addShadowMapPass(render_graph, scene_registry, deferred_renderer);
 		addLightingPass(render_graph, scene_registry, deferred_renderer);
 		addSkyboxPass(render_graph, scene_registry, deferred_renderer);

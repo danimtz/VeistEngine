@@ -7,7 +7,6 @@
 
 //#include "Veist/Renderer/BasicRenderer.h"
 //#include "Veist/Renderer/DeferredRenderer.h"
-#include "VeistEditor/EditorGraphics/EditorRenderer.h"
 
 //TEMPORARY, replace with renderer alter that uses the rendergraph
 
@@ -27,7 +26,7 @@ namespace VeistEditor
 	{
 		
 	
-
+		m_renderer_settings = std::make_unique<Veist::RendererSettings>();
 		m_resource_pool = std::make_shared<RenderGraph::ResourcePool>();
 
 		
@@ -161,7 +160,7 @@ namespace VeistEditor
 
 		RenderGraph::RenderGraph render_graph(m_resource_pool);
 
-		EditorRenderer renderer = EditorRenderer::createRenderer(render_graph, m_active_scene->ecsRegistry(), m_viewport_size, uint32_t(m_view_target), uint32_t(m_fill_type), uint32_t(m_renderer_type));
+		EditorRenderer renderer = EditorRenderer::createRenderer(render_graph, m_active_scene->ecsRegistry(), m_viewport_size, m_renderer_settings.get(), uint32_t(m_view_target), uint32_t(m_fill_type), uint32_t(m_renderer_type));
 		
 		render_graph.execute(RenderModule::getBackend()->getCurrentCmdBuffer());
 	
