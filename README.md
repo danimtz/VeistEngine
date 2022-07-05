@@ -1,5 +1,5 @@
 # VeistEngine
-Veist is a vulkan rendering engine written with the objective of learning how the basics of the graphics API.  
+Veist is a vulkan rendering engine written with the objective of learning how the basics of the graphics API and game engines.  
 Currently a work in progress, it has several features already such as a working proof of concept editor, a rendergraph system to easily setup the rendering
 architecture and automatically handle and manage device resources. Simple deferred and forward rendering have been implemented, with clustered/forward+ to be implemented soon on the renderer side. The engine and editor themselves are also a work in progress.
 
@@ -13,7 +13,7 @@ architecture and automatically handle and manage device resources. Simple deferr
 - ImGUI based dditor built as a separate program
 - Entity component system
 - Movable transform components
-- RenderGraph rendering system
+- RenderGraph rendering system (Allows renderer architecture to be swapped mid program from deferred to forward)
 
 ### Renderer:
 - Deferred fenderer
@@ -23,8 +23,13 @@ architecture and automatically handle and manage device resources. Simple deferr
 - Physically Based Rendering (Cook Torrance BRDF)
 - Image-Based Lighting (calculates diffuse irradince maps, BRDF LUTs and pre-filtered environment map using compute shaders)
 - Cubemapped skybox
+- ShadowMapping
+
 
 ## Example images:
+**Editor and Sponza scene loaded. Shadow mapping and render target options**  
+<img src="https://raw.githubusercontent.com/danimtz/VulkanEngine/master/assets/RenderImages/Shadowmapping.PNG" width="950" height=100%> 
+
 **Editor and Sponza scene loaded. Deferred PBR renderer with point and directional lights. 2D billboard icons for lights (no shadows yet)**     
 <img src="https://raw.githubusercontent.com/danimtz/VulkanEngine/master/assets/RenderImages/Editor.PNG" width="950" height=100%>     
 
@@ -33,6 +38,14 @@ architecture and automatically handle and manage device resources. Simple deferr
 
 **Simple PBR shading with directional light(sun) and two point lights (older)**     
 <img src="https://raw.githubusercontent.com/danimtz/VulkanEngine/master/assets/RenderImages/SkyBox_PBRtest2.PNG" alt="Skybox sample" width="950" height=100%>     
+
+
+## Download:
+Although the project is fully for educational purposes feel free to download it if you so want. I cant guarantee it will fully function. Once cloned, cmake can be used to build the project however a few errors might show up:
+- Make sure to "git submodule init" and "git submodule update" to initialize a few of the libraries.
+- In Cmake untick SPIRV_CROSS_ENABLE_TEST if it is enabled.
+- If the project gives errors when running about missing shader files, the working directory of the Editor project might be one directory out. It should be in VeistEngine/bin/XXXXX(Debug, Release etc...).
+
 
 ## Resources:
  Main resources being used are:
